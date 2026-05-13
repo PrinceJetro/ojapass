@@ -72,7 +72,7 @@ def recalculate_ojascore(user_id):
         total_contributions = sum(m.cycles_completed + m.cycles_defaulted for m in ajo_memberships)
         total_defaults = sum(m.cycles_defaulted for m in ajo_memberships)
         if total_contributions == 0:
-            repayment_score = 8.0
+            repayment_score = 0.0
         else:
             repayment_rate  = 1.0 - (total_defaults / total_contributions)
             repayment_score = min(repayment_rate * 10.0, 10.0)
