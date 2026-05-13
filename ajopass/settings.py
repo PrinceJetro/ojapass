@@ -34,14 +34,14 @@ ALLOWED_HOSTS = [
     "*",
     ".ngrok-free.app",
     ".ngrok.io",
-    "https://quiet-truth-botch.ngrok-free.dev"
+    "https://ojapass.onrender.com"
 ]
 
 # Squad API Settings
 SQUAD_SECRET_KEY = os.getenv("SQUAD_SECRET_KEY", "sandbox_sk_b00ae5daf0f49cacd4fcb4f9b2ff9a3b30643fc09143")
-SITE_BASE_URL = "https://quiet-truth-botch.ngrok-free.dev" # CHANGE THIS to your ngrok URL for live callbacks
+SITE_BASE_URL = "https://ojapass.onrender.com" # CHANGE THIS to your ngrok URL for live callbacks
 CSRF_TRUSTED_ORIGINS = [
-    "https://quiet-truth-botch.ngrok-free.dev"
+    "https://ojapass.onrender.com"
 ]
 
 # Application definition

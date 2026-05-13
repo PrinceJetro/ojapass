@@ -25,7 +25,7 @@ from ..services.oja_score import recalculate_ojascore
 # SITE_BASE_URL = "https://your-ngrok-url.ngrok-free.dev"
 SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
 SQUAD_BASE_URL = getattr(settings, 'SQUAD_BASE_URL', 'https://sandbox-api-d.squadco.com')
-SITE_BASE_URL = getattr(settings, 'SITE_BASE_URL', 'https://quiet-truth-botch.ngrok-free.dev')
+SITE_BASE_URL = getattr(settings, 'SITE_BASE_URL', 'https://ojapass.onrender.com')
 
 
 # ---------------------------------------------------------------------------
@@ -385,4 +385,4 @@ class SavingsGoalView(LoginRequiredMixin, View):
             "message": f"Savings goal '{goal.name}' created successfully!",
         })
 
-
+
