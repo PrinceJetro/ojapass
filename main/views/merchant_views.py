@@ -84,13 +84,32 @@ class ProductListView(LoginRequiredMixin, View):
         total_count = products.count()
         health_percentage = ((total_count - low_stock_count) / total_count * 100) if total_count > 0 else 100
         
+        # Sales Trend (Last 7 Days)
+        from django.db.models.functions import TruncDate
+        today = timezone.now().date()
+        seven_days_ago = today - timedelta(days=6)
+        sales_trend = Sale.objects.filter(
+            user=user, 
+            created_at__date__gte=seven_days_ago
+        ).annotate(day_date=TruncDate('created_at')).values('day_date').annotate(total=Sum('amount')).order_by('day_date')
+        
+        trend_map = {str(s['day_date']): float(s['total']) for s in sales_trend}
+        trend_labels = []
+        trend_values = []
+        for i in range(6, -1, -1):
+            d = today - timedelta(days=i)
+            trend_labels.append(d.strftime('%b %d'))
+            trend_values.append(trend_map.get(str(d), 0.0))
+
         context = {
             'products': products,
             'potential_profit': float(total_potential_profit),
             'fastest_moving': fastest_moving,
             'low_stock_count': low_stock_count,
             'health_percentage': health_percentage,
-            'total_count': total_count
+            'total_count': total_count,
+            'trend_labels': trend_labels,
+            'trend_values': trend_values
         }
         return render(request, 'productsinventry.html', context)
     

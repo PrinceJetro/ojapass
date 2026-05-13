@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Mamatally Dashboard | OjaPass{% endblock %}
 
@@ -92,8 +93,8 @@
             <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] opacity-10">inventory_2</span>
             <div class="relative z-10">
                 <h4 class="font-label-lg text-label-lg uppercase opacity-80">Total Inventory Value</h4>
-                <p class="font-display-md text-display-md mt-sm">₦{{ total_inventory_value|floatformat:0 }}</p>
-                <p class="font-label-lg text-label-lg mt-md opacity-90">Turnover: <span class="font-bold text-white">₦{{ monthly_turnover|floatformat:2 }} / mo</span></p>
+                <p class="font-display-md text-display-md mt-sm">₦{{ total_inventory_value|floatformat:0|intcomma }}</p>
+                <p class="font-label-lg text-label-lg mt-md opacity-90">Turnover: <span class="font-bold text-white">₦{{ monthly_turnover|floatformat:2|intcomma }} / mo</span></p>
             </div>
             <div class="mt-lg relative z-10">
                 <a href="{% url 'mamatally_products' %}" class="inline-flex items-center gap-xs font-label-lg text-primary-fixed hover:underline">
@@ -113,7 +114,7 @@
             {% for d in daily_revenue_list %}
             <div class="w-full flex flex-col items-center gap-sm group">
                 <div class="w-full bg-tertiary/20 group-hover:bg-primary transition-all relative" style="height: {{ d.height }}%">
-                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface p-1 rounded border border-outline-variant text-[10px] hidden group-hover:block z-10">₦{{ d.amount|floatformat:0 }}</div>
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface p-1 rounded border border-outline-variant text-[10px] hidden group-hover:block z-10">₦{{ d.amount|floatformat:0|intcomma }}</div>
                 </div>
                 <span class="font-label-sm text-label-sm">{{ d.day }}</span>
             </div>
@@ -121,7 +122,7 @@
         </div>
         <div class="mt-xl pt-xl border-t border-outline-variant/10">
             <p class="font-label-lg text-label-lg text-on-surface-variant">Today's Revenue</p>
-            <p class="font-headline-lg text-headline-lg">₦{{ today_revenue|floatformat:0 }}</p>
+            <p class="font-headline-lg text-headline-lg">₦{{ today_revenue|floatformat:0|intcomma }}</p>
         </div>
     </section>
 
@@ -151,7 +152,7 @@
                             <p class="font-label-lg">{{ s.product.name }}</p>
                             <p class="font-label-sm text-on-surface-variant">Qty: {{ s.quantity }}</p>
                         </td>
-                        <td class="px-lg py-lg font-headline-md text-primary">₦{{ s.amount }}</td>
+                        <td class="px-lg py-lg font-headline-md text-primary">₦{{ s.amount|intcomma }}</td>
                         <td class="px-lg py-lg text-right">
                             <span class="bg-primary/10 text-primary px-md py-xs rounded-full font-label-sm">{{ s.payment_method|title }}</span>
                         </td>
@@ -334,6 +335,8 @@ async function logRestock() {
         return;
     }
 
+    if (!confirm(`Are you sure you want to log a restock of ${qty} items?`)) return;
+
     try {
         const response = await fetch('/mamatally/restock/', {
             method: 'POST',
@@ -365,6 +368,8 @@ async function addNewProduct() {
         alert("Please fill required fields");
         return;
     }
+
+    if (!confirm(`Do you want to add the new product "${name}" to your inventory?`)) return;
 
     try {
         const response = await fetch('/mamatally/products/', {

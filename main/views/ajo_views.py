@@ -232,3 +232,20 @@ class UserAjoHistoryView(LoginRequiredMixin, View):
 class ScoreNarrativeView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'ojascore_narrative.html', {'user': request.user})
+
+class FundWalletView(LoginRequiredMixin, View):
+    def post(self, request):
+        amount = request.POST.get('amount', 0)
+        try:
+            amount = Decimal(str(amount))
+            if amount > 0:
+                user = request.user
+                user.wallet_balance += amount
+                user.save()
+                Notification.objects.create(
+                    user=user,
+                    message=f"Wallet funded with ₦{amount} successfully."
+                )
+        except:
+            pass
+        return redirect('ajo_list')

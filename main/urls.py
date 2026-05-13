@@ -9,7 +9,7 @@ from .views import (
     ProductDetailView, SaleListView, OrderListView, OrderDetailView,
     StorefrontView, StorefrontCheckoutView, NotificationListView,
     LogRestockView, StockMovementListView,
-    AjoGroupListView, AjoGroupDetailView, AjoJoinView, AjoContributeView, AjoDisbursementView, UserAjoHistoryView,
+    AjoGroupListView, AjoGroupDetailView, AjoJoinView, AjoContributeView, AjoDisbursementView, UserAjoHistoryView, FundWalletView,
     GigListView, GigMatchView, GigApplyView, GigStatusUpdateView, GigAcceptAndEscrowView, GigEscrowPaymentView,
     PayrollBatchView, ScoreNarrativeView, ScoreNarrativeAPIView, LoanDashboardView, LoanApplyView, LoanRepaymentView,
     SavingsGoalView, LenderDashboardView, GovernmentDashboardView
@@ -69,6 +69,7 @@ urlpatterns = [
     path('ajo/<int:pk>/contribute/', AjoContributeView.as_view(), name='ajo_contribute'),
     path('ajo/<int:pk>/disburse/', AjoDisbursementView.as_view(), name='ajo_disburse'),
     path('ajo/history/', UserAjoHistoryView.as_view(), name='ajo_history'),
+    path('ajo/fund/', FundWalletView.as_view(), name='fund_wallet'),
     path('loans/', LoanDashboardView.as_view(), name='loans'),
     path('loans/apply/<int:offer_id>/', LoanApplyView.as_view(), name='loan_apply'),
     path('loans/<int:loan_id>/repay/', LoanRepaymentView.as_view(), name='loan_repay'),

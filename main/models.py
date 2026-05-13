@@ -40,6 +40,7 @@ class OjaUser(AbstractBaseUser, PermissionsMixin):
     ojapass_narrative = models.TextField(blank=True, null=True)
     virtual_account_number = models.CharField(max_length=20, blank=True, null=True)
     bank_name = models.CharField(max_length=50, default='GTBank')
+    wallet_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
     # Business Fields
     business_name = models.CharField(max_length=255, blank=True, null=True)
@@ -132,6 +133,7 @@ class Sale(models.Model):
     description = models.TextField(blank=True, null=True)
     payment_method = models.CharField(max_length=50, default='squad')
     transaction_ref = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    status = models.CharField(max_length=20, default='success') # success, failed
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -264,6 +266,8 @@ class AjoMembership(models.Model):
     joined_at = models.DateTimeField(auto_now_add=True)
     cycles_completed = models.IntegerField(default=0)
     cycles_defaulted = models.IntegerField(default=0)
+    missed_payments = models.IntegerField(default=0)
+    last_payment_date = models.DateTimeField(null=True, blank=True)
     total_contributed = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_received = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
@@ -300,6 +304,7 @@ class AjoContribution(models.Model):
     payment_link = models.CharField(max_length=500, null=True, blank=True)
     transaction_ref = models.CharField(max_length=100, null=True, blank=True, unique=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    auto_debit_attempted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

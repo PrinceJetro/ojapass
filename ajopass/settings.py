@@ -28,21 +28,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-0zv335*$p@-@0r16+ujthdt$4_w(qos22^n(c6nqoe8yq^%p(z')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     "*",
     ".ngrok-free.app",
     ".ngrok.io",
+    "ojapass.onrender.com"
+]
+
+CSRF_TRUSTED_ORIGINS = [
     "https://ojapass.onrender.com"
 ]
 
 # Squad API Settings
 SQUAD_SECRET_KEY = os.getenv("SQUAD_SECRET_KEY", "sandbox_sk_b00ae5daf0f49cacd4fcb4f9b2ff9a3b30643fc09143")
-SITE_BASE_URL = "https://ojapass.onrender.com" # CHANGE THIS to your ngrok URL for live callbacks
-CSRF_TRUSTED_ORIGINS = [
-    "https://ojapass.onrender.com"
-]
+SITE_BASE_URL = "https://ojapass.onrender.com"
 
 # Application definition
 
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'main'
 ]
 

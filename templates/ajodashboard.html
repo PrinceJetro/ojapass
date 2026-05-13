@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Digital Ajo Dashboard{% endblock %}
 
@@ -31,12 +32,16 @@
         </div>
         <div class="flex justify-between items-end">
             <div>
-                <p class="font-label-sm text-label-sm opacity-80">Verified Since</p>
-                <p class="font-headline-md text-headline-md">{{ user.date_joined|date:"M Y" }}</p>
+                <p class="font-label-sm text-label-sm opacity-80 uppercase tracking-widest">Oja Wallet Balance</p>
+                <p class="font-display-md text-display-md">₦{{ user.wallet_balance|floatformat:0|intcomma }}</p>
+                <button onclick="showFundModal()" class="mt-sm px-md py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">add</span> Fund Wallet
+                </button>
             </div>
             <div class="text-right">
                 <p class="font-label-sm text-label-sm opacity-80">Oja ID</p>
                 <p class="font-label-lg">#PASS-{{ user.id }}-NG</p>
+                <p class="font-label-sm text-label-sm opacity-60 mt-sm">Verified Since: {{ user.date_joined|date:"M Y" }}</p>
             </div>
         </div>
     </div>
@@ -48,7 +53,7 @@
         </div>
         <div>
             <p class="font-label-sm text-label-sm text-on-surface-variant">Estimated Payout</p>
-            <p class="font-headline-lg text-headline-lg text-primary">₦{{ next_payout_amount|floatformat:0 }}</p>
+            <p class="font-headline-lg text-headline-lg text-primary">₦{{ next_payout_amount|floatformat:0|intcomma }}</p>
         </div>
     </div>
 </div>
@@ -57,7 +62,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-lg mb-xl">
     <div class="bg-surface-container-low rounded-xl p-lg flex flex-col items-center justify-center text-center">
         <p class="font-label-lg text-label-lg text-on-surface-variant">Total Contributed</p>
-        <p class="font-display-md text-display-md text-primary mt-sm">₦{{ total_saved|floatformat:0 }}</p>
+        <p class="font-display-md text-display-md text-primary mt-sm">₦{{ total_saved|floatformat:0|intcomma }}</p>
     </div>
     <div class="bg-surface-container-low rounded-xl p-lg flex flex-col items-center justify-center text-center">
         <p class="font-label-lg text-label-lg text-on-surface-variant">Active Cycles</p>
@@ -90,7 +95,7 @@
                     </div>
                     <div>
                         <h4 class="font-headline-md text-headline-md">{{ m.group.name }}</h4>
-                        <p class="font-label-sm text-label-sm text-on-surface-variant">{{ m.group.frequency|capfirst }} Contribution: ₦{{ m.group.contribution_amount }}</p>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant">{{ m.group.frequency|capfirst }} Contribution: ₦{{ m.group.contribution_amount|intcomma }}</p>
                     </div>
                 </div>
                 <span class="bg-tertiary-fixed text-on-tertiary-fixed-variant px-sm py-xs rounded-full text-xs font-bold">{{ m.group.status|capfirst }}</span>
@@ -138,7 +143,7 @@
                 <div class="flex items-center gap-md mb-lg">
                     <div class="flex flex-col">
                         <span class="text-xs text-on-surface-variant">CONTRIBUTION</span>
-                        <span class="font-label-lg">₦{{ g.contribution_amount }}/{{ g.frequency }}</span>
+                        <span class="font-label-lg">₦{{ g.contribution_amount|intcomma }}/{{ g.frequency }}</span>
                     </div>
                     <div class="w-px h-8 bg-outline-variant/30"></div>
                     <div class="flex flex-col">
@@ -186,6 +191,25 @@
         </div>
     </div>
 </div>
+
+<!-- Fund Wallet Modal -->
+<div id="fund-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+        <div class="p-lg border-b border-outline-variant/20 flex justify-between items-center">
+            <h3 class="font-headline-lg text-headline-lg">Fund Wallet</h3>
+            <button onclick="closeFundModal()" class="material-symbols-outlined">close</button>
+        </div>
+        <form id="fund-form" action="{% url 'fund_wallet' %}" method="POST" class="p-lg space-y-md">
+            {% csrf_token %}
+            <p class="text-sm text-on-surface-variant">Enter the amount you want to add to your Oja Wallet for Ajo contributions.</p>
+            <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold">₦</span>
+                <input name="amount" type="number" class="w-full border border-outline-variant rounded-lg p-md pl-10" placeholder="0.00" required/>
+            </div>
+            <button type="submit" class="w-full bg-secondary text-on-secondary py-lg rounded-xl font-headline-md hover:opacity-90 transition-all">Simulate Funding</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -217,5 +241,8 @@ async function joinGroup(groupId) {
     if (result.success) window.location.reload();
     else alert(result.message || "Failed to join group.");
 }
+
+function showFundModal() { document.getElementById('fund-modal').classList.remove('hidden'); }
+function closeFundModal() { document.getElementById('fund-modal').classList.add('hidden'); }
 </script>
 {% endblock %}

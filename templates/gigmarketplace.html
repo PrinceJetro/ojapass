@@ -181,6 +181,26 @@
 {% endblock %}
 
 {% block modals %}
+<!-- Post Gig Modal -->
+<div id="post-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        <div class="p-lg border-b border-outline-variant/20 flex justify-between items-center">
+            <h3 class="font-headline-lg text-headline-lg">Post a New Gig</h3>
+            <button onclick="closePostModal()" class="material-symbols-outlined">close</button>
+        </div>
+        <div class="p-lg space-y-md">
+            <input id="gig-title" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Gig Title (e.g. Delivery Rider)"/>
+            <textarea id="gig-desc" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20 h-24" placeholder="Description & Requirements"></textarea>
+            <div class="grid grid-cols-2 gap-md">
+                <input id="gig-pay" type="number" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Pay Rate (₦)"/>
+                <input id="gig-duration" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Duration"/>
+            </div>
+            <input id="gig-location" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Location"/>
+            <button onclick="submitGig()" class="w-full bg-primary text-on-primary py-lg rounded-xl font-headline-md hover:opacity-90 transition-all">Launch Gig Posting</button>
+        </div>
+    </div>
+</div>
+
 <!-- AI Match Modal -->
 <div id="match-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
     <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
@@ -201,25 +221,51 @@
     </div>
 </div>
 
-<!-- Post Gig Modal -->
-<div id="post-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
-    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+<!-- Rating Modal -->
+<div id="rating-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
         <div class="p-lg border-b border-outline-variant/20 flex justify-between items-center">
-            <h3 class="font-headline-lg text-headline-lg">Post a New Gig</h3>
-            <button onclick="closePostModal()" class="material-symbols-outlined">close</button>
+            <h3 class="font-headline-lg text-headline-lg">Rate this Worker</h3>
+            <button onclick="closeRatingModal()" class="material-symbols-outlined">close</button>
         </div>
-        <div class="p-lg space-y-md">
-            <input id="gig-title" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Gig Title (e.g. Delivery Rider)"/>
-            <textarea id="gig-desc" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20 h-24" placeholder="Description & Requirements"></textarea>
-            <div class="grid grid-cols-2 gap-md">
-                <input id="gig-pay" type="number" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Pay Rate (₦)"/>
-                <input id="gig-duration" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Duration"/>
+        <div class="p-lg space-y-lg text-center">
+            <p class="text-on-surface-variant">How would you rate the service provided?</p>
+            
+            <!-- Star Rating -->
+            <div class="flex justify-center gap-2" id="star-container">
+                <button onclick="setRating(1)" class="star-btn text-outline-variant hover:text-secondary-container transition-all" data-value="1">
+                    <span class="material-symbols-outlined text-4xl">star</span>
+                </button>
+                <button onclick="setRating(2)" class="star-btn text-outline-variant hover:text-secondary-container transition-all" data-value="2">
+                    <span class="material-symbols-outlined text-4xl">star</span>
+                </button>
+                <button onclick="setRating(3)" class="star-btn text-outline-variant hover:text-secondary-container transition-all" data-value="3">
+                    <span class="material-symbols-outlined text-4xl">star</span>
+                </button>
+                <button onclick="setRating(4)" class="star-btn text-outline-variant hover:text-secondary-container transition-all" data-value="4">
+                    <span class="material-symbols-outlined text-4xl">star</span>
+                </button>
+                <button onclick="setRating(5)" class="star-btn text-outline-variant hover:text-secondary-container transition-all" data-value="5">
+                    <span class="material-symbols-outlined text-4xl">star</span>
+                </button>
             </div>
-            <input id="gig-location" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Location"/>
-            <button onclick="submitGig()" class="w-full bg-primary text-on-primary py-lg rounded-xl font-headline-md hover:opacity-90 transition-all">Launch Gig Posting</button>
+
+            <textarea id="rating-review" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20 h-24" placeholder="Write a brief review..."></textarea>
+            
+            <input type="hidden" id="rating-gig-id"/>
+            <input type="hidden" id="rating-value" value="5"/>
+
+            <button onclick="submitRating()" id="submit-rating-btn" class="w-full bg-primary text-on-primary py-lg rounded-xl font-headline-md hover:opacity-90 transition-all">Submit Feedback</button>
         </div>
     </div>
 </div>
+
+<style>
+    .star-btn.active {
+        color: #ffb21d;
+        font-variation-settings: 'FILL' 1;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -334,9 +380,37 @@ async function applyGig(gigId) {
     }
 }
 
-async function completeGig(gigId) {
-    const rating = prompt('Rate the worker (1-5):') || '5';
-    const review = prompt('Leave a short review (optional):') || '';
+function completeGig(gigId) {
+    document.getElementById('rating-gig-id').value = gigId;
+    setRating(5); // Default to 5 stars
+    document.getElementById('rating-review').value = "";
+    document.getElementById('rating-modal').classList.remove('hidden');
+}
+
+function closeRatingModal() {
+    document.getElementById('rating-modal').classList.add('hidden');
+}
+
+function setRating(val) {
+    document.getElementById('rating-value').value = val;
+    const stars = document.querySelectorAll('.star-btn');
+    stars.forEach((s, idx) => {
+        if (idx < val) {
+            s.classList.add('active');
+        } else {
+            s.classList.remove('active');
+        }
+    });
+}
+
+async function submitRating() {
+    const gigId = document.getElementById('rating-gig-id').value;
+    const rating = document.getElementById('rating-value').value;
+    const review = document.getElementById('rating-review').value;
+
+    const btn = document.getElementById('submit-rating-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
 
     const res = await fetch(`/gigs/${gigId}/status/`, {
         method: 'POST',
@@ -353,6 +427,8 @@ async function completeGig(gigId) {
         window.location.reload();
     } else {
         alert('Error: ' + data.message);
+        btn.disabled = false;
+        btn.textContent = 'Submit Feedback';
     }
 }
 async function updateGigStatus(gigId, status) {

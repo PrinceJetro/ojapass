@@ -6,6 +6,7 @@
     <title>OjaPass Onboarding - High Fidelity</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
@@ -24,8 +25,8 @@
                         "on-primary": "#ffffff"
                     },
                     "fontFamily": {
-                        "display": ["Fraunces", "serif"],
-                        "body": ["DM Sans", "sans-serif"]
+                        "display": ["Satoshi", "Fraunces", "serif"],
+                        "body": ["Satoshi", "DM Sans", "sans-serif"]
                     }
                 }
             }
@@ -34,7 +35,7 @@
     <style>
         body {
             background-color: #fcf9f3;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Satoshi', 'DM Sans', sans-serif;
         }
         .step-content {
             display: none;
@@ -80,17 +81,30 @@
             background-position: right 1rem center;
             background-size: 1.5em;
         }
+        .role-card {
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+        .role-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 82, 49, 0.1);
+        }
+        .role-card.selected {
+            border-color: #005231;
+            background-color: rgba(0, 82, 49, 0.05);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center py-12 px-4">
     <!-- Onboarding Progress -->
     <div class="w-full max-w-xl mb-8">
         <div class="flex justify-between items-center mb-2">
-            <span id="step-indicator" class="font-bold text-primary">Step 1 of 3</span>
-            <span id="step-title" class="text-on-surface-variant font-medium">Profile Setup</span>
+            <span id="step-indicator" class="font-bold text-primary">Step 1 of 4</span>
+            <span id="step-title" class="text-on-surface-variant font-medium">Select Role</span>
         </div>
         <div class="h-2 w-full bg-outline-variant/20 rounded-full overflow-hidden">
-            <div id="progress-bar" class="h-full bg-secondary-container w-1/3 transition-all duration-500"></div>
+            <div id="progress-bar" class="h-full bg-secondary-container w-1/4 transition-all duration-500"></div>
         </div>
     </div>
 
@@ -99,8 +113,41 @@
         <div class="h-1.5 bg-secondary-container w-full"></div>
         
         <div class="p-8 md:p-12">
+            <!-- Step 0: Role Selection -->
+            <div id="step-0" class="step-content active">
+                <header class="text-center mb-10">
+                    <h1 class="font-display text-3xl text-primary font-bold mb-2">Welcome to OjaPass</h1>
+                    <p class="text-on-surface-variant">How do you intend to use the platform today?</p>
+                </header>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                    <!-- Trader Option -->
+                    <div onclick="selectRole('trader')" id="role-trader" class="role-card p-6 bg-white rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mb-4">
+                            <span class="material-symbols-outlined text-3xl text-primary">storefront</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-primary mb-1">I'm a Trader</h3>
+                        <p class="text-xs text-on-surface-variant">I want to manage my business, take loans, and track inventory.</p>
+                    </div>
+
+                    <!-- Seeker Option -->
+                    <div onclick="selectRole('seeker')" id="role-seeker" class="role-card p-6 bg-white rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-secondary-container/10 rounded-full flex items-center justify-center mb-4">
+                            <span class="material-symbols-outlined text-3xl text-secondary-container">work</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-primary mb-1">I'm a Seeker</h3>
+                        <p class="text-xs text-on-surface-variant">I'm looking for gigs, jobs, and opportunities to earn.</p>
+                    </div>
+                </div>
+
+                <button id="role-continue" disabled class="w-full py-4 bg-primary text-white rounded-full font-bold shadow-lg opacity-50 cursor-not-allowed transition-all flex justify-center items-center gap-2">
+                    Continue to Profile
+                    <span class="material-symbols-outlined text-xl">arrow_forward</span>
+                </button>
+            </div>
+
             <!-- Step 1: Profile Setup -->
-            <div id="step-1" class="step-content active">
+            <div id="step-1" class="step-content">
                 <header class="text-center mb-10">
                     <h1 class="font-display text-3xl text-primary font-bold mb-2">Personal Identity</h1>
                     <p class="text-on-surface-variant">Tell us who you are. This information is used for identity verification.</p>
@@ -220,46 +267,62 @@
                 </div>
             </div>
 
-            <!-- Step 3: Business Details -->
             <div id="step-3" class="step-content">
                 <header class="text-center mb-10">
-                    <h1 class="font-display text-3xl text-primary font-bold mb-2">Business Details</h1>
-                    <p class="text-on-surface-variant">Tell us about your trade to initialize your OjaScore.</p>
+                    <h1 id="step-3-title" class="font-display text-3xl text-primary font-bold mb-2">Business Details</h1>
+                    <p id="step-3-desc" class="text-on-surface-variant">Tell us about your trade to initialize your OjaScore.</p>
                 </header>
 
                 <form id="form-step-3" class="space-y-6">
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-on-surface" for="businessName">Business Name</label>
-                        <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="businessName" placeholder="e.g. Mama Tunde's Catering" type="text"/>
+                    <div id="trader-fields" class="space-y-6">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="businessName">Business Name</label>
+                            <input class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="businessName" placeholder="e.g. Mama Tunde's Catering" type="text"/>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-bold text-on-surface" for="tradeCategory">Trade Category</label>
+                                <select class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all custom-select" id="tradeCategory">
+                                    <option value="" disabled selected>Select Category</option>
+                                    <option value="Food & Groceries">Food & Groceries</option>
+                                    <option value="Fashion & Apparel">Fashion & Apparel</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Beauty & Personal Care">Beauty & Personal Care</option>
+                                    <option value="Home & Furniture">Home & Furniture</option>
+                                    <option value="Services">Services</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-bold text-on-surface" for="yearsInBusiness">Years in Business</label>
+                                <input class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="yearsInBusiness" placeholder="e.g. 5" type="number"/>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="dailySales">Average Daily Sales (₦)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">₦</span>
+                                <input class="w-full pl-10 pr-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="dailySales" placeholder="50,000" type="text"/>
+                            </div>
+                            <p class="text-[10px] text-on-surface-variant italic">This estimate helps determine your loan eligibility.</p>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div id="seeker-fields" class="hidden space-y-6">
                         <div class="space-y-1.5">
-                            <label class="text-sm font-bold text-on-surface" for="tradeCategory">Trade Category</label>
-                            <select required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all custom-select" id="tradeCategory">
-                                <option value="" disabled selected>Select Category</option>
-                                <option value="Food & Groceries">Food & Groceries</option>
-                                <option value="Fashion & Apparel">Fashion & Apparel</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Beauty & Personal Care">Beauty & Personal Care</option>
-                                <option value="Home & Furniture">Home & Furniture</option>
-                                <option value="Services">Services</option>
-                                <option value="Other">Other</option>
+                            <label class="text-sm font-bold text-on-surface" for="primarySkill">Primary Skill / Trade</label>
+                            <input class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="primarySkill" placeholder="e.g. Electrician, Courier, Hairdresser" type="text"/>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="experienceLevel">Experience Level</label>
+                            <select class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all custom-select" id="experienceLevel">
+                                <option value="Beginner">Beginner (< 1 year)</option>
+                                <option value="Intermediate" selected>Intermediate (1-3 years)</option>
+                                <option value="Expert">Expert (3+ years)</option>
                             </select>
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="text-sm font-bold text-on-surface" for="yearsInBusiness">Years in Business</label>
-                            <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="yearsInBusiness" placeholder="e.g. 5" type="number"/>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-on-surface" for="dailySales">Average Daily Sales (₦)</label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">₦</span>
-                            <input required class="w-full pl-10 pr-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="dailySales" placeholder="50,000" type="text"/>
-                        </div>
-                        <p class="text-[10px] text-on-surface-variant italic">This estimate helps determine your loan eligibility.</p>
                     </div>
 
                     <div class="pt-4 space-y-4">
@@ -300,11 +363,36 @@
     </div>
 
     <script>
-        let currentStep = 1;
-        let userData = {};
+        let currentStep = 0;
+        let userData = { role: null };
         let pin = "";
         let confirmPin = "";
         let isConfirmingPin = false;
+
+        function selectRole(role) {
+            userData.role = role;
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`role-${role}`).classList.add('selected');
+            
+            const btn = document.getElementById('role-continue');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            
+            // Adjust step 3 fields based on role
+            if (role === 'trader') {
+                document.getElementById('step-3-title').innerText = "Business Details";
+                document.getElementById('step-3-desc').innerText = "Tell us about your trade to initialize your OjaScore.";
+                document.getElementById('trader-fields').classList.remove('hidden');
+                document.getElementById('seeker-fields').classList.add('hidden');
+            } else {
+                document.getElementById('step-3-title').innerText = "Seeker Profile";
+                document.getElementById('step-3-desc').innerText = "Help us match you with the best gigs.";
+                document.getElementById('trader-fields').classList.add('hidden');
+                document.getElementById('seeker-fields').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('role-continue').addEventListener('click', () => goToStep(1));
 
         // Step 1 Navigation
         document.getElementById('form-step-1').addEventListener('submit', function(e) {
@@ -413,11 +501,16 @@
         // Step 3 Completion
         document.getElementById('form-step-3').addEventListener('submit', function(e) {
             e.preventDefault();
-            userData.businessName = document.getElementById('businessName').value;
-            userData.tradeCategory = document.getElementById('tradeCategory').value;
-            userData.yearsInBusiness = document.getElementById('yearsInBusiness').value;
-            userData.dailySales = document.getElementById('dailySales').value;
-            userData.role = 'trader';
+            if (userData.role === 'trader') {
+                userData.businessName = document.getElementById('businessName').value;
+                userData.tradeCategory = document.getElementById('tradeCategory').value;
+                userData.yearsInBusiness = document.getElementById('yearsInBusiness').value;
+                userData.dailySales = document.getElementById('dailySales').value;
+            } else {
+                userData.tradeCategory = document.getElementById('primarySkill').value; // Map skill to category for now
+                userData.experienceLevel = document.getElementById('experienceLevel').value;
+                userData.businessName = "Freelance " + userData.tradeCategory;
+            }
 
             // Show Loading State
             const btn = e.submitter;
@@ -456,16 +549,16 @@
             document.getElementById(`step-${step}`).classList.add('active');
             
             currentStep = step;
-            const progress = (step / 3) * 100;
+            const progress = ((step + 1) / 4) * 100;
             document.getElementById('progress-bar').style.width = `${progress}%`;
-            document.getElementById('step-indicator').innerText = `Step ${step} of 3`;
+            document.getElementById('step-indicator').innerText = `Step ${step + 1} of 4`;
             
-            const titles = ["Profile Setup", "Security", "Business Details"];
-            document.getElementById('step-title').innerText = titles[step-1];
+            const titles = ["Select Role", "Profile Setup", "Security", "Final Details"];
+            document.getElementById('step-title').innerText = titles[step];
             window.scrollTo(0, 0);
         }
 
-        document.getElementById('back-to-1').addEventListener('click', () => goToStep(1));
+        document.getElementById('back-to-1').addEventListener('click', () => goToStep(0));
         document.getElementById('back-to-2').addEventListener('click', () => goToStep(2));
 
         // BVN visibility toggle
