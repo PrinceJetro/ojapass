@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OjaPass | Gig Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Fraunces:ital,opsz,wght@0,144..900;1,144..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: #fcf9f3;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed": "#281800",
+                      "inverse-primary": "#8ad7a8",
+                      "on-primary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "on-tertiary": "#ffffff",
+                      "inverse-on-surface": "#f3f0ea",
+                      "on-primary-fixed-variant": "#005231",
+                      "tertiary-fixed": "#b9efcb",
+                      "background": "#fcf9f3",
+                      "tertiary-container": "#36684b",
+                      "primary-fixed-dim": "#8ad7a8",
+                      "on-primary-container": "#9be9b9",
+                      "secondary-fixed": "#ffddaf",
+                      "surface-tint": "#1b6b45",
+                      "primary-fixed": "#a5f3c3",
+                      "secondary-fixed-dim": "#ffba44",
+                      "secondary-container": "#ffb21d",
+                      "primary": "#005231",
+                      "primary-container": "#1b6b45",
+                      "on-background": "#1c1c18",
+                      "surface-bright": "#fcf9f3",
+                      "on-secondary-container": "#6b4800",
+                      "on-tertiary-fixed-variant": "#1d5035",
+                      "on-error": "#ffffff",
+                      "outline-variant": "#bfc9bf",
+                      "surface-variant": "#e5e2dc",
+                      "outline": "#6f7a71",
+                      "surface-container-high": "#ebe8e2",
+                      "inverse-surface": "#31312d",
+                      "surface-container-low": "#f6f3ed",
+                      "secondary": "#805600",
+                      "surface-container": "#f0eee8",
+                      "tertiary": "#1d5035",
+                      "on-secondary": "#ffffff",
+                      "surface-dim": "#dcdad4",
+                      "on-surface-variant": "#3f4942",
+                      "surface": "#fcf9f3",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#002111",
+                      "on-tertiary-container": "#afe4c1",
+                      "tertiary-fixed-dim": "#9dd3b0",
+                      "surface-container-highest": "#e5e2dc",
+                      "on-surface": "#1c1c18",
+                      "on-primary-fixed": "#002111",
+                      "on-secondary-fixed-variant": "#614000",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "xl": "32px",
+                      "md": "16px",
+                      "margin-desktop": "64px",
+                      "margin-mobile": "20px",
+                      "gutter": "16px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "headline-md": ["dmSans"],
+                      "body-lg": ["dmSans"],
+                      "headline-lg": ["Fraunces"],
+                      "display-md": ["Fraunces"],
+                      "display-lg": ["Fraunces"],
+                      "label-lg": ["dmSans"],
+                      "body-md": ["dmSans"],
+                      "label-sm": ["dmSans"]
+              },
+              "fontSize": {
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                      "display-md": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<header class="w-full top-0 sticky z-40 bg-surface dark:bg-surface-dim border-b border-outline-variant/20 dark:border-outline/20 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-md">
+<div class="flex items-center gap-md">
+<span class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed-dim">OjaPass</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-sm rounded-full transition-colors">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-sm rounded-full transition-colors">account_circle</span>
+</div>
+</header>
+<div class="flex min-h-screen">
+<nav class="hidden lg:flex flex-col h-full w-64 fixed left-0 top-0 pt-32 p-lg bg-surface-container-low dark:bg-inverse-surface border-r border-outline-variant/20 z-30">
+<div class="space-y-sm">
+<a class="flex items-center gap-md p-md bg-primary-container text-on-primary-container font-bold rounded-lg transition-transform active:opacity-80" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Overview</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 rounded-lg transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-md text-body-md">My Ajo Groups</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 rounded-lg transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-md text-body-md">Contributions</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 rounded-lg transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-body-md text-body-md">Identity Score</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1 rounded-lg transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</div>
+<div class="mt-xl pt-xl border-t border-outline-variant/20">
+<div class="p-md rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-lg overflow-hidden relative group">
+<div class="absolute -right-4 -top-4 opacity-10">
+<span class="material-symbols-outlined text-[80px]" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<p class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider mb-xs">Worker Profile</p>
+<p class="font-headline-md text-headline-md mb-xs">842</p>
+<p class="font-label-lg text-label-lg mb-md">Identity Score</p>
+<div class="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container w-[84%]"></div>
+</div>
+<div class="mt-md flex flex-wrap gap-xs">
+<span class="px-xs py-[2px] bg-white/10 rounded text-[10px] font-bold uppercase">Logistics</span>
+<span class="px-xs py-[2px] bg-white/10 rounded text-[10px] font-bold uppercase">Sales</span>
+</div>
+</div>
+</div>
+</nav>
+<main class="flex-1 lg:ml-64 px-margin-mobile md:px-margin-desktop py-xl pb-32">
+<section class="mb-xl">
+<div class="flex flex-col md:flex-row gap-md items-end">
+<div class="flex-1 w-full space-y-sm">
+<label class="font-label-lg text-label-lg text-on-surface-variant">Find Gigs</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-md text-outline">search</span>
+<input class="w-full pl-xl pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Search for roles (e.g. Delivery, Clerk)" type="text"/>
+</div>
+</div>
+<div class="flex-1 w-full space-y-sm">
+<label class="font-label-lg text-label-lg text-on-surface-variant">Location</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-md text-outline">location_on</span>
+<input class="w-full pl-xl pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Lagos, Nigeria" type="text"/>
+</div>
+</div>
+<button class="w-full md:w-auto px-xl py-md bg-primary text-on-primary rounded-xl font-label-lg text-label-lg shadow-md hover:opacity-90 active:scale-95 transition-all">
+                        Search
+                    </button>
+</div>
+<div class="flex flex-wrap gap-sm mt-md">
+<button class="px-md py-sm bg-primary text-on-primary rounded-full font-label-lg text-label-lg">All</button>
+<button class="px-md py-sm bg-surface-container-high text-on-surface-variant rounded-full font-label-lg text-label-lg hover:bg-surface-variant transition-colors">Logistics</button>
+<button class="px-md py-sm bg-surface-container-high text-on-surface-variant rounded-full font-label-lg text-label-lg hover:bg-surface-variant transition-colors">Sales</button>
+<button class="px-md py-sm bg-surface-container-high text-on-surface-variant rounded-full font-label-lg text-label-lg hover:bg-surface-variant transition-colors">Manual Labor</button>
+</div>
+</section>
+<section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-lg">
+{% for g in recommended %}
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm relative group hover:shadow-md transition-shadow">
+<div class="h-1 bg-secondary-container"></div>
+<div class="p-lg">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined">smart_toy</span>
+</div>
+<span class="px-sm py-xs bg-secondary-container/20 text-on-secondary-container rounded-full text-[10px] font-bold uppercase">{% if g.status == 'matched' %}Invitation{% else %}Open Gig{% endif %}</span>
+</div>
+<span class="text-primary font-headline-md text-headline-md">₦{{ g.pay_rate }}<span class="text-label-sm text-on-surface-variant font-normal">/gig</span></span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-xs">{{ g.title }}</h3>
+<div class="flex items-center gap-xs text-on-surface-variant mb-md">
+<span class="font-label-lg text-label-lg">{{ g.location|default:"Remote/Nigeria" }}</span>
+<span class="material-symbols-outlined text-sm text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="flex items-center gap-md text-outline font-label-sm text-label-sm mb-lg">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">schedule</span> {{ g.duration|default:"Flexible" }}
+                            </div>
+</div>
+{% if g.status == 'matched' and g.worker == user %}
+<button onclick="acceptInvitation({{ g.id }})" class="w-full py-md bg-secondary text-on-secondary rounded-lg font-label-lg text-label-lg shadow-sm hover:opacity-95 active:scale-95 transition-all">
+                            Accept Invitation
+                        </button>
+{% else %}
+<button onclick="applyGig({{ g.id }})" class="w-full py-md bg-primary text-on-primary rounded-lg font-label-lg text-label-lg shadow-sm hover:opacity-95 active:scale-95 transition-all">
+                            Apply Now
+                        </button>
+{% endif %}
+</div>
+</div>
+{% empty %}
+<div class="col-span-full py-xl text-center border-2 border-dashed border-outline-variant/20 rounded-2xl">
+    <p class="text-on-surface-variant italic">No recommended gigs available right now. Check back soon!</p>
+</div>
+{% endfor %}
+</section>
+<div class="col-span-full mt-lg">
+<div class="bg-primary-container p-xl rounded-2xl flex flex-col md:flex-row items-center justify-between gap-lg relative overflow-hidden">
+<div class="absolute left-0 top-0 w-full h-full opacity-10 pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="A stylized overhead view of a busy Nigerian open-air market with vibrant colors and bustling activity, captured in a warm, artistic photographic style. The scene is bathed in golden afternoon sunlight, highlighting the textures of textiles and market stalls, reinforcing a sense of community and economic empowerment within a modern digital frame." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVXEvCJNaqfJL8n1fv7UH71Zp4D62qqMlwciDS1zhtmO0FZqp_RaD6tjv8CIV9k5Y0YxjA9rTRY8TDQS2_NMFbuA1nX3k7W8kaiNNp4OeA7bFy15dZngFvz6eELRfepZ-cs6t5s_luxr3Ys31-fL6xGlww-2IiPar3zcHCowa3Pxrs3uI1q8SNjh6PV-t1JZl9_1WwFTGKK2akvMLAHOrXC92N9DYvtG5V8I6j2_qOl-PRzoXu1zZqb_5wjqCzOvmL5tY0EFfCulI"/>
+</div>
+<div class="relative z-10 space-y-sm text-center md:text-left">
+<h2 class="font-display-md text-display-md text-on-primary-container">Boost Your Identity Score</h2>
+<p class="font-body-lg text-body-lg text-on-primary-container/80 max-w-md">Complete 3 more verified gigs this week to unlock Gold-tier merchant invitations and lower ajo contribution fees.</p>
+</div>
+<button class="relative z-10 px-xl py-md bg-secondary-container text-on-secondary-container rounded-full font-headline-md text-headline-md shadow-lg hover:scale-105 transition-transform active:scale-95">
+                            Learn How
+                        </button>
+</div>
+</div>
+</section>
+</main>
+</div>
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center py-sm px-gutter bg-surface dark:bg-surface-dim z-50 rounded-t-xl shadow-[0_-4px_20px_rgba(27,107,69,0.08)]">
+<a class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-full px-4 py-1 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-lg text-label-lg">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-highest transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-lg text-label-lg">Savings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-highest transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-lg text-label-lg">Groups</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-highest transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-lg text-label-lg">Profile</span>
+</a>
+</nav>
+<script>
+async function applyGig(gigId) {
+    try {
+        const res = await fetch(`/gigs/${gigId}/apply/`, {
+            method: 'POST',
+            headers: { 
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("Applied successfully!");
+            window.location.reload();
+        } else {
+            alert("Error: " + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Failed to apply. Check your connection.");
+    }
+}
+
+async function acceptInvitation(gigId) {
+    // This can be expanded if there's a specific 'accept' endpoint
+    alert("Invitation accepted! Employer will fund escrow to start work.");
+}
+</script>
+</body></html>

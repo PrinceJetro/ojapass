@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Failed | OjaPass{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto py-24 px-6 text-center">
+    <div class="bg-white rounded-3xl shadow-2xl p-10 border border-error/10">
+        <div class="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-8">
+            <span class="material-symbols-outlined text-6xl">error_outline</span>
+        </div>
+        
+        <h1 class="text-display-md font-display-md text-error mb-4">Payment Failed</h1>
+        <p class="text-body-lg text-on-surface-variant mb-10">
+            We couldn't process your transaction. This might be due to insufficient funds, an expired card, or a temporary connection issue with the bank.
+        </p>
+
+        <div class="space-y-4">
+            <button onclick="window.history.back()" class="w-full py-4 bg-primary text-on-primary rounded-full font-bold shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">refresh</span>
+                Try Again
+            </button>
+            <a href="/" class="block w-full py-4 bg-surface-container text-on-surface rounded-full font-bold hover:bg-surface-container-high transition-all text-center">
+                Cancel and Go Home
+            </a>
+        </div>
+
+        <div class="mt-10 pt-8 border-t border-outline-variant/10 text-left">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 opacity-50">Support Info</p>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+                If your account was debited, please contact our support team with your transaction reference. Most failed payments are automatically reversed within 24 hours.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

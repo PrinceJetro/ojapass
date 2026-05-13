@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>OjaPass | Your Financial Identity for the Informal Economy</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#005231",
+                    "secondary": "#805600",
+                    "tertiary": "#1d5035",
+                    "background": "#fcf9f3",
+                    "surface": "#fcf9f3",
+                    "on-surface": "#1c1c18",
+                    "outline-variant": "#bfc9bf",
+                    "secondary-container": "#ffb21d",
+                    "on-secondary-container": "#6b4800",
+            },
+            "fontFamily": {
+                    "display": ["Fraunces"],
+                    "sans": ["DM Sans"],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .warm-shadow { box-shadow: 0 8px 30px rgba(0, 82, 49, 0.08); }
+        .id-gradient { background: linear-gradient(135deg, #005231 0%, #1b6b45 100%); }
+        .hero-pattern { background-image: radial-gradient(#1b6b45 0.5px, transparent 0.5px); background-size: 24px 24px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-sans overflow-x-hidden">
+    <!-- Navigation -->
+    <header class="flex justify-between items-center px-6 md:px-16 h-20 w-full sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/10">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+                <span class="material-symbols-outlined text-white">fingerprint</span>
+            </div>
+            <span class="font-display text-2xl font-bold text-primary">OjaPass</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-8">
+            <a class="text-sm font-bold text-primary" href="#">Home</a>
+            <a class="text-sm font-medium text-on-surface/60 hover:text-primary transition-colors" href="#">Identity</a>
+            <a class="text-sm font-medium text-on-surface/60 hover:text-primary transition-colors" href="#">Mamatally</a>
+            <a class="text-sm font-medium text-on-surface/60 hover:text-primary transition-colors" href="#">Marketplace</a>
+            <a href="{% url 'login' %}" class="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md hover:scale-105 transition-all">Login</a>
+        </nav>
+        <button class="md:hidden p-2 text-primary">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="relative px-6 md:px-16 py-16 lg:py-32 hero-pattern">
+            <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
+                <div class="flex-1 text-center lg:text-left z-10">
+                    <div class="inline-flex items-center gap-2 bg-secondary-container/20 px-4 py-2 rounded-full mb-8">
+                        <span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+                        <span class="text-xs font-bold text-on-secondary-container uppercase tracking-widest">Formalizing Nigeria's informal economy</span>
+                    </div>
+                    <h1 class="font-display text-4xl md:text-6xl lg:text-7xl leading-tight mb-8">
+                        Your hustle, now <br/>
+                        <span class="text-primary italic">digitally verified.</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-on-surface/70 mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                        The ultimate economic identity and banking backbone for traders. Track sales, build your OjaScore, and unlock formal credit instantly.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="{% url 'login' %}" class="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                            Get Your OjaPass ID <span class="material-symbols-outlined">trending_flat</span>
+                        </a>
+                        <button class="border-2 border-primary/20 text-primary px-10 py-5 rounded-2xl font-bold text-lg hover:bg-primary/5 transition-all">
+                            How it works
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative w-full max-w-2xl">
+                    <div class="relative rounded-[48px] overflow-hidden warm-shadow group">
+                        <img alt="Successful Trader" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmOVjr1SIEgiszDTQzHeK0zF5TSrl8oBQtiuIs61RKmevuZwCx8oMV_JKo4-1-JDc_s0Jsnkv6zs6kYiwELYYzhg8NdtcAIil54Plr_ilG8B3vSawF5fcVo7NTG50B8tm-1ZQHqNHSwJzK6HNAJR6QZJUqT_AS9Mun7uINh69T_d60xITJvB8v5SWPly0t-HB4UJ966mFo6FOIrA8Wr7F2Hy4_un6eLpz8VgzwJ_gZEAfsCMbOU6y0oPW6masIhq6F_Z1LG5VqMW0" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+                    </div>
+                    
+                    <!-- Floating ID Card -->
+                    <div class="absolute -bottom-6 -left-6 md:-bottom-10 md:-left-10 id-gradient p-8 rounded-3xl text-white w-72 shadow-2xl animate-bounce-slow">
+                        <div class="flex justify-between items-start mb-10">
+                            <span class="font-display text-xl font-bold">OjaPass ID</span>
+                            <div class="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                                <span class="material-symbols-outlined text-secondary-container">verified</span>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <p class="text-[10px] opacity-60 uppercase tracking-[3px] mb-1">OjaScore</p>
+                            <p class="font-display text-5xl text-secondary-container leading-none">842</p>
+                        </div>
+                        <div class="flex items-center gap-3 pt-6 border-t border-white/10">
+                            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                            <div>
+                                <p class="font-bold leading-tight">Chika Obi</p>
+                                <p class="text-xs opacity-60">Verified Pro Merchant</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="bg-primary py-20 px-6 md:px-16 text-white relative overflow-hidden">
+            <div class="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
+                <div class="text-center">
+                    <p class="font-display text-5xl mb-2">50k+</p>
+                    <p class="text-sm opacity-60 uppercase tracking-widest">Traders Verified</p>
+                </div>
+                <div class="text-center">
+                    <p class="font-display text-5xl mb-2">N1.2B</p>
+                    <p class="text-sm opacity-60 uppercase tracking-widest">Market Value History</p>
+                </div>
+                <div class="text-center">
+                    <p class="font-display text-5xl mb-2">98%</p>
+                    <p class="text-sm opacity-60 uppercase tracking-widest">Identity Trust Rate</p>
+                </div>
+                <div class="text-center">
+                    <p class="font-display text-5xl mb-2">24/7</p>
+                    <p class="text-sm opacity-60 uppercase tracking-widest">Human Support</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Bento Grid -->
+        <section class="py-24 px-6 md:px-16 bg-white">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-20">
+                    <h2 class="font-display text-4xl md:text-5xl mb-6">Designed for the Nigerian Market</h2>
+                    <p class="text-lg text-on-surface/60 max-w-2xl mx-auto">From Alaba to Bodija, OjaPass provides the tools you need to formalize your hustle and claim your seat at the financial table.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-2 bg-surface p-12 rounded-[40px] border border-outline-variant/10 flex flex-col justify-between group overflow-hidden relative">
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-primary/20">
+                                <span class="material-symbols-outlined text-white text-3xl">account_balance</span>
+                            </div>
+                            <h3 class="font-display text-3xl mb-4">Instant Squad Banking</h3>
+                            <p class="text-lg text-on-surface/60 max-w-md">Get a professional business account number in seconds. Powered by Squad, optimized for your market stall.</p>
+                        </div>
+                        <div class="absolute right-0 bottom-0 w-1/2 h-full opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="material-symbols-outlined text-[300px] absolute -bottom-20 -right-20">credit_card</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-secondary p-12 rounded-[40px] text-white flex flex-col justify-between relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-8 backdrop-blur-md">
+                                <span class="material-symbols-outlined text-white text-3xl">trending_up</span>
+                            </div>
+                            <h3 class="font-display text-3xl mb-4">OjaScore Engine</h3>
+                            <p class="text-lg opacity-80">The more you trade, the more you grow. Our AI turns your daily hustle into a formal credit score.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-surface p-12 rounded-[40px] border border-outline-variant/10 flex flex-col justify-between">
+                        <div>
+                            <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-8">
+                                <span class="material-symbols-outlined text-primary text-3xl">inventory_2</span>
+                            </div>
+                            <h3 class="font-display text-3xl mb-4">Mamatally</h3>
+                            <p class="text-lg text-on-surface/60">Log every sale easily. Generate receipts that count towards your business identity.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2 bg-surface p-12 rounded-[40px] border border-outline-variant/10 flex flex-col md:flex-row items-center gap-12 group">
+                        <div class="flex-1">
+                            <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-8">
+                                <span class="material-symbols-outlined text-primary text-3xl">groups</span>
+                            </div>
+                            <h3 class="font-display text-3xl mb-4">Ajo & Community</h3>
+                            <p class="text-lg text-on-surface/60">Digitalize your traditional savings groups. Build community trust that translates to real capital.</p>
+                        </div>
+                        <div class="flex-1 relative">
+                            <div class="aspect-square bg-primary/5 rounded-3xl flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[120px] text-primary/20 group-hover:scale-110 transition-transform duration-500">handshake</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <section class="py-32 px-6 md:px-16 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="font-display text-5xl md:text-7xl mb-12">Ready to claim your digital legacy?</h2>
+                <a href="{% url 'login' %}" class="inline-flex items-center gap-4 bg-primary text-white px-12 py-6 rounded-[32px] font-bold text-2xl shadow-2xl hover:scale-105 transition-all">
+                    Start Your OjaPass Journey <span class="material-symbols-outlined">rocket_launch</span>
+                </a>
+                <p class="mt-12 text-on-surface/40 font-medium">Join 50,000+ verified merchants across Nigeria.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-surface py-20 px-6 md:px-16 border-t border-outline-variant/10">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-sm">fingerprint</span>
+                </div>
+                <span class="font-display text-xl font-bold text-primary">OjaPass</span>
+            </div>
+            <div class="flex gap-12 text-sm font-medium text-on-surface/40">
+                <a href="#" class="hover:text-primary transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-primary transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-primary transition-colors">Contact Support</a>
+            </div>
+            <p class="text-sm text-on-surface/30">© 2026 OjaFinance. Built for the hustle.</p>
+        </div>
+    </footer>
+</body>
+</html>

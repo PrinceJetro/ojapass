@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction History | OjaPass{% endblock %}
+
+{% block extra_head %}
+<style>
+    .glass-badge {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}Transaction History{% endblock %}
+{% block page_subtitle %}Review your financial activity and score impact{% endblock %}
+
+{% block content %}
+<div class="space-y-xl pb-12">
+    <!-- Financial Summary Bento Header -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+        <!-- Card 1: Total Inflow -->
+        <div class="bg-white p-lg rounded-xl border border-outline-variant/20 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-primary"></div>
+            <p class="font-label-lg text-label-lg text-on-surface-variant mb-base">Total Inflow (30d)</p>
+            <h3 class="font-display-md text-display-md text-primary">₦{{ total_inflow|floatformat:2 }}</h3>
+            <div class="mt-md flex items-center gap-xs text-primary/60">
+                <span class="material-symbols-outlined text-sm">trending_up</span>
+                <span class="text-xs font-label-sm">Active trading month</span>
+            </div>
+        </div>
+        <!-- Card 2: OjaScore -->
+        <div class="bg-white p-lg rounded-xl border border-outline-variant/20 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-secondary"></div>
+            <p class="font-label-lg text-label-lg text-on-surface-variant mb-base">OjaScore Impact</p>
+            <div class="flex items-end justify-between">
+                <div>
+                    <h3 class="font-display-md text-display-md text-on-surface">{{ user.ojapass_score }}</h3>
+                    <p class="text-xs text-secondary font-label-sm">current status</p>
+                </div>
+                <div class="w-24 h-12 flex items-end gap-[2px]">
+                    <div class="w-1 bg-secondary-fixed h-[40%]" style="border-radius: 2px 2px 0 0;"></div>
+                    <div class="w-1 bg-secondary-fixed h-[60%]" style="border-radius: 2px 2px 0 0;"></div>
+                    <div class="w-1 bg-secondary-fixed h-[45%]" style="border-radius: 2px 2px 0 0;"></div>
+                    <div class="w-1 bg-secondary-fixed h-[70%]" style="border-radius: 2px 2px 0 0;"></div>
+                    <div class="w-1 bg-secondary-fixed h-[55%]" style="border-radius: 2px 2px 0 0;"></div>
+                    <div class="w-1 bg-secondary h-[90%]" style="border-radius: 2px 2px 0 0;"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Card 3: Pending -->
+        <div class="bg-white p-lg rounded-xl border border-outline-variant/20 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-secondary-container"></div>
+            <p class="font-label-lg text-label-lg text-on-surface-variant mb-base">Pending Collections</p>
+            <h3 class="font-display-md text-display-md text-on-surface">₦{{ pending_amount|floatformat:2 }}</h3>
+            <p class="text-xs text-on-surface-variant mt-md">from active payment links</p>
+        </div>
+    </section>
+
+    <!-- Filter Bar -->
+    <section class="flex flex-col md:flex-row md:items-center justify-between gap-md p-md bg-surface-container-low rounded-xl border border-outline-variant/30">
+        <div class="flex-1 max-w-md relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input class="w-full pl-10 pr-4 py-2.5 bg-white border border-outline-variant/50 rounded-lg font-body-md focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="Reference ID or Customer Name" type="text"/>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-sm">
+            <div class="flex p-1 bg-surface-variant/40 rounded-lg w-full sm:w-auto">
+                <button class="flex-1 sm:flex-none px-6 py-1.5 rounded-md font-label-lg text-label-lg bg-white text-primary shadow-sm">All</button>
+                <button class="flex-1 sm:flex-none px-6 py-1.5 rounded-md font-label-lg text-label-lg text-on-surface-variant hover:bg-white/50 transition-colors">Inflows</button>
+                <button class="flex-1 sm:flex-none px-6 py-1.5 rounded-md font-label-lg text-label-lg text-on-surface-variant hover:bg-white/50 transition-colors">Outflows</button>
+            </div>
+            <button class="w-full sm:w-auto flex items-center justify-center gap-sm px-md py-2.5 bg-white border border-outline-variant/50 rounded-lg font-label-lg text-label-lg hover:bg-surface-container transition-colors">
+                Last 30 Days
+                <span class="material-symbols-outlined">expand_more</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <div class="flex flex-col lg:flex-row gap-lg items-start">
+        <!-- Transaction List -->
+        <div class="flex-1 w-full space-y-md">
+            {% for t in transactions %}
+            <div onclick="showDetail('{{ t.transaction_reference }}', '{{ t.amount }}', '{{ t.timestamp|date:'h:i A' }}', '{{ t.status }}')" class="group flex flex-col sm:flex-row sm:items-center justify-between p-lg bg-white border border-outline-variant/10 rounded-xl hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer gap-md">
+                <div class="flex items-center gap-lg">
+                    <div class="w-12 h-12 rounded-full shrink-0 {% if t.transaction_type == 'inflow' %}bg-primary-fixed/20 text-primary{% else %}bg-error-container/20 text-error{% endif %} flex items-center justify-center">
+                        <span class="material-symbols-outlined">{% if t.transaction_type == 'inflow' %}arrow_downward{% else %}arrow_upward{% endif %}</span>
+                    </div>
+                    <div>
+                        <h4 class="font-headline-md text-headline-md text-on-surface">{{ t.transaction_reference }}</h4>
+                        <p class="text-xs text-on-surface-variant">{{ t.timestamp|date:"M d, Y" }} • {{ t.timestamp|timesince }} ago</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between sm:justify-end gap-xl text-right">
+                    <div>
+                        <p class="font-display-md text-headline-md {% if t.transaction_type == 'inflow' %}text-primary{% else %}text-on-surface{% endif %}">₦{{ t.amount|floatformat:2 }}</p>
+                        <div class="flex justify-end mt-1">
+                            <span class="glass-badge px-3 py-0.5 rounded-full text-[10px] font-bold {% if t.status == 'success' %}text-primary{% else %}text-secondary{% endif %} uppercase">{{ t.status }}</span>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-outline-variant hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-xl text-center bg-white rounded-xl border border-dashed border-outline-variant">
+                <p class="text-on-surface-variant italic">No transactions found.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Detail Drawer / Card -->
+        <aside id="receipt-drawer" class="w-full lg:w-96 bg-white border border-outline-variant/30 rounded-2xl shadow-xl p-0 overflow-hidden flex flex-col sticky top-24">
+            <div class="bg-primary p-lg text-on-primary">
+                <div class="flex justify-between items-center mb-xl">
+                    <h3 class="font-headline-lg text-headline-lg">Digital Receipt</h3>
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center lg:hidden">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-md">
+                        <span class="material-symbols-outlined text-4xl">check_circle</span>
+                    </div>
+                    <p class="font-label-lg text-label-lg opacity-80">Transaction Summary</p>
+                    <h2 id="detail-amount-display" class="font-display-md text-display-md mb-md">₦0.00</h2>
+                </div>
+            </div>
+            <div class="p-lg space-y-lg flex-1">
+                <div class="space-y-md border-b border-outline-variant/20 pb-lg">
+                    <div class="flex justify-between">
+                        <span class="text-on-surface-variant font-label-lg">Bank</span>
+                        <span class="text-on-surface font-bold">Squad Bank</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-on-surface-variant font-label-lg">Reference ID</span>
+                        <span id="detail-ref" class="text-on-surface font-bold">---</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-on-surface-variant font-label-lg">Time</span>
+                        <span id="detail-time" class="text-on-surface font-bold">---</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-on-surface-variant font-label-lg">Status</span>
+                        <span id="detail-status" class="text-on-surface font-bold">---</span>
+                    </div>
+                </div>
+                <!-- Score Impact Box -->
+                <div class="bg-primary/5 border border-primary/10 rounded-xl p-md flex items-start gap-md">
+                    <div class="p-2 bg-primary rounded-lg text-on-primary shrink-0">
+                        <span class="material-symbols-outlined text-lg">star</span>
+                    </div>
+                    <div>
+                        <h5 class="font-label-lg text-label-lg text-primary">Score Impact</h5>
+                        <p class="text-sm text-on-surface-variant">+2 OjaScore Consistency signal</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-sm">
+                    <button class="w-full flex items-center justify-center gap-sm bg-primary text-on-primary py-lg rounded-xl font-bold hover:opacity-90 transition-all">
+                        <span class="material-symbols-outlined">download</span>
+                        Download Receipt
+                    </button>
+                    <button class="w-full flex items-center justify-center gap-sm bg-transparent text-primary py-md rounded-xl font-bold hover:bg-surface-container transition-all">
+                        <span class="material-symbols-outlined">share</span>
+                        Share Transaction
+                    </button>
+                </div>
+            </div>
+            <div class="p-lg bg-surface-container-low text-center">
+                <p class="text-[10px] text-outline uppercase tracking-widest font-bold">Powered by OjaFinance Merchant Engine</p>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showDetail(ref, amount, time, status) {
+    document.getElementById('detail-ref').innerText = ref;
+    document.getElementById('detail-time').innerText = time;
+    document.getElementById('detail-status').innerText = status;
+    document.getElementById('detail-amount-display').innerText = `₦${parseFloat(amount).toLocaleString()}`;
+    
+    // Smooth scroll to receipt on mobile
+    if (window.innerWidth < 1024) {
+        document.getElementById('receipt-drawer').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+</script>
+{% endblock %}

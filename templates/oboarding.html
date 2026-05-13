@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OjaPass Onboarding - Role Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#31312d",
+                      "outline-variant": "#bfc9bf",
+                      "secondary-fixed": "#ffddaf",
+                      "surface-container": "#f0eee8",
+                      "inverse-primary": "#8ad7a8",
+                      "tertiary-fixed": "#b9efcb",
+                      "tertiary-container": "#36684b",
+                      "secondary-container": "#ffb21d",
+                      "on-tertiary-fixed": "#002111",
+                      "on-primary-fixed-variant": "#005231",
+                      "background": "#fcf9f3",
+                      "error": "#ba1a1a",
+                      "primary": "#005231",
+                      "on-primary-container": "#9be9b9",
+                      "on-secondary": "#ffffff",
+                      "outline": "#6f7a71",
+                      "tertiary": "#1d5035",
+                      "surface-container-low": "#f6f3ed",
+                      "inverse-on-surface": "#f3f0ea",
+                      "surface-tint": "#1b6b45",
+                      "on-primary": "#ffffff",
+                      "surface-bright": "#fcf9f3",
+                      "surface-container-highest": "#e5e2dc",
+                      "on-surface-variant": "#3f4942",
+                      "surface-variant": "#e5e2dc",
+                      "surface-dim": "#dcdad4",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed-variant": "#614000",
+                      "tertiary-fixed-dim": "#9dd3b0",
+                      "on-error-container": "#93000a",
+                      "on-background": "#1c1c18",
+                      "surface": "#fcf9f3",
+                      "on-surface": "#1c1c18",
+                      "primary-container": "#1b6b45",
+                      "on-error": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "secondary": "#805600",
+                      "surface-container-high": "#ebe8e2",
+                      "on-primary-fixed": "#002111",
+                      "primary-fixed": "#a5f3c3",
+                      "on-secondary-fixed": "#281800"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "margin-mobile": "20px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "md": "16px",
+                      "xl": "32px",
+                      "margin-desktop": "64px",
+                      "gutter": "16px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Fraunces"],
+                      "body-md": ["dmSans"],
+                      "headline-md": ["dmSans"],
+                      "label-lg": ["dmSans"],
+                      "label-sm": ["dmSans"],
+                      "body-lg": ["dmSans"],
+                      "headline-lg": ["Fraunces"],
+                      "display-md": ["Fraunces"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                      "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                      "display-md": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        .role-card-shadow {
+            box-shadow: 0 4px 20px rgba(27, 107, 69, 0.04);
+        }
+        .role-card-active {
+            border: 2px solid #005231;
+            background-color: rgba(0, 82, 49, 0.02);
+            box-shadow: 0 8px 24px rgba(27, 107, 69, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col items-center justify-center relative overflow-x-hidden">
+<!-- Background Texture -->
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#bfc9bf 1px, transparent 1px); background-size: 40px 40px;"></div>
+<!-- Main Content Container -->
+<main class="relative z-10 w-full max-w-5xl px-margin-mobile md:px-margin-desktop py-xl flex flex-col items-center">
+<!-- Top Branding / Progress -->
+<div class="mb-xl text-center">
+<span class="font-display-md text-display-md font-bold text-primary mb-md block">OjaFinance</span>
+<div class="flex items-center justify-center gap-sm mb-lg">
+<div class="h-2 w-12 rounded-full bg-primary-fixed"></div>
+<div class="h-2 w-12 rounded-full bg-secondary-container"></div>
+<div class="h-2 w-12 rounded-full bg-muted-sage/20 bg-surface-container-highest"></div>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">How will you use OjaPass?</h1>
+<p class="text-on-surface-variant font-body-md">Select the role that best describes your activity in the marketplace.</p>
+</div>
+<!-- Role Selection Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg w-full mb-xl">
+<!-- Trader Card -->
+<button class="group flex flex-col items-center text-center p-xl bg-surface-container-lowest border border-outline-variant/30 rounded-xl role-card-shadow hover:role-card-active transition-all duration-300">
+<div class="w-16 h-16 rounded-full bg-primary-container/10 flex items-center justify-center mb-md group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[40px] text-primary" data-icon="storefront">storefront</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Trader</h3>
+<p class="text-on-surface-variant text-label-lg font-label-lg px-sm">I sell goods or services to grow my business</p>
+<div class="mt-lg w-6 h-6 rounded-full border-2 border-outline-variant group-hover:border-primary group-hover:bg-primary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white hidden group-hover:block" data-icon="check">check</span>
+</div>
+</button>
+<!-- Seeker Card -->
+<button class="group flex flex-col items-center text-center p-xl bg-surface-container-lowest border border-outline-variant/30 rounded-xl role-card-shadow hover:role-card-active transition-all duration-300">
+<div class="w-16 h-16 rounded-full bg-primary-container/10 flex items-center justify-center mb-md group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[40px] text-primary" data-icon="work">work</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Seeker</h3>
+<p class="text-on-surface-variant text-label-lg font-label-lg px-sm">I'm looking for gigs or work to earn extra income</p>
+<div class="mt-lg w-6 h-6 rounded-full border-2 border-outline-variant group-hover:border-primary group-hover:bg-primary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white hidden group-hover:block" data-icon="check">check</span>
+</div>
+</button>
+<!-- Both Card -->
+<button class="group flex flex-col items-center text-center p-xl bg-surface-container-lowest border border-outline-variant/30 rounded-xl role-card-shadow hover:role-card-active transition-all duration-300">
+<div class="w-16 h-16 rounded-full bg-primary-container/10 flex items-center justify-center mb-md group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[40px] text-primary" data-icon="handshake">handshake</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Both</h3>
+<p class="text-on-surface-variant text-label-lg font-label-lg px-sm">I want to trade goods while also exploring job opportunities</p>
+<div class="mt-lg w-6 h-6 rounded-full border-2 border-outline-variant group-hover:border-primary group-hover:bg-primary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white hidden group-hover:block" data-icon="check">check</span>
+</div>
+</button>
+</div>
+<!-- Navigation Actions -->
+<div class="w-full max-w-md flex flex-col items-center gap-md">
+<button class="w-full py-md bg-primary text-white rounded-lg font-label-lg text-label-lg shadow-lg hover:bg-primary-container hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center justify-center gap-sm">
+                Next Step
+                <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary font-label-lg text-label-lg transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_back">arrow_back</span>
+                Go back to previous step
+            </button>
+</div>
+</main>
+<!-- Contextual Footer -->
+<footer class="mt-auto w-full py-lg border-t border-outline-variant/10 flex flex-col md:flex-row items-center justify-between px-margin-desktop text-on-surface-variant opacity-60">
+<div class="flex items-center gap-md mb-md md:mb-0">
+<span class="text-label-sm font-label-sm">Privacy Policy</span>
+<span class="text-label-sm font-label-sm">Terms of Service</span>
+<span class="text-label-sm font-label-sm">Help Center</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="verified_user">verified_user</span>
+<p class="text-label-sm font-label-sm">Secure Nigerian Financial Institution</p>
+</div>
+</footer>
+<!-- Role Illustrations Decoration (Asymmetric Layout) -->
+<div class="hidden lg:block absolute left-10 bottom-20 opacity-10 -rotate-12 pointer-events-none">
+<img alt="Traditional Nigerian Market" class="w-64 h-auto rounded-xl" data-alt="A stylized digital illustration of a vibrant traditional Nigerian marketplace scene with colorful stalls and bustling activity. The artwork uses a sophisticated palette of deep Oja Green and Warm Gold with soft, muted sage accents. The style is modern corporate with tactile, organic textures that feel grounded and human, reflecting a reliable financial ecosystem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZsdedeJZUAE_99NLSrbd1jwAiQLfaQ8pC4KmqFg9W1U8NmWZXYRJL5rqNI2GAUp0NVVMS_D5USasQHGbFPHFBxQtGTkjnqbkuszcmVfGd_WDjT2unBeTwlVQE7Kyjb9u8hMfhT-jJRotjGhu0Miml7TRGLDjLBSni82uXt9e0KzVsP1YY47og1v4lig49Qp4W5Vm0D0Qczuc0dgEbpT1v0TevoXzmwTW2H_bR37T8QTedlWa8doOSmqnKAKGNtWZtHq23JbAWWZ8"/>
+</div>
+<div class="hidden lg:block absolute right-10 top-20 opacity-10 rotate-12 pointer-events-none">
+<img alt="Growth Concept" class="w-64 h-auto rounded-xl" data-alt="A premium digital illustration depicting stylized golden harvest crops growing out of digital geometric shapes representing data and finance. The background is a warm smoke texture with subtle glowing ambient lighting in Oja Green. The mood is professional and institutional, suggesting prosperity and secure financial empowerment for small business owners." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATcd0Z33oiU9_pGpeMWUMmwobIyyUi7b9JI2jmqrrbe0pxeWylj3mQlTCN5FlXpJAKqtOD90cwTzyY0lRd83SZ1y4IPDoAc8WPDda-z2Khsd8h4WmueWcbzYLuXIfhxIbF_nkJSs73mc6Bx8EGpIKHQKAWJyDwUrGS3_YjNu4JxZ1CZTyUlC6pr4I9j8nbMGwamJFd2hEDtA24KDOvwkNaWaArS5FrVHv1Gxo9fraHUWqobZqm6QcFKOrQ85lFZGOB3JqG6lIfeAU"/>
+</div>
+</body></html>

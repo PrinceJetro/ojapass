@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OjaPass Onboarding - Step 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#31312d",
+                        "outline-variant": "#bfc9bf",
+                        "secondary-fixed": "#ffddaf",
+                        "surface-container": "#f0eee8",
+                        "inverse-primary": "#8ad7a8",
+                        "tertiary-fixed": "#b9efcb",
+                        "tertiary-container": "#36684b",
+                        "secondary-container": "#ffb21d",
+                        "on-tertiary-fixed": "#002111",
+                        "on-primary-fixed-variant": "#005231",
+                        "background": "#fcf9f3",
+                        "error": "#ba1a1a",
+                        "primary": "#005231",
+                        "on-primary-container": "#9be9b9",
+                        "on-secondary": "#ffffff",
+                        "outline": "#6f7a71",
+                        "tertiary": "#1d5035",
+                        "surface-container-low": "#f6f3ed",
+                        "inverse-on-surface": "#f3f0ea",
+                        "surface-tint": "#1b6b45",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#fcf9f3",
+                        "surface-container-highest": "#e5e2dc",
+                        "on-surface-variant": "#3f4942",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#6b4800",
+                        "on-tertiary-container": "#afe4c1",
+                        "secondary-fixed-dim": "#ffba44",
+                        "primary-fixed-dim": "#8ad7a8",
+                        "on-tertiary-fixed-variant": "#1d5035",
+                        "surface-variant": "#e5e2dc",
+                        "surface-dim": "#dcdad4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#614000",
+                        "tertiary-fixed-dim": "#9dd3b0",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1c1c18",
+                        "surface": "#fcf9f3",
+                        "on-surface": "#1c1c18",
+                        "primary-container": "#1b6b45",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary": "#805600",
+                        "surface-container-high": "#ebe8e2",
+                        "on-primary-fixed": "#002111",
+                        "primary-fixed": "#a5f3c3",
+                        "on-secondary-fixed": "#281800"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "margin-mobile": "20px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "margin-desktop": "64px",
+                        "gutter": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Fraunces"],
+                        "body-md": ["DM Sans"],
+                        "headline-md": ["DM Sans"],
+                        "label-lg": ["DM Sans"],
+                        "label-sm": ["DM Sans"],
+                        "body-lg": ["DM Sans"],
+                        "headline-lg": ["Fraunces"],
+                        "display-md": ["Fraunces"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "display-md": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #fcf9f3; /* Warm Smoke */
+            font-family: 'DM Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center py-xl px-md">
+<!-- Onboarding Progress Section -->
+<div class="w-full max-w-[600px] mb-lg px-md">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-lg text-label-lg text-primary">Step 1 of 3</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Profile Setup</span>
+</div>
+<div class="h-2 w-full bg-outline-variant/20 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container w-1/3 rounded-full"></div>
+</div>
+</div>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-[600px] bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm overflow-hidden">
+<!-- Identity Accent Header -->
+<div class="h-1 bg-secondary-container w-full"></div>
+<div class="p-xl md:p-[48px]">
+<!-- Header Text -->
+<header class="mb-xl text-center">
+<h1 class="font-display-md text-display-md text-primary mb-sm">Create your OjaPass Identity</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Let's start with some basic information to verify your account.</p>
+</header>
+<!-- Form Fields -->
+<form class="space-y-lg">
+<!-- Full Name Field -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-label-lg text-on-surface" for="full_name">Full Name</label>
+<div class="relative group">
+<input class="w-full px-md py-[14px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface placeholder:text-outline-variant transition-all font-body-md text-body-md" id="full_name" placeholder="As it appears on your ID" type="text"/>
+</div>
+</div>
+<!-- Phone Number Field -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-label-lg text-on-surface" for="phone">Phone Number</label>
+<div class="relative flex items-center">
+<span class="absolute left-md font-body-md text-body-md text-on-surface-variant">0</span>
+<input class="w-full pl-[60px] pr-md py-[14px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface placeholder:text-outline-variant transition-all font-body-md text-body-md" id="phone" placeholder="801 234 5678" type="tel"/>
+</div>
+</div>
+<!-- Location Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-label-lg text-on-surface" for="state">State</label>
+<select class="w-full px-md py-[14px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface font-body-md text-body-md appearance-none" id="state">
+<option value="">Select State</option>
+<option value="lagos">Lagos</option>
+<option value="kano">Kano</option>
+<option value="rivers">Rivers</option>
+<option value="fct">Abuja FCT</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-label-lg text-on-surface" for="lga">LGA</label>
+<select class="w-full px-md py-[14px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface font-body-md text-body-md appearance-none" id="lga">
+<option value="">Select LGA</option>
+</select>
+</div>
+</div>
+<!-- Language Preference -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-label-lg text-on-surface">Preferred Language</label>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-sm">
+<label class="cursor-pointer">
+<input checked="" class="sr-only peer" name="language" type="radio" value="english"/>
+<div class="px-sm py-md text-center rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container hover:bg-surface-container-high transition-colors font-label-lg text-label-lg">
+                                English
+                            </div>
+</label>
+<label class="cursor-pointer">
+<input class="sr-only peer" name="language" type="radio" value="pidgin"/>
+<div class="px-sm py-md text-center rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container hover:bg-surface-container-high transition-colors font-label-lg text-label-lg">
+                                Pidgin
+                            </div>
+</label>
+<label class="cursor-pointer">
+<input class="sr-only peer" name="language" type="radio" value="yoruba"/>
+<div class="px-sm py-md text-center rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container hover:bg-surface-container-high transition-colors font-label-lg text-label-lg">
+                                Yoruba
+                            </div>
+</label>
+<label class="cursor-pointer">
+<input class="sr-only peer" name="language" type="radio" value="hausa"/>
+<div class="px-sm py-md text-center rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container hover:bg-surface-container-high transition-colors font-label-lg text-label-lg">
+                                Hausa
+                            </div>
+</label>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full mt-xl bg-primary text-on-primary py-md rounded-full font-label-lg text-label-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-sm" type="submit">
+                    Continue to Identity Verification
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</form>
+<!-- Support Link -->
+<footer class="mt-xl text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    Need help? <a class="text-primary font-bold hover:underline" href="#">Chat with Oja Assistant</a>
+</p>
+</footer>
+</div>
+</main>
+<!-- Branding Element (Floating) -->
+<div class="mt-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-display-md text-display-md text-primary font-bold">OjaFinance</span>
+</div>
+</body></html>

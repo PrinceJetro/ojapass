@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OjaFinance | Trader Profile Depth</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f3; /* Warm Smoke */
+            font-family: 'DM Sans', sans-serif;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#31312d",
+                      "outline-variant": "#bfc9bf",
+                      "secondary-fixed": "#ffddaf",
+                      "surface-container": "#f0eee8",
+                      "inverse-primary": "#8ad7a8",
+                      "tertiary-fixed": "#b9efcb",
+                      "tertiary-container": "#36684b",
+                      "secondary-container": "#ffb21d",
+                      "on-tertiary-fixed": "#002111",
+                      "on-primary-fixed-variant": "#005231",
+                      "background": "#fcf9f3",
+                      "error": "#ba1a1a",
+                      "primary": "#005231",
+                      "on-primary-container": "#9be9b9",
+                      "on-secondary": "#ffffff",
+                      "outline": "#6f7a71",
+                      "tertiary": "#1d5035",
+                      "surface-container-low": "#f6f3ed",
+                      "inverse-on-surface": "#f3f0ea",
+                      "surface-tint": "#1b6b45",
+                      "on-primary": "#ffffff",
+                      "surface-bright": "#fcf9f3",
+                      "surface-container-highest": "#e5e2dc",
+                      "on-surface-variant": "#3f4942",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-container": "#6b4800",
+                      "on-tertiary-container": "#afe4c1",
+                      "secondary-fixed-dim": "#ffba44",
+                      "primary-fixed-dim": "#8ad7a8",
+                      "on-tertiary-fixed-variant": "#1d5035",
+                      "surface-variant": "#e5e2dc",
+                      "surface-dim": "#dcdad4",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed-variant": "#614000",
+                      "tertiary-fixed-dim": "#9dd3b0",
+                      "on-error-container": "#93000a",
+                      "on-background": "#1c1c18",
+                      "surface": "#fcf9f3",
+                      "on-surface": "#1c1c18",
+                      "primary-container": "#1b6b45",
+                      "on-error": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "secondary": "#805600",
+                      "surface-container-high": "#ebe8e2",
+                      "on-primary-fixed": "#002111",
+                      "primary-fixed": "#a5f3c3",
+                      "on-secondary-fixed": "#281800"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "margin-mobile": "20px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "md": "16px",
+                      "xl": "32px",
+                      "margin-desktop": "64px",
+                      "gutter": "16px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Fraunces"],
+                      "body-md": ["DM Sans"],
+                      "headline-md": ["DM Sans"],
+                      "label-lg": ["DM Sans"],
+                      "label-sm": ["DM Sans"],
+                      "body-lg": ["DM Sans"],
+                      "headline-lg": ["Fraunces"],
+                      "display-md": ["Fraunces"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                      "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                      "display-md": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- Header / Top Navigation -->
+<header class="h-20 flex justify-between items-center px-margin-desktop bg-background z-40">
+<div class="flex items-center gap-sm">
+<span class="font-display-md text-display-md font-bold text-primary">OjaFinance</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex flex-col items-end">
+<span class="font-label-lg text-on-surface">Step 3 of 3</span>
+<span class="text-xs text-outline font-medium">Finalizing Profile</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary">person</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex items-center justify-center py-xl px-margin-mobile lg:px-0">
+<div class="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
+<!-- Left Side: Visual/Information Branding -->
+<div class="lg:col-span-5 flex flex-col gap-lg">
+<div class="bg-primary-container rounded-xl p-xl text-on-primary-container relative overflow-hidden shadow-lg">
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-on-primary-container opacity-10 rounded-full"></div>
+<div class="relative z-10">
+<span class="font-display-md text-display-md block mb-md">OjaPass</span>
+<p class="font-body-lg text-on-primary-container/90 mb-lg leading-relaxed">
+                            Your OjaPass is more than just an ID—it's your key to financial growth and verified trade status.
+                        </p>
+<div class="flex flex-col gap-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container text-sm">verified</span>
+</div>
+<span class="font-label-lg text-on-primary-container">Verified Trader Status</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container text-sm">trending_up</span>
+</div>
+<span class="font-label-lg text-on-primary-container">Access Growth Loans</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Progress Track -->
+<div class="bg-surface-container-low rounded-xl p-lg border border-outline-variant/20">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-lg text-primary">Onboarding Progress</span>
+<span class="font-label-lg text-primary">100%</span>
+</div>
+<div class="h-2 w-full bg-outline-variant/30 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container w-full"></div>
+</div>
+</div>
+<img alt="African Market Stall" class="rounded-xl object-cover h-48 w-full border border-outline-variant/20" data-alt="A vibrant and bustling traditional Nigerian market scene with a focus on a well-organized stall selling colorful textiles and spices. The lighting is warm and natural, suggesting a golden hour glow that highlights the rich textures of the goods. The atmosphere is grounded and industrious, reflecting the professional yet human spirit of local trade. The color palette is dominated by earthy browns, Oja Green accents, and deep mustard yellows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBzFQ1o3o5j3A9UvmoHnCjxjwDFbeDq9QLajAJfbGeXwcQsMRtmR8EFpYqfDRU-cPaE2HF770hcc13Kd-CP9h1CtQVnEHYZCzaOmZ5-6VnVHoCtKgAqTo-sWrNnjAJo6twfSQFvR-3gm-L-9i5gPIRj2L0h7LUHypnJTapWl45wh-Mz19MCSEP9MuKKmyxASPMfq5gZmeK26FsoOZPdbLzA3VixgaVFwDS-RbZJoIUdFPo9tPic1rI3yExzvhtcsby7ceicnqE7tE"/>
+</div>
+<!-- Right Side: The Form -->
+<div class="lg:col-span-7 bg-surface-container-lowest rounded-xl p-xl border border-outline-variant/20 shadow-sm relative overflow-hidden">
+<!-- Decorative Gold Strip -->
+<div class="absolute top-0 left-0 w-full h-1 bg-secondary-container"></div>
+<div class="mb-xl">
+<h1 class="font-display-md text-display-md text-primary mb-sm">Tell us about your business</h1>
+<p class="font-body-md text-on-surface-variant">Complete your profile to unlock the full potential of your OjaPass and start growing your wealth.</p>
+</div>
+<form class="space-y-lg">
+<!-- Business Name -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-on-surface-variant" for="business_name">Business Name</label>
+<input class="w-full px-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" id="business_name" placeholder="e.g. Mama Tunde's Catering" type="text"/>
+</div>
+<!-- Grid Layout for Split Inputs -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- Trade Category -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-on-surface-variant" for="trade_category">Trade Category</label>
+<div class="relative">
+<select class="w-full appearance-none px-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md cursor-pointer pr-xl" id="trade_category">
+<option disabled="" selected="" value="">Select a category</option>
+<option value="food">Food &amp; Groceries</option>
+<option value="fashion">Fashion &amp; Apparel</option>
+<option value="electronics">Electronics</option>
+<option value="beauty">Beauty &amp; Personal Care</option>
+<option value="home">Home &amp; Furniture</option>
+<option value="other">Other</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+</div>
+</div>
+<!-- Years in Business -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-on-surface-variant" for="years_in_business">Years in Business</label>
+<input class="w-full px-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" id="years_in_business" placeholder="Years" type="number"/>
+</div>
+</div>
+<!-- Daily Sales Estimate -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-on-surface-variant" for="daily_sales">Average Daily Sales Estimate (₦)</label>
+<div class="relative">
+<span class="absolute left-md top-1/2 -translate-y-1/2 text-outline font-bold">₦</span>
+<input class="w-full pl-xl pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md" id="daily_sales" placeholder="50,000" type="text"/>
+</div>
+<p class="text-xs text-outline italic">This helps us tailor financial tools to your business scale.</p>
+</div>
+<!-- CTA Section -->
+<div class="pt-lg flex flex-col sm:flex-row items-center gap-md">
+<button class="w-full sm:flex-1 bg-primary text-on-primary py-md rounded-full font-label-lg hover:bg-primary/90 active:scale-95 transition-all shadow-md" type="submit">
+                            Complete Profile
+                        </button>
+<button class="w-full sm:w-auto px-xl py-md text-primary font-label-lg hover:bg-surface-container-high rounded-full transition-colors" type="button">
+                            Save as Draft
+                        </button>
+</div>
+</form>
+<!-- Trust Badge -->
+<div class="mt-xl flex items-center justify-center gap-sm py-md border-t border-outline-variant/10">
+<span class="material-symbols-outlined text-outline text-sm">lock</span>
+<span class="text-xs text-outline font-medium">Your data is secured with institutional-grade encryption</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Simple Footer for Onboarding Context -->
+<footer class="py-md border-t border-outline-variant/10 text-center">
+<p class="text-xs text-outline">© 2026 OjaFinance. Powered by The Modern Marketplace Ecosystem.</p>
+</footer>
+<!-- Bottom Navigation Mock (Hidden on Desktop but following prompt logic) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface border-t border-outline-variant/20 flex justify-around items-center py-sm z-50">
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Savings</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

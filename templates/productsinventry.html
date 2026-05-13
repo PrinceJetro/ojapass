@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Product Inventory | OjaPass{% endblock %}
+
+{% block extra_head %}
+<style>
+    .warm-shadow { box-shadow: 0 8px 20px rgba(27, 107, 69, 0.08); }
+    .gold-accent { border-top: 4px solid #ffb21d; }
+</style>
+{% endblock %}
+
+{% block page_title %}Product Inventory{% endblock %}
+{% block page_subtitle %}Manage your stock, prices, and profit margins{% endblock %}
+
+{% block content %}
+<div class="space-y-lg pb-12">
+    <!-- Action Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+        <div class="flex flex-wrap gap-sm">
+            <button class="px-lg py-sm rounded-full bg-secondary-container text-on-secondary-container font-label-lg text-label-lg">
+                In Stock ({{ products.count }})
+            </button>
+        </div>
+        <button onclick="document.getElementById('add-product-modal').classList.remove('hidden')" class="w-full md:w-auto bg-primary text-on-primary px-lg py-md rounded-lg flex items-center justify-center gap-sm font-label-lg text-label-lg warm-shadow active:scale-95 duration-150">
+            <span class="material-symbols-outlined">add</span>
+            Add New Product
+        </button>
+    </div>
+
+    <!-- Inventory List (Responsive Cards/Table) -->
+    <div class="bg-white rounded-xl border border-outline-variant/20 overflow-hidden warm-shadow">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low border-b border-outline-variant/20">
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider">Product Name</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider">Quantity</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider text-right">Cost Price</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider text-right">Selling Price</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider text-right">Profit/Margin</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                    {% for p in products %}
+                    <tr class="hover:bg-surface transition-colors">
+                        <td class="px-lg py-lg">
+                            <div class="flex items-center gap-md">
+                                <div class="w-12 h-12 rounded-lg bg-surface-container border border-outline-variant/20 flex items-center justify-center overflow-hidden shrink-0">
+                                    <span class="material-symbols-outlined text-primary">inventory_2</span>
+                                </div>
+                                <span class="font-headline-md text-headline-md text-on-surface">{{ p.name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-lg py-lg">
+                            <div class="flex flex-col">
+                                <span class="font-body-md text-body-md {% if p.quantity_in_stock <= p.low_stock_threshold %}text-error font-bold{% else %}text-on-surface{% endif %}">{{ p.quantity_in_stock }} Units</span>
+                                {% if p.quantity_in_stock <= p.low_stock_threshold %}
+                                <span class="px-2 py-0.5 rounded-full bg-error-container text-error text-[10px] font-bold w-fit uppercase">Low Stock</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[10px] font-bold w-fit uppercase">In Stock</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-lg py-lg text-right font-body-md text-body-md text-on-surface-variant">₦{{ p.cost_price }}</td>
+                        <td class="px-lg py-lg text-right font-headline-md text-headline-md text-on-surface">₦{{ p.selling_price }}</td>
+                        <td class="px-lg py-lg text-right">
+                            <div class="text-primary font-bold text-headline-md">+ ₦{{ p.profit }}</div>
+                            <div class="text-label-sm text-primary/60 font-bold">{{ p.margin|floatformat:1 }}% Margin</div>
+                        </td>
+                        <td class="px-lg py-lg text-center">
+                            <div class="flex items-center justify-center gap-xs">
+                                <button onclick="editProduct({{ p.id }}, '{{ p.name }}', {{ p.quantity_in_stock }}, {{ p.cost_price }}, {{ p.selling_price }}, '{{ p.category }}')" class="p-2 text-outline hover:text-primary transition-colors">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button onclick="deleteProduct({{ p.id }})" class="p-2 text-outline hover:text-error transition-colors">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-lg py-lg text-center text-on-surface-variant italic">No products in inventory yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <div class="px-lg py-md bg-surface-container-low flex justify-between items-center border-t border-outline-variant/20">
+            <p class="font-label-sm text-label-sm text-on-surface-variant">Showing {{ products.count }} of {{ total_count }} products</p>
+            <div class="flex gap-xs">
+                <button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/40 text-on-surface-variant">
+                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary font-bold text-label-sm">1</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/40 text-on-surface-variant">
+                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytical Bento Grid Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+        <div class="bg-white p-lg rounded-xl border border-outline-variant/20 gold-accent warm-shadow">
+            <div class="flex justify-between items-start mb-md">
+                <span class="material-symbols-outlined text-secondary text-[32px]">trending_up</span>
+                <span class="text-primary font-bold bg-primary/10 px-2 py-1 rounded text-xs">Potential Profit</span>
+            </div>
+            <h3 class="font-label-lg text-label-lg text-on-surface-variant uppercase mb-xs">Potential Profit</h3>
+            <p class="font-display-md text-display-md text-on-surface">₦{{ potential_profit|floatformat:0 }}</p>
+            <p class="text-label-sm text-on-surface-variant mt-sm">Estimated from current stock levels</p>
+        </div>
+        <div class="bg-primary text-on-primary p-lg rounded-xl warm-shadow relative overflow-hidden">
+            <div class="relative z-10">
+                <span class="material-symbols-outlined text-[32px] mb-md">shopping_cart_checkout</span>
+                <h3 class="font-label-lg text-label-lg text-on-primary/80 uppercase mb-xs">Fastest Moving Item</h3>
+                <p class="font-display-md text-display-md">{{ fastest_moving.name|default:"N/A" }}</p>
+                <p class="text-label-sm text-on-primary/70 mt-sm">{{ fastest_moving.count|default:0 }} units sold recently</p>
+            </div>
+            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+        </div>
+        <div class="bg-white p-lg rounded-xl border border-outline-variant/20 warm-shadow">
+            <div class="flex justify-between items-start mb-md">
+                <span class="material-symbols-outlined text-error text-[32px]">warning</span>
+                <span class="text-error font-bold bg-error-container px-2 py-1 rounded text-xs">Action Required</span>
+            </div>
+            <h3 class="font-label-lg text-label-lg text-on-surface-variant uppercase mb-xs">Inventory Health</h3>
+            <p class="font-display-md text-display-md text-on-surface">{{ low_stock_count }} Low Stock</p>
+            <div class="mt-md w-full h-2 bg-outline-variant/20 rounded-full overflow-hidden">
+                <div class="h-full bg-secondary-container" style="width: {{ health_percentage|default:100 }}%"></div>
+            </div>
+            <p class="text-label-sm text-on-surface-variant mt-sm">{{ health_percentage|floatformat:0 }}% items healthy</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Add Product Modal -->
+<div id="add-product-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white w-full max-w-md rounded-2xl p-lg md:p-xl shadow-2xl mx-auto max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-lg">
+            <h3 class="font-headline-lg text-headline-lg text-primary">Add New Product</h3>
+            <button onclick="document.getElementById('add-product-modal').classList.add('hidden')" class="p-2 hover:bg-surface-container rounded-full">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="add-product-form" class="space-y-md">
+            <div>
+                <label class="font-label-lg block mb-1">Product Name</label>
+                <input id="p-name" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. White Maize" required/>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                <div>
+                    <label class="font-label-lg block mb-1">Initial Stock</label>
+                    <input id="p-qty" type="number" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0" required/>
+                </div>
+                <div>
+                    <label class="font-label-lg block mb-1">Category</label>
+                    <input id="p-cat" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Grains"/>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                <div>
+                    <label class="font-label-lg block mb-1">Cost Price (₦)</label>
+                    <input id="p-cost" type="number" step="0.01" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                </div>
+                <div>
+                    <label class="font-label-lg block mb-1">Selling Price (₦)</label>
+                    <input id="p-sell" type="number" step="0.01" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                </div>
+            </div>
+            <button onclick="addProduct()" type="button" class="w-full bg-primary text-on-primary py-md rounded-xl font-headline-md mt-md hover:bg-primary/90 transition-all">Save Product</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div id="edit-product-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white w-full max-w-md rounded-2xl p-lg md:p-xl shadow-2xl mx-auto max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-lg">
+            <h3 class="font-headline-lg text-headline-lg text-secondary">Edit Product</h3>
+            <button onclick="document.getElementById('edit-product-modal').classList.add('hidden')" class="p-2 hover:bg-surface-container rounded-full">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="edit-product-form" class="space-y-md">
+            <input id="edit-p-id" type="hidden"/>
+            <div>
+                <label class="font-label-lg block mb-1">Product Name</label>
+                <input id="edit-p-name" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. White Maize" required/>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                <div>
+                    <label class="font-label-lg block mb-1">Current Stock</label>
+                    <input id="edit-p-qty" type="number" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0" required/>
+                </div>
+                <div>
+                    <label class="font-label-lg block mb-1">Category</label>
+                    <input id="edit-p-cat" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Grains"/>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                <div>
+                    <label class="font-label-lg block mb-1">Cost Price (₦)</label>
+                    <input id="edit-p-cost" type="number" step="0.01" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                </div>
+                <div>
+                    <label class="font-label-lg block mb-1">Selling Price (₦)</label>
+                    <input id="edit-p-sell" type="number" step="0.01" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                </div>
+            </div>
+            <button onclick="updateProduct()" type="button" class="w-full bg-secondary text-on-secondary py-md rounded-xl font-headline-md mt-md hover:opacity-90 transition-all">Update Product</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function addProduct() {
+    const name = document.getElementById('p-name').value;
+    const qty = document.getElementById('p-qty').value;
+    const cat = document.getElementById('p-cat').value;
+    const cost = document.getElementById('p-cost').value;
+    const sell = document.getElementById('p-sell').value;
+
+    if (!name || !qty || !cost || !sell) {
+        alert("Please fill all required fields");
+        return;
+    }
+
+    try {
+        const response = await fetch('/mamatally/products/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                name: name,
+                quantityInStock: qty,
+                costPrice: cost,
+                sellingPrice: sell,
+                category: cat
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert("Error: " + data.message);
+        }
+    } catch (e) {
+        alert("Server error");
+    }
+}
+
+async function deleteProduct(id) {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    try {
+        const response = await fetch(`/mamatally/products/${id}/`, { 
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            window.location.reload();
+        }
+    } catch (e) {
+        alert("Error deleting product");
+    }
+}
+
+function editProduct(id, name, qty, cost, sell, cat) {
+    document.getElementById('edit-p-id').value = id;
+    document.getElementById('edit-p-name').value = name;
+    document.getElementById('edit-p-qty').value = qty;
+    document.getElementById('edit-p-cost').value = cost;
+    document.getElementById('edit-p-sell').value = sell;
+    document.getElementById('edit-p-cat').value = cat;
+    document.getElementById('edit-product-modal').classList.remove('hidden');
+}
+
+async function updateProduct() {
+    const id = document.getElementById('edit-p-id').value;
+    const name = document.getElementById('edit-p-name').value;
+    const qty = document.getElementById('edit-p-qty').value;
+    const cat = document.getElementById('edit-p-cat').value;
+    const cost = document.getElementById('edit-p-cost').value;
+    const sell = document.getElementById('edit-p-sell').value;
+
+    try {
+        const response = await fetch(`/mamatally/products/${id}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                name: name,
+                quantityInStock: qty,
+                costPrice: cost,
+                sellingPrice: sell,
+                category: cat
+            })
+        });
+        const data = await response.json();
+        if (data.success) window.location.reload();
+        else alert("Error: " + data.message);
+    } catch (e) { alert("Server error"); }
+}
+</script>
+{% endblock %}

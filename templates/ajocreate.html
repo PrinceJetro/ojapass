@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Launch New Ajo Group | OjaPass{% endblock %}
+
+{% block page_title %}Launch New Ajo Group{% endblock %}
+{% block page_subtitle %}Empower your community through shared savings and digital trust{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto pb-24">
+    <!-- Stepper Progress (Responsive) -->
+    <div class="mb-xl flex items-center justify-between max-w-2xl px-lg">
+        <div class="flex flex-col items-center gap-sm">
+            <div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">1</div>
+            <span class="text-primary font-bold font-label-sm text-label-sm hidden sm:block">Basics</span>
+        </div>
+        <div class="h-1 flex-1 bg-outline-variant/30 rounded-full mx-md mb-6 sm:mb-8"></div>
+        <div class="flex flex-col items-center gap-sm">
+            <div class="w-10 h-10 rounded-full border-2 border-outline-variant text-on-surface-variant flex items-center justify-center font-bold">2</div>
+            <span class="text-on-surface-variant font-label-sm text-label-sm hidden sm:block">Structure</span>
+        </div>
+        <div class="h-1 flex-1 bg-outline-variant/30 rounded-full mx-md mb-6 sm:mb-8"></div>
+        <div class="flex flex-col items-center gap-sm">
+            <div class="w-10 h-10 rounded-full border-2 border-outline-variant text-on-surface-variant flex items-center justify-center font-bold">3</div>
+            <span class="text-on-surface-variant font-label-sm text-label-sm hidden sm:block">Review</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-xl">
+        <!-- Main Form Section -->
+        <div class="lg:col-span-8">
+            <div class="bg-white rounded-xl border border-outline-variant/20 shadow-sm p-lg md:p-xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-primary"></div>
+                <div class="mb-lg">
+                    <h2 class="font-headline-lg text-headline-lg text-primary mb-base">Group Configuration</h2>
+                    <p class="text-on-surface-variant font-body-md">Define how your collective savings loop will operate.</p>
+                </div>
+                <form action="{% url 'ajo_create' %}" method="POST" class="space-y-lg">
+                    {% csrf_token %}
+                    <!-- Group Name -->
+                    <div class="space-y-base">
+                        <label class="block font-label-lg text-label-lg text-on-surface" for="group_name">Group Name</label>
+                        <input name="name" class="w-full bg-white border border-outline-variant rounded-lg px-md py-md focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="group_name" placeholder="e.g. Alaba Electronics Traders Ajo" type="text" required/>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                        <!-- Contribution Amount -->
+                        <div class="space-y-base">
+                            <label class="block font-label-lg text-label-lg text-on-surface" for="amount">Contribution Amount (₦)</label>
+                            <div class="relative">
+                                <span class="absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">₦</span>
+                                <input name="amount" class="w-full pl-xl bg-white border border-outline-variant rounded-lg px-md py-md focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="amount" placeholder="0.00" type="number" required/>
+                            </div>
+                        </div>
+                        <!-- Max Members -->
+                        <div class="space-y-base">
+                            <label class="block font-label-lg text-label-lg text-on-surface" for="members">Max Members</label>
+                            <select name="max_members" class="w-full bg-white border border-outline-variant rounded-lg px-md py-md focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none" id="members">
+                                <option value="5">5 Members</option>
+                                <option value="10">10 Members</option>
+                                <option value="12">12 Members</option>
+                                <option value="20">20 Members</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Frequency -->
+                    <div class="space-y-md">
+                        <label class="block font-label-lg text-label-lg text-on-surface">Contribution Frequency</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-md">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="frequency" value="weekly" class="hidden peer" checked>
+                                <div class="peer-checked:border-primary peer-checked:bg-primary/5 border-2 border-outline-variant text-on-surface-variant p-lg rounded-xl flex flex-col items-center gap-sm transition-all active:scale-95 text-center">
+                                    <span class="material-symbols-outlined">calendar_view_week</span>
+                                    <span class="font-label-lg text-label-lg">Weekly</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="frequency" value="bi-weekly" class="hidden peer">
+                                <div class="peer-checked:border-primary peer-checked:bg-primary/5 border-2 border-outline-variant text-on-surface-variant p-lg rounded-xl flex flex-col items-center gap-sm transition-all active:scale-95 text-center">
+                                    <span class="material-symbols-outlined">calendar_month</span>
+                                    <span class="font-label-lg text-label-lg">Bi-Weekly</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="frequency" value="monthly" class="hidden peer">
+                                <div class="peer-checked:border-primary peer-checked:bg-primary/5 border-2 border-outline-variant text-on-surface-variant p-lg rounded-xl flex flex-col items-center gap-sm transition-all active:scale-95 text-center">
+                                    <span class="material-symbols-outlined">event_repeat</span>
+                                    <span class="font-label-lg text-label-lg">Monthly</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Rotation Strategy -->
+                    <div class="space-y-md">
+                        <label class="block font-label-lg text-label-lg text-on-surface">Rotation Strategy</label>
+                        <div class="space-y-sm">
+                            <label class="flex items-center p-md border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors gap-md">
+                                <input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="strategy" type="radio" value="random"/>
+                                <div>
+                                    <span class="block font-headline-md text-headline-md text-primary">Randomized Draw</span>
+                                    <span class="text-on-surface-variant text-label-sm">System picks a random winner each cycle.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-md border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors gap-md">
+                                <input checked="" class="w-5 h-5 text-primary border-outline focus:ring-primary" name="strategy" type="radio" value="order"/>
+                                <div>
+                                    <span class="block font-headline-md text-headline-md text-primary">Order of Joining</span>
+                                    <span class="text-on-surface-variant text-label-sm">First to join gets the first payout.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Form Actions -->
+                    <div class="pt-lg flex flex-col sm:flex-row items-center justify-between gap-md">
+                        <button class="w-full sm:w-auto text-primary font-bold px-lg py-md hover:bg-primary/5 rounded-lg transition-colors" type="button">Save as Draft</button>
+                        <button class="w-full sm:w-auto bg-primary text-on-primary font-bold px-xl py-md rounded-lg shadow-lg hover:brightness-110 active:scale-95 transition-all" type="submit">Continue to Invitations</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Sidebar -->
+        <aside class="lg:col-span-4 space-y-lg">
+            <!-- Business Identity Score Card -->
+            <div class="bg-gradient-to-br from-primary via-primary-container to-tertiary p-lg rounded-xl shadow-lg text-white relative overflow-hidden">
+                <div class="flex justify-between items-start mb-lg relative z-10">
+                    <span class="material-symbols-outlined text-3xl">verified_user</span>
+                    <div class="bg-white/20 px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider">Verified Leader</div>
+                </div>
+                <div class="mb-sm relative z-10">
+                    <span class="block text-label-sm opacity-80 uppercase tracking-widest">Creator OjaScore</span>
+                    <span class="font-display-md text-display-md">{{ user.ojapass_score|default:"842" }}</span>
+                </div>
+                <div class="h-2 w-full bg-white/20 rounded-full overflow-hidden relative z-10">
+                    <div class="h-full bg-secondary-fixed w-[84%]"></div>
+                </div>
+                <p class="mt-md text-label-sm leading-relaxed opacity-90 italic relative z-10">"Your high score reduces the escrow buffer for all group members."</p>
+                <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+            </div>
+
+            <!-- How it Works Cards -->
+            <div class="bg-white p-lg rounded-xl space-y-md border-t-4 border-secondary-container shadow-sm">
+                <h3 class="font-headline-md text-headline-md text-primary flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-secondary">security</span>
+                    Built-in Trust
+                </h3>
+                <div class="space-y-lg">
+                    <div class="flex gap-md">
+                        <span class="material-symbols-outlined text-primary shrink-0">lock</span>
+                        <div>
+                            <h4 class="font-label-lg text-label-lg text-on-surface">Automated Escrow</h4>
+                            <p class="text-label-sm text-on-surface-variant">All contributions are locked in a secure OjaPass smart-vault until the rotation date.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-md">
+                        <span class="material-symbols-outlined text-primary shrink-0">trending_up</span>
+                        <div>
+                            <h4 class="font-label-lg text-label-lg text-on-surface">Score Boosting</h4>
+                            <p class="text-label-sm text-on-surface-variant">Successful group completion increases your Identity Score by up to 15%.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative group overflow-hidden rounded-xl h-48 shadow-sm">
+                <img alt="Traditional Market Scene" class="w-full h-full object-cover grayscale opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBk6vC1IvCV4uSXHJhAFZX2YROyOG2IZSc8MswDWGbbPlDDGcDG-fsznANr6YaLbk1ucnb4GX0MlfgCnvjAUh7F1FIduQwndxlBVN3Do3neIS14R9MF6nkdA-wyh27Cv-xFPfMhETe8CiruKlrYJV-VMH39Wa8aChuwYn3FXzDxwLFZboJRqfU2aaJkBuBK06OChrWOA9A3NCMXWD_DRVloGFWmNvBT0wqihkGwR0LpbAKXJ4mS3liYT46P5Nxkg_CfQje1lOcXX0"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-lg">
+                    <p class="text-white text-label-sm italic">"Modernizing the marketplace, honoring the tradition."</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

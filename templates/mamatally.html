@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Mamatally Dashboard | OjaPass{% endblock %}
+
+{% block page_title %}Mamatally Management{% endblock %}
+{% block page_subtitle %}Real-time inventory & sales tracking{% endblock %}
+
+{% block content %}
+<!-- Page Content -->
+<div class="grid grid-cols-12 gap-lg pb-12">
+    <!-- Bento Row 1: Sales Recorder & Inventory Highlights -->
+    <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl p-lg border border-outline-variant/20 shadow-sm">
+        <div class="flex justify-between items-center mb-lg">
+            <h3 class="font-headline-md text-headline-md text-primary flex items-center gap-sm">
+                <span class="material-symbols-outlined">point_of_sale</span>
+                Sales Recorder
+            </h3>
+            <span class="text-label-sm font-label-sm text-on-surface-variant bg-surface-container px-md py-xs rounded-full uppercase tracking-wider">New Entry</span>
+        </div>
+        <form id="sale-recorder-form" class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+            <div class="space-y-sm md:col-span-2">
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Product Name</label>
+                <select id="sale-product" class="w-full bg-white border border-outline-variant rounded-lg p-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" required>
+                    <option value="">Select a product</option>
+                    {% for p in inventory %}
+                    <option value="{{ p.id }}" data-price="{{ p.selling_price }}">{{ p.name }} (Stock: {{ p.quantity_in_stock }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="space-y-sm">
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Quantity</label>
+                <input id="sale-qty" class="w-full bg-white border border-outline-variant rounded-lg p-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="1" type="number" min="1" value="1" required/>
+            </div>
+            <div class="space-y-sm">
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Price (₦)</label>
+                <input id="sale-price" class="w-full bg-white border border-outline-variant rounded-lg p-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="0.00" type="number" step="0.01" required/>
+            </div>
+            <div class="space-y-sm md:col-span-2">
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Payment Method</label>
+                <div class="flex flex-col sm:flex-row gap-md">
+                    <label class="flex-1 cursor-pointer">
+                        <input checked="" class="hidden peer" name="payment" value="cash" type="radio"/>
+                        <div class="flex items-center justify-center gap-sm border-2 border-outline-variant rounded-lg p-md peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                            <span class="material-symbols-outlined text-primary">payments</span>
+                            <span class="font-label-lg">Cash</span>
+                        </div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input class="hidden peer" name="payment" value="squad" type="radio"/>
+                        <div class="flex items-center justify-center gap-sm border-2 border-outline-variant rounded-lg p-md peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                            <span class="material-symbols-outlined text-secondary">account_balance_wallet</span>
+                            <span class="font-label-lg">Squad Pay</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <button id="record-sale-btn" onclick="recordSale()" class="md:col-span-2 bg-primary text-on-primary font-headline-md text-headline-md py-md rounded-lg shadow-lg hover:bg-primary-container transition-all active:scale-95 flex items-center justify-center gap-sm mt-md" type="button">
+                <span class="material-symbols-outlined">add_circle</span>
+                Record Sale
+            </button>
+        </form>
+    </section>
+
+    <!-- Sidebar Stats within the Grid -->
+    <div class="col-span-12 lg:col-span-4 flex flex-col gap-lg">
+        <!-- Low Stock Alert -->
+        <div class="bg-white rounded-xl border-t-4 border-secondary p-lg shadow-sm">
+            <div class="flex items-center gap-sm text-secondary mb-md">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+                <h4 class="font-label-lg text-label-lg uppercase">Low Stock Alerts</h4>
+            </div>
+            <div class="space-y-md">
+                {% for p in low_stock_alerts %}
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-headline-md text-headline-md">{{ p.name }}</p>
+                        <p class="font-body-md text-body-md text-on-surface-variant">{{ p.category }}</p>
+                    </div>
+                    <span class="text-error font-bold text-headline-md">{{ p.quantity_in_stock }} left</span>
+                </div>
+                <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                    <div class="bg-secondary h-full" style="width: {% widthratio p.quantity_in_stock p.low_stock_threshold 100 %}%"></div>
+                </div>
+                {% empty %}
+                <p class="text-on-surface-variant italic">All stock levels healthy.</p>
+                {% endfor %}
+                <a href="{% url 'mamatally_products' %}" class="block w-full text-center border border-secondary text-secondary font-label-lg py-sm rounded-lg hover:bg-secondary/5 transition-colors mt-md">Manage Inventory</a>
+            </div>
+        </div>
+        <!-- Total Value Card -->
+        <div class="bg-primary-container text-on-primary-container rounded-xl p-lg shadow-sm flex flex-col justify-between min-h-[200px] relative overflow-hidden">
+            <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] opacity-10">inventory_2</span>
+            <div class="relative z-10">
+                <h4 class="font-label-lg text-label-lg uppercase opacity-80">Total Inventory Value</h4>
+                <p class="font-display-md text-display-md mt-sm">₦{{ total_inventory_value|floatformat:0 }}</p>
+                <p class="font-label-lg text-label-lg mt-md opacity-90">Turnover: <span class="font-bold text-white">₦{{ monthly_turnover|floatformat:2 }} / mo</span></p>
+            </div>
+            <div class="mt-lg relative z-10">
+                <a href="{% url 'mamatally_products' %}" class="inline-flex items-center gap-xs font-label-lg text-primary-fixed hover:underline">
+                    View Full Inventory
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bento Row 2: Revenue Graph & Sales History -->
+    <section class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-lg border border-outline-variant/20 shadow-sm">
+        <div class="flex justify-between items-center mb-xl">
+            <h3 class="font-headline-md text-headline-md">Daily Revenue</h3>
+        </div>
+        <div class="flex items-end justify-between h-48 gap-sm">
+            {% for d in daily_revenue_list %}
+            <div class="w-full flex flex-col items-center gap-sm group">
+                <div class="w-full bg-tertiary/20 group-hover:bg-primary transition-all relative" style="height: {{ d.height }}%">
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface p-1 rounded border border-outline-variant text-[10px] hidden group-hover:block z-10">₦{{ d.amount|floatformat:0 }}</div>
+                </div>
+                <span class="font-label-sm text-label-sm">{{ d.day }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="mt-xl pt-xl border-t border-outline-variant/10">
+            <p class="font-label-lg text-label-lg text-on-surface-variant">Today's Revenue</p>
+            <p class="font-headline-lg text-headline-lg">₦{{ today_revenue|floatformat:0 }}</p>
+        </div>
+    </section>
+
+    <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden">
+        <div class="p-lg border-b border-outline-variant/10 flex justify-between items-center">
+            <h3 class="font-headline-md text-headline-md">Sales History</h3>
+            <a href="{% url 'mamatally_sales' %}" class="text-primary font-label-lg hover:underline transition-all hidden sm:block">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-surface-container-low border-b border-outline-variant/10">
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase">Date</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase">Items</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase">Amount</th>
+                        <th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant uppercase text-right">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                    {% for s in recent_sales %}
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-lg py-lg">
+                            <p class="font-label-lg">{{ s.created_at|date:"M d, Y" }}</p>
+                            <p class="font-label-sm text-on-surface-variant">{{ s.created_at|date:"h:i A" }}</p>
+                        </td>
+                        <td class="px-lg py-lg">
+                            <p class="font-label-lg">{{ s.product.name }}</p>
+                            <p class="font-label-sm text-on-surface-variant">Qty: {{ s.quantity }}</p>
+                        </td>
+                        <td class="px-lg py-lg font-headline-md text-primary">₦{{ s.amount }}</td>
+                        <td class="px-lg py-lg text-right">
+                            <span class="bg-primary/10 text-primary px-md py-xs rounded-full font-label-sm">{{ s.payment_method|title }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-lg py-lg text-center text-on-surface-variant italic">No sales recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="p-lg bg-surface-container-low flex justify-center sm:hidden">
+            <a href="{% url 'mamatally_sales' %}" class="text-primary font-label-lg hover:underline transition-all">View All Transactions</a>
+        </div>
+    </section>
+</div>
+
+<!-- Additional Forms Row -->
+<div class="grid grid-cols-12 gap-lg pb-xl">
+    <section class="col-span-12 md:col-span-6 bg-surface-container-lowest rounded-xl p-lg border border-outline-variant/20 shadow-sm">
+        <h3 class="font-headline-md text-headline-md text-secondary flex items-center gap-sm mb-lg">
+            <span class="material-symbols-outlined">restart_alt</span>
+            Log Restock Event
+        </h3>
+        <form id="restock-form" class="space-y-md">
+            <div>
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Select Product</label>
+                <select id="restock-product" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" required>
+                    <option value="">Select a product...</option>
+                    {% for p in inventory %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-md">
+                <div>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Quantity Added</label>
+                    <input id="restock-qty" type="number" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0" required/>
+                </div>
+                <div>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Total Cost Paid (₦)</label>
+                    <input id="restock-cost" type="number" step="0.01" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                </div>
+            </div>
+            <div>
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Supplier Name</label>
+                <input id="restock-supplier" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Alaba Market Wholesalers"/>
+            </div>
+            <button onclick="logRestock()" type="button" class="w-full bg-secondary text-on-secondary font-label-lg py-md rounded-lg shadow-lg hover:opacity-90 active:scale-95 transition-all mt-md">
+                Confirm Restock
+            </button>
+        </form>
+    </section>
+
+    <section class="col-span-12 md:col-span-6 bg-surface-container-lowest rounded-xl p-lg border border-outline-variant/20 shadow-sm">
+        <h3 class="font-headline-md text-headline-md text-primary flex items-center gap-sm mb-lg">
+            <span class="material-symbols-outlined">add_box</span>
+            Add New Product
+        </h3>
+        <form id="add-product-form" class="space-y-md">
+            <div>
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Product Name</label>
+                <input id="new-p-name" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Product Name" required/>
+            </div>
+            <div class="grid grid-cols-2 gap-md">
+                <div>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Initial Stock</label>
+                    <input id="new-p-qty" type="number" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0" required/>
+                </div>
+                <div>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Category</label>
+                    <input id="new-p-cat" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Grains, Electronics"/>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-md">
+                <div>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Cost Price (₦)</label>
+                    <input id="new-p-cost" type="number" step="0.01" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                </div>
+                <div>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Selling Price (₦)</label>
+                    <input id="new-p-sell" type="number" step="0.01" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                </div>
+            </div>
+            <button onclick="addNewProduct()" type="button" class="w-full bg-primary text-on-primary font-label-lg py-md rounded-lg shadow-lg hover:opacity-90 active:scale-95 transition-all mt-md">
+                Save Product
+            </button>
+        </form>
+    </section>
+</div>
+
+<!-- Sticky FAB for Mobile -->
+<button class="fixed bottom-24 right-6 bg-secondary-container text-on-secondary-container w-16 h-16 rounded-full flex items-center justify-center shadow-2xl lg:hidden z-50">
+    <span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+
+<!-- Success Modal (Hidden) -->
+<div id="sale-success-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-primary/20 backdrop-blur-sm hidden">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center scale-90 transition-transform duration-300">
+        <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-symbols-outlined text-5xl">check_circle</span>
+        </div>
+        <h2 class="text-2xl font-bold text-primary mb-2">Sale Recorded!</h2>
+        <p class="text-on-surface-variant mb-8">The transaction has been logged and your OjaScore has been updated.</p>
+        <button onclick="window.location.reload()" class="w-full py-4 bg-primary text-white rounded-full font-bold">Continue</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-update price when product is selected
+document.getElementById('sale-product').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    const price = selected.getAttribute('data-price');
+    if (price) {
+        document.getElementById('sale-price').value = price;
+    }
+});
+
+async function recordSale() {
+    const productId = document.getElementById('sale-product').value;
+    const qty = document.getElementById('sale-qty').value;
+    const amount = document.getElementById('sale-price').value;
+    const payment = document.querySelector('input[name="payment"]:checked').value;
+
+    if (!productId || !qty || !amount) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    const btn = document.getElementById('record-sale-btn');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Recording...';
+
+    try {
+        const response = await fetch('/mamatally/sales/', { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                productId: productId,
+                quantity: qty,
+                amount: amount,
+                paymentMethod: payment
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('sale-success-modal').classList.remove('hidden');
+            setTimeout(() => {
+                document.querySelector('#sale-success-modal > div').classList.remove('scale-90');
+            }, 10);
+        } else {
+            alert("Error: " + (data.message || "Failed to record sale"));
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Server error. Please try again.");
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+}
+
+async function logRestock() {
+    const productId = document.getElementById('restock-product').value;
+    const qty = document.getElementById('restock-qty').value;
+    const cost = document.getElementById('restock-cost').value;
+    const supplier = document.getElementById('restock-supplier').value;
+
+    if (!productId || !qty || !cost) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    try {
+        const response = await fetch('/mamatally/restock/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                productId: productId,
+                quantity: qty,
+                costPaid: cost,
+                supplierName: supplier
+            })
+        });
+        const data = await response.json();
+        if (data.success) window.location.reload();
+        else alert("Error: " + data.message);
+    } catch (e) { alert("Server error"); }
+}
+
+async function addNewProduct() {
+    const name = document.getElementById('new-p-name').value;
+    const qty = document.getElementById('new-p-qty').value;
+    const cat = document.getElementById('new-p-cat').value;
+    const cost = document.getElementById('new-p-cost').value;
+    const sell = document.getElementById('new-p-sell').value;
+
+    if (!name || !qty || !cost || !sell) {
+        alert("Please fill required fields");
+        return;
+    }
+
+    try {
+        const response = await fetch('/mamatally/products/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                name: name,
+                quantityInStock: qty,
+                costPrice: cost,
+                sellingPrice: sell,
+                category: cat
+            })
+        });
+        const data = await response.json();
+        if (data.success) window.location.reload();
+        else alert("Error: " + data.message);
+    } catch (e) { alert("Server error"); }
+}
+</script>
+{% endblock %}

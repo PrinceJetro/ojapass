@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Savings Goals | OjaFinance{% endblock %}
+
+{% block page_title %}Savings Goals{% endblock %}
+{% block page_subtitle %}Growing your business, one Naira at a time.{% endblock %}
+
+{% block content %}
+<main class="min-h-[calc(100vh-80px)] pb-32">
+    <!-- Identity Summary Card -->
+    <div class="mb-xl p-lg rounded-xl bg-gradient-to-br from-primary-container to-tertiary-container text-on-primary-container relative overflow-hidden shadow-lg">
+        <div class="relative z-10">
+            <span class="font-label-lg uppercase tracking-wider opacity-80">Identity Score</span>
+            <h3 class="font-display-md text-display-md mt-xs">{{ user.ojapass_score }}</h3>
+            <p class="font-body-md mt-sm max-w-md">Your consistent savings are building your creditworthiness. Keep it up to unlock larger credit facilities!</p>
+            <div class="mt-lg flex gap-md">
+                <button class="bg-secondary-container text-on-secondary-container px-lg py-sm rounded-full font-label-lg active:scale-95 transition-transform">Boost Score</button>
+                <button class="border border-on-primary-container/30 px-lg py-sm rounded-full font-label-lg hover:bg-white/10 transition-colors">View Details</button>
+            </div>
+        </div>
+        <!-- Abstract Pattern Overlay -->
+        <div class="absolute right-0 top-0 w-64 h-full opacity-20 pointer-events-none">
+            <svg viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <path d="M45.7,-78.3C58.9,-70.9,69.1,-58.5,76.5,-44.8C83.9,-31.1,88.5,-16.1,87.6,-1.5C86.7,13.1,80.3,27.3,71.8,39.6C63.2,51.9,52.5,62.3,39.9,70.5C27.3,78.7,12.8,84.7,-2,88.1C-16.7,91.6,-31.2,92.5,-44.3,86.9C-57.3,81.4,-68.9,69.4,-77,55.9C-85,42.5,-89.6,27.5,-90.7,12.4C-91.8,-2.7,-89.4,-18,-83.4,-31.8C-77.4,-45.5,-67.7,-57.6,-55.6,-65.8C-43.5,-73.9,-29,-78.2,-14.2,-80.6C0.6,-83.1,15.7,-83.7,29.9,-81.2C35.5,-80.2,40.6,-79.3,45.7,-78.3Z" fill="currentColor" transform="translate(100 100)"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Section Header -->
+    <div class="flex items-center justify-between mb-lg">
+        <h4 class="font-headline-md text-headline-md text-on-surface">Active Goals</h4>
+        <div class="flex gap-sm">
+            <button class="bg-surface border border-outline-variant/30 p-xs rounded-lg hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined">filter_list</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Goals Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-lg">
+        {% for goal in active_goals %}
+        <div class="lg:col-span-8 bg-white rounded-xl border border-outline-variant/20 p-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col md:flex-row gap-lg">
+            <div class="absolute top-0 left-0 w-full h-1 bg-secondary-container"></div>
+            <!-- Info Column -->
+            <div class="flex-grow flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <h5 class="font-headline-md text-headline-md text-on-surface">{{ goal.name }}</h5>
+                        <button class="material-symbols-outlined text-outline">more_vert</button>
+                    </div>
+                    <p class="text-on-surface-variant font-body-md mt-xs">{{ goal.description|default:"Growing your business capacity." }}</p>
+                </div>
+                <div class="mt-lg">
+                    <div class="flex justify-between items-end mb-sm">
+                        <div>
+                            <span class="font-label-sm text-outline uppercase">Current Balance</span>
+                            <div class="font-headline-md text-primary">₦{{ goal.current_amount|floatformat:0 }}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-label-sm text-outline uppercase">Target</span>
+                            <div class="font-body-lg font-bold text-on-surface">₦{{ goal.target_amount|floatformat:0 }}</div>
+                        </div>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                        <div class="h-full bg-secondary-container rounded-full" style="width: {{ goal.progress_percent }}%"></div>
+                    </div>
+                    <div class="flex justify-between mt-xs">
+                        <span class="font-label-sm text-on-tertiary-fixed-variant">{{ goal.progress_percent }}% of goal reached</span>
+                        <span class="font-label-sm text-outline">₦{{ goal.amount_left|floatformat:0 }} left</span>
+                    </div>
+                </div>
+                <div class="mt-lg flex items-center gap-md">
+                    <button class="flex-grow py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:opacity-90 transition-opacity">Add Funds</button>
+                    <button class="px-md py-sm border border-outline rounded-lg text-outline hover:bg-surface-container transition-colors">Settings</button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="lg:col-span-12 bg-surface-container-low border-2 border-dashed border-outline-variant/50 rounded-xl p-xl flex flex-col items-center justify-center text-center group">
+            <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center text-outline mb-md">
+                <span class="material-symbols-outlined text-display-md">savings</span>
+            </div>
+            <h5 class="font-headline-md text-on-surface">No Active Goals</h5>
+            <p class="text-on-surface-variant font-body-md mt-sm max-w-xs">Start saving for your next business milestone today.</p>
+            <button class="mt-lg bg-primary text-on-primary px-lg py-sm rounded-full font-label-lg">Create First Goal</button>
+        </div>
+        {% endfor %}
+
+        <!-- Static Suggestion -->
+        <div class="lg:col-span-4 bg-white rounded-xl border border-outline-variant/20 p-lg shadow-sm">
+            <h5 class="font-headline-md text-on-surface mb-md">Savings Insight</h5>
+            <div class="p-md bg-tertiary/5 rounded-xl border border-tertiary/10">
+                <p class="text-body-md text-on-tertiary-fixed-variant">Users with active savings goals are <span class="font-bold">3x more likely</span> to be approved for high-limit loans.</p>
+            </div>
+            <div class="mt-lg space-y-md">
+                <div class="flex items-center gap-md p-sm hover:bg-surface-container rounded-lg cursor-pointer transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                        <span class="material-symbols-outlined">motorcycle</span>
+                    </div>
+                    <div>
+                        <p class="font-label-lg">Delivery Bike</p>
+                        <p class="text-[10px] text-outline">₦450k Target</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-md p-sm hover:bg-surface-container rounded-lg cursor-pointer transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">inventory</span>
+                    </div>
+                    <div>
+                        <p class="font-label-lg">Bulk Stock</p>
+                        <p class="text-[10px] text-outline">₦200k Target</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Create New Goal Floating Action Button -->
+<button class="fixed bottom-xl right-xl bg-primary text-on-primary h-14 md:h-16 px-lg rounded-full flex items-center gap-md shadow-lg hover:scale-105 active:scale-95 transition-all z-50">
+    <span class="material-symbols-outlined text-[28px]">add_circle</span>
+    <span class="font-label-lg whitespace-nowrap">New Goal</span>
+</button>
+{% endblock %}

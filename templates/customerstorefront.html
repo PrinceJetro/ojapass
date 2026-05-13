@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{{ merchant.business_name }} | Farm Fresh Provisions</title>
+    <!-- Google Material Symbols & Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0,1" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN for quick utility styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom overrides to match design system -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            background-color: #fefcf5;
+            color: #1e2a2b;
+        }
+
+        /* Primary brand color: deep farm green #1B6B45 */
+        :root {
+            --primary: #1B6B45;
+            --primary-container: #2c8258;
+            --on-primary: #ffffff;
+            --surface: #ffffff;
+            --on-surface: #1e2a2b;
+            --on-surface-variant: #5a6e6b;
+            --surface-container-low: #f9faf7;
+            --outline-variant: #cfddd8;
+        }
+
+        .bg-primary { background-color: var(--primary); }
+        .bg-primary\/10 { background-color: rgba(27, 107, 69, 0.1); }
+        .bg-primary\/5 { background-color: rgba(27, 107, 69, 0.05); }
+        .text-primary { color: var(--primary); }
+        .text-on-primary { color: var(--on-primary); }
+        .text-on-surface { color: var(--on-surface); }
+        .text-on-surface-variant { color: var(--on-surface-variant); }
+        .border-primary\/10 { border-color: rgba(27, 107, 69, 0.1); }
+        .border-outline-variant\/20 { border-color: rgba(207, 221, 216, 0.4); }
+        .border-outline-variant\/10 { border-color: rgba(207, 221, 216, 0.2); }
+        .bg-surface-container-low { background-color: var(--surface-container-low); }
+        .hover\:bg-primary-container:hover { background-color: var(--primary-container); }
+        .hover\:border-primary\/30:hover { border-color: rgba(27, 107, 69, 0.3); }
+        .hover\:bg-primary\/5:hover { background-color: rgba(27, 107, 69, 0.05); }
+        .focus\:ring-primary\/20:focus { --tw-ring-color: rgba(27, 107, 69, 0.2); }
+        .from-primary\/5 { --tw-gradient-from: rgba(27, 107, 69, 0.05); }
+
+        /* custom shadows and glass */
+        .warm-shadow {
+            box-shadow: 0 10px 30px rgba(27, 107, 69, 0.08);
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .product-card {
+            transition: all 0.25s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+        }
+        .soft-border {
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, rgba(27, 107, 69, 0.06), rgba(27, 107, 69, 0.02));
+        }
+        .cart-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .cart-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.15);
+            border-radius: 999px;
+        }
+        .product-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(27, 107, 69, 0.08);
+            color: var(--primary);
+        }
+        button:active {
+            transform: scale(0.97);
+        }
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 200ms;
+        }
+        .rounded-3xl {
+            border-radius: 1.5rem;
+        }
+        .rounded-2xl {
+            border-radius: 1rem;
+        }
+        /* custom font sizes */
+        .font-label-lg {
+            font-weight: 600;
+            font-size: 0.875rem;
+            letter-spacing: 0.01em;
+        }
+        .font-label-sm {
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+        .font-headline-md {
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+        .font-headline-lg {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .font-display-sm {
+            font-weight: 800;
+            font-size: 1.5rem;
+            line-height: 1.2;
+        }
+        .font-display-md {
+            font-weight: 800;
+            font-size: 1.75rem;
+        }
+    </style>
+</head>
+<body class="bg-[#fefcf5] antialiased">
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-10">
+        <!-- Verified merchant header -->
+        <div class="flex items-center gap-2 mt-1 mb-6">
+            <span class="material-symbols-outlined text-[#1B6B45] text-[18px]" style="font-variation-settings: 'FILL' 1;">
+                verified
+            </span>
+            <span class="font-label-sm text-[#1B6B45] font-medium tracking-wide">
+                Verified Storefront: {{ merchant.business_name }}
+            </span>
+        </div>
+
+        <!-- dynamic product & cart section -->
+        <div class="flex flex-col lg:flex-row gap-8 pb-16" id="app-root">
+            <!-- PRODUCTS SECTION (will be injected by js) -->
+            <section class="flex-grow" id="products-section">
+                <!-- Category filter & product grid loaded via JS -->
+            </section>
+
+            <!-- CART ASIDE -->
+            <aside class="w-full lg:w-[400px] shrink-0 lg:sticky lg:top-24 h-fit">
+                <div class="glass-card rounded-3xl warm-shadow overflow-hidden border border-outline-variant/10">
+                    <!-- HEADER -->
+                    <div class="p-6 border-b border-outline-variant/10">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="font-headline-lg text-on-surface text-2xl font-bold">
+                                Current Order
+                            </h2>
+                            <span id="cart-count-badge" class="bg-primary/10 text-primary font-label-lg px-3 py-1 rounded-full text-sm font-semibold">
+                                0 Items
+                            </span>
+                        </div>
+                        <p class="text-on-surface-variant text-sm">Review your selected provisions</p>
+                    </div>
+
+                    <!-- CART ITEMS LIST -->
+                    <div id="cart-items" class="p-5 space-y-4 max-h-[400px] overflow-y-auto cart-scroll">
+                        <div class="py-16 text-center text-on-surface-variant italic">
+                            <span class="material-symbols-outlined text-5xl opacity-20 block mb-3">shopping_cart</span>
+                            Your cart is empty
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-outline-variant/10 mx-5"></div>
+
+                    <!-- CUSTOMER INFO -->
+                    <div class="p-5 space-y-3">
+                        <label class="block font-label-lg text-on-surface text-sm font-semibold">Contact Information</label>
+                        <input id="cust-name" class="w-full bg-surface-container-low border border-outline-variant/20 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 transition text-sm" placeholder="Your Full Name" />
+                        <input id="cust-email" class="w-full bg-surface-container-low border border-outline-variant/20 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 transition text-sm" placeholder="Email Address" />
+                    </div>
+
+                    <!-- TOTAL -->
+                    <div class="px-5 pb-4 space-y-3">
+                        <div class="flex justify-between text-on-surface-variant text-sm">
+                            <span>Subtotal</span>
+                            <span id="cart-subtotal">₦0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-3 border-t border-outline-variant/10">
+                            <span class="font-headline-md text-on-surface font-bold">Total</span>
+                            <span id="cart-total" class="font-display-md text-primary text-2xl font-extrabold">₦0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- PAY BUTTON -->
+                    <div class="p-5 pt-0">
+                        <button onclick="window.checkoutHandler?.()" id="pay-btn" class="w-full bg-primary hover:bg-primary-container text-on-primary py-3 rounded-2xl font-headline-md flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg">
+                            <span id="btn-text">Pay with Squad</span>
+                            <span class="material-symbols-outlined">payments</span>
+                        </button>
+                        <div class="flex items-center justify-center gap-5 mt-4 text-on-surface-variant text-xs">
+                            <div class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">lock</span> Secure</div>
+                            <div class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">verified_user</span> Verified</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- INFO CARD -->
+                <div class="mt-6 p-5 bg-primary/5 rounded-3xl border border-primary/10 flex items-start gap-3">
+                    <span class="material-symbols-outlined text-primary">local_shipping</span>
+                    <div>
+                        <h4 class="font-label-lg text-primary font-semibold">Bulk Orders Available</h4>
+                        <p class="text-on-surface-variant text-sm mt-1">Get up to 5% discount on orders above ₦250,000.</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script>
+        // ----- PRODUCT DATA (enriched product catalog)
+        const productCatalog = [
+            {% for p in products %}
+            { id: {{ p.id }}, name: "{{ p.name|escapejs }}", category: "{{ p.category|default:''|escapejs }}", quantity_in_stock: {{ p.quantity_in_stock }}, selling_price: {{ p.selling_price }} },
+            {% endfor %}
+        ];
+
+        // Shopping cart state
+        let cart = []; // { id, name, price, quantity }
+
+        // Helper: format NGN
+        function formatNaira(amount) {
+            return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount);
+        }
+
+        // render product grid with category filter (all categories default)
+        let activeCategory = "All Items";
+
+        function renderProducts() {
+            const section = document.getElementById('products-section');
+            if (!section) return;
+
+            let filtered = [...productCatalog];
+            if (activeCategory !== "All Items") {
+                filtered = productCatalog.filter(p => p.category === activeCategory);
+            }
+
+            const categories = ["All Items", ...new Set(productCatalog.map(p => p.category).filter(c => c))];
+
+            const filterButtonsHtml = `
+                <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                    ${categories.map(cat => `
+                        <button data-category="${cat}" class="category-btn px-5 py-2 rounded-full font-label-lg whitespace-nowrap transition-all shadow-sm ${activeCategory === cat ? 'bg-primary text-white shadow-md' : 'bg-white border border-outline-variant/20 text-on-surface hover:border-primary/30 hover:bg-primary/5'}">
+                            ${cat}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            let productGridHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6" id="product-grid">`;
+            if (filtered.length === 0) {
+                productGridHtml += `<div class="col-span-full py-24 text-center">
+                    <span class="material-symbols-outlined text-6xl opacity-20 mb-4 block">inventory</span>
+                    <p class="text-on-surface-variant italic">No products available in this category.</p>
+                </div>`;
+            } else {
+                filtered.forEach(p => {
+                    productGridHtml += `
+                        <article class="product-card bg-white rounded-3xl soft-border overflow-hidden">
+                            <div class="p-5 gradient-bg border-b border-outline-variant/10">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="product-icon">
+                                            <span class="material-symbols-outlined text-[28px]">inventory_2</span>
+                                        </div>
+                                        <div>
+                                            <div class="inline-flex items-center gap-2 px-2 py-[4px] rounded-full bg-primary/10 mb-2">
+                                                <div class="w-2 h-2 rounded-full bg-primary"></div>
+                                                <span class="text-[11px] font-medium text-primary">In Stock</span>
+                                            </div>
+                                            <h3 class="font-headline-md text-on-surface leading-tight font-bold">${escapeHtml(p.name)}</h3>
+                                            <p class="text-sm text-on-surface-variant mt-1">${escapeHtml(p.category)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p class="text-xs uppercase tracking-wide text-on-surface-variant mb-1">Available Quantity</p>
+                                        <p class="font-label-lg text-on-surface font-semibold">${p.quantity_in_stock} Units</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs uppercase tracking-wide text-on-surface-variant mb-1">Price</p>
+                                        <h2 class="font-display-sm text-primary text-2xl font-bold">₦${p.selling_price.toLocaleString()}</h2>
+                                    </div>
+                                </div>
+                                <button onclick="addToCart(${p.id}, '${escapeHtml(p.name)}', ${p.selling_price})" class="w-full bg-primary hover:bg-primary-container text-white py-3 rounded-2xl font-label-lg flex items-center justify-center gap-2 transition-all active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                                    Add To Cart
+                                </button>
+                            </div>
+                        </article>
+                    `;
+                });
+            }
+            productGridHtml += `</div>`;
+
+            section.innerHTML = filterButtonsHtml + productGridHtml;
+
+            // attach event listeners to category btns
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const cat = btn.getAttribute('data-category');
+                    if (cat) {
+                        activeCategory = cat;
+                        renderProducts();
+                        renderCart(); // keep cart intact
+                    }
+                });
+            });
+        }
+
+        // simple escape to avoid injection
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Add to cart logic with stock validation
+        window.addToCart = function(productId, productName, price) {
+            const product = productCatalog.find(p => p.id === productId);
+            if (!product) return;
+            // max stock check
+            const existingItem = cart.find(item => item.id === productId);
+            let currentQty = existingItem ? existingItem.quantity : 0;
+            if (currentQty >= product.quantity_in_stock) {
+                alert(`⚠️ Only ${product.quantity_in_stock} units of ${product.name} available.`);
+                return;
+            }
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id: productId, name: productName, price: price, quantity: 1 });
+            }
+            renderCart();
+        };
+
+        // remove item from cart
+        window.removeCartItem = function(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            renderCart();
+        };
+
+        // update quantity manually (increase/decrease)
+        window.updateCartQty = function(productId, delta) {
+            const idx = cart.findIndex(i => i.id === productId);
+            if (idx === -1) return;
+            const item = cart[idx];
+            const productStock = productCatalog.find(p => p.id === productId)?.quantity_in_stock || 0;
+            let newQty = item.quantity + delta;
+            if (newQty < 1) {
+                cart.splice(idx, 1);
+                renderCart();
+                return;
+            }
+            if (newQty > productStock) {
+                alert(`Stock limit: only ${productStock} units available.`);
+                return;
+            }
+            item.quantity = newQty;
+            renderCart();
+        };
+
+        function renderCart() {
+            const cartContainer = document.getElementById('cart-items');
+            const countSpan = document.getElementById('cart-count-badge');
+            const subtotalSpan = document.getElementById('cart-subtotal');
+            const totalSpan = document.getElementById('cart-total');
+
+            let subtotal = 0;
+            let itemCount = 0;
+
+            if (!cartContainer) return;
+
+            if (cart.length === 0) {
+                cartContainer.innerHTML = `<div class="py-16 text-center text-on-surface-variant italic">
+                    <span class="material-symbols-outlined text-5xl opacity-20 block mb-3">shopping_cart</span>
+                    Your cart is empty
+                </div>`;
+                if(countSpan) countSpan.innerText = `0 Items`;
+                if(subtotalSpan) subtotalSpan.innerText = `₦0.00`;
+                if(totalSpan) totalSpan.innerText = `₦0.00`;
+                return;
+            }
+
+            let itemsHtml = '';
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                itemCount += item.quantity;
+                itemsHtml += `
+                    <div class="flex justify-between items-start gap-3 border-b border-outline-variant/10 pb-3">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-on-surface">${escapeHtml(item.name)}</h4>
+                            <div class="flex items-center gap-3 mt-1">
+                                <button onclick="updateCartQty(${item.id}, -1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 transition">−</button>
+                                <span class="text-sm font-medium w-6 text-center">${item.quantity}</span>
+                                <button onclick="updateCartQty(${item.id}, 1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 transition">+</button>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-primary">₦${itemTotal.toLocaleString()}</p>
+                            <button onclick="removeCartItem(${item.id})" class="text-xs text-red-500 hover:text-red-700 mt-1 flex items-center gap-0">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+            cartContainer.innerHTML = itemsHtml;
+            if(countSpan) countSpan.innerText = `${itemCount} Item${itemCount !== 1 ? 's' : ''}`;
+            if(subtotalSpan) subtotalSpan.innerText = formatNaira(subtotal);
+            if(totalSpan) totalSpan.innerText = formatNaira(subtotal);
+        }
+
+        // checkout integration (simulated Squad payment)
+        window.checkoutHandler = async function() {
+            const custName = document.getElementById('cust-name')?.value.trim();
+            const custEmail = document.getElementById('cust-email')?.value.trim();
+            if (!custName || !custEmail) {
+                alert("Please enter your full name and email address to continue.");
+                return;
+            }
+            if (cart.length === 0) {
+                alert("Your cart is empty. Add some farm products first.");
+                return;
+            }
+
+            const subtotalEl = document.getElementById('cart-total');
+            let totalAmount = 0;
+            if (subtotalEl) {
+                const raw = subtotalEl.innerText.replace(/[₦,]/g, '').trim();
+                totalAmount = parseFloat(raw);
+                if (isNaN(totalAmount)) totalAmount = 0;
+            } else {
+                totalAmount = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            }
+
+            const payBtn = document.getElementById('pay-btn');
+            const originalText = document.getElementById('btn-text')?.innerText || "Pay with Squad";
+            if(payBtn) payBtn.disabled = true;
+            if(document.getElementById('btn-text')) document.getElementById('btn-text').innerText = "Processing...";
+
+            // real Squad payment integration
+            try {
+                const response = await fetch('/mamatally/storefront/{{ merchant.phone }}/checkout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        customerName: custName,
+                        customerEmail: custEmail,
+                        cart: cart
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = data.checkoutUrl;
+                } else {
+                    alert("Error initiating checkout: " + data.message);
+                    if(payBtn) payBtn.disabled = false;
+                    if(document.getElementById('btn-text')) document.getElementById('btn-text').innerText = originalText;
+                }
+            } catch (err) {
+                alert("Payment failed. Please try again.");
+                if(payBtn) payBtn.disabled = false;
+                if(document.getElementById('btn-text')) document.getElementById('btn-text').innerText = originalText;
+            }
+        };
+
+        // attach global reference
+        window.checkoutHandler = window.checkoutHandler;
+
+        // initial render
+        renderProducts();
+        renderCart();
+    </script>
+</body>
+</html>

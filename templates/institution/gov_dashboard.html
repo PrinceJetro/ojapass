@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Government Economic Dashboard | OjaPass</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Fraunces:ital,opsz,wght@0,144..900;1,144..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "outline": "#6f7a71",
+                    "on-secondary-container": "#6b4800",
+                    "background": "#fcf9f3",
+                    "tertiary": "#1d5035",
+                    "secondary": "#805600",
+                    "on-primary-fixed": "#002111",
+                    "surface-tint": "#1b6b45",
+                    "surface": "#fcf9f3",
+                    "on-background": "#1c1c18",
+                    "primary-fixed": "#a5f3c3",
+                    "on-primary-fixed-variant": "#005231",
+                    "inverse-on-surface": "#f3f0ea",
+                    "surface-container": "#f0eee8",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-container": "#afe4c1",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#e5e2dc",
+                    "primary-fixed-dim": "#8ad7a8",
+                    "outline-variant": "#bfc9bf",
+                    "on-tertiary-fixed": "#002111",
+                    "error-container": "#ffdad6",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#fcf9f3",
+                    "inverse-surface": "#31312d",
+                    "secondary-container": "#ffb21d",
+                    "surface-container-high": "#ebe8e2",
+                    "surface-variant": "#e5e2dc",
+                    "secondary-fixed": "#ffddaf",
+                    "on-surface": "#1c1c18",
+                    "tertiary-fixed-dim": "#9dd3b0",
+                    "on-surface-variant": "#3f4942",
+                    "inverse-primary": "#8ad7a8",
+                    "on-tertiary-fixed-variant": "#1d5035",
+                    "tertiary-fixed": "#b9efcb",
+                    "error": "#ba1a1a",
+                    "primary-container": "#1b6b45",
+                    "on-primary-container": "#9be9b9",
+                    "tertiary-container": "#36684b",
+                    "on-secondary-fixed": "#281800",
+                    "surface-container-low": "#f6f3ed",
+                    "secondary-fixed-dim": "#ffba44",
+                    "on-secondary-fixed-variant": "#614000",
+                    "primary": "#005231",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#dcdad4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "margin-desktop": "64px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "margin-mobile": "20px",
+                    "md": "16px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "label-sm": ["dmSans"],
+                    "body-lg": ["dmSans"],
+                    "label-lg": ["dmSans"],
+                    "display-lg": ["Fraunces"],
+                    "body-md": ["dmSans"],
+                    "headline-lg": ["Fraunces"],
+                    "headline-md": ["dmSans"],
+                    "display-md": ["Fraunces"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                    "display-md": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f3;
+            color: #1c1c18;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .card-warm-shadow {
+            box-shadow: 0 8px 20px -4px rgba(27, 107, 69, 0.08);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f0eee8;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1b6b45;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- SideNavBar -->
+<aside class="flex flex-col h-screen py-lg px-md bg-surface-container-low dark:bg-inverse-surface h-full w-64 fixed left-0 top-0 border-r border-outline-variant/20 shadow-sm z-50">
+<div class="mb-xl px-4">
+<h1 class="font-display-md text-display-md text-primary dark:text-primary-fixed">OjaPass</h1>
+<p class="font-label-lg text-label-lg text-on-surface-variant/70">Institutional Portal</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-lg text-label-lg">Portfolio</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-lg text-label-lg">Applicants</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-lg active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="font-label-lg text-label-lg">Live Feed</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-lg text-label-lg">Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/20 pt-lg">
+<div class="flex items-center gap-3 px-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="Administrator Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a mature Nigerian government official in a sharp, modern navy blue suit. The lighting is high-end studio quality with a warm, clean background. The individual conveys authority, reliability, and approachability, consistent with a high-level institutional administrator overseeing economic growth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0GL8Txqeh4aL0cNdFqRoy4eS-oyrLdASOIuPOOVNHwal7167vj8DZ3wbaeTdre47dRzuXVWUbXcfjkhj1zGjfnfha9-p7OpWFDIZmVZkUZ35GaErON1HmKaZvMsag0utYApewACJIFkEWe_trqk8zb3_h8WsTUo1kXWB47OUb0sPC40KSwpPcxN0M-DmClIsjrfFrqhTduNYnfJhVYx6T3jpWzxgDZXbFlENxOLjBTqthG_d9Gq4XLX2aK0qRZ2Bej-RFVC1IFTQ"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg">Hon. Adebowale</p>
+<p class="text-[10px] text-on-surface-variant">Policy Director</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/20 flex justify-between items-center px-xl z-40">
+<div class="flex items-center gap-md">
+<h2 class="font-headline-lg text-headline-lg text-primary">Lender Oversight</h2>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant/40 rounded-full text-label-sm focus:ring-2 focus:ring-primary focus:border-primary w-64 transition-all" placeholder="Search LGAs or Sectors..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<button class="text-on-surface-variant hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 px-xl pb-xl min-h-screen">
+<!-- Dashboard Header -->
+<div class="mb-lg flex justify-between items-end">
+<div>
+<h3 class="font-display-md text-display-md text-on-surface">Regional Economic Health</h3>
+<p class="text-on-surface-variant font-body-md max-w-2xl">Real-time oversight of financial inclusion progress and sectoral performance across urban and rural corridors.</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-surface-container-lowest border border-outline-variant/50 px-md py-2 rounded-lg font-label-lg text-label-lg flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span> Last 30 Days
+                </button>
+<button class="bg-primary text-on-primary px-md py-2 rounded-lg font-label-lg text-label-lg flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">download</span> Export Report
+                </button>
+</div>
+</div>
+<!-- Inclusion Metrics (Bento Style Cards) -->
+<div class="bento-grid mb-xl">
+<!-- Metric 1: Unbanked to Banked -->
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest p-lg rounded-xl border border-outline-variant/20 card-warm-shadow border-t-4 border-secondary-container">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-primary-fixed/20 rounded-lg">
+<span class="material-symbols-outlined text-primary">account_balance</span>
+</div>
+<span class="text-primary font-label-lg bg-primary-fixed/10 px-2 py-1 rounded">+12.4%</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface-variant mb-xs">Unbanked to Banked Transition</p>
+<h4 class="font-display-md text-display-md mb-md">{{ banked_users }}</h4>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full w-[72%]"></div>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-sm uppercase tracking-wider">72% of annual goal reached</p>
+</div>
+<!-- Metric 2: Gig Workers -->
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest p-lg rounded-xl border border-outline-variant/20 card-warm-shadow border-t-4 border-primary">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-secondary-fixed/20 rounded-lg">
+<span class="material-symbols-outlined text-secondary">delivery_dining</span>
+</div>
+<span class="text-secondary font-label-lg bg-secondary-fixed/10 px-2 py-1 rounded">+8.1%</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface-variant mb-xs">Total Gig Workers Registered</p>
+<h4 class="font-display-md text-display-md mb-md">{{ gig_workers }}</h4>
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white" data-alt="A portrait of a young Nigerian delivery rider in a bright orange vest, smiling with confidence. The setting is a bustling Lagos street at sunset, with warm lighting catching the vibrant life of the city. The style is professional and optimistic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0zRLpib8_qW5LqlsYwjyc0F-0MQTzIWdGwneLDkYm4jUTcvgqMZf2nF6R-HBg9NcCZ9jJtin7lJQKGd7_zXHosk_cU1aKiaYp17p9Wv311Z4x5NBmPRKz8S7eH-_-JpRKwAFbrCKKcd4I552hOwGJhoFC07m5oMOd5hKV-Ugj6nAWGkEYePpQ4nSySzLPqUFhIfuNEABnICLK-Emdxz_hDo0t3DuRzC7Fm8BmTnmdGwJ8CzFchBK5iPrxLEafcaTC4kqGF3TJjyA"/>
+<img class="w-8 h-8 rounded-full border-2 border-white" data-alt="A close-up of an African woman artisan working in a sunlit logistics hub. She is focused, wearing a modern corporate-styled uniform that blends traditional textile patterns. High-key lighting emphasizes a clean, productive environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvnw0bqt7b61k_SecugDOZm4Ab2J9ebYfZP8Gk_ZqU7D4rdbksYHRs77oFBg1yQREG9dxKitfRMvtguW4keAh-9JNi6UIdIJ1I3XKlrGt5ZyYX7lz-x1SPZ5xs6W-bW-o0KFQcd8mqA_jf6rGBrYG9HvwBINZpKjKsg01u3m_YONqTVT0HY3fYDE4FQSi-YQDRmk0NHS_AR8_JpRNwG_0UVljh_coHWZWnfFZbhizkpIeH3lBo6GW-WXN1tMNpB3U5TgzzhZu2uFU"/>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] font-bold">+99k</div>
+</div>
+</div>
+<!-- Metric 3: Household Income -->
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest p-lg rounded-xl border border-outline-variant/20 card-warm-shadow border-t-4 border-secondary-container">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-tertiary-fixed/20 rounded-lg">
+<span class="material-symbols-outlined text-tertiary">trending_up</span>
+</div>
+<span class="text-tertiary font-label-lg bg-tertiary-fixed/10 px-2 py-1 rounded">+4.2%</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface-variant mb-xs">Total Users Registered</p>
+<h4 class="font-display-md text-display-md mb-md">{{ total_users }}</h4>
+<p class="text-[11px] text-on-surface-variant">Measured against baseline Q3 2023</p>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-xl">
+<!-- Regional Economic Breakdown (The "Simulated Map" Table) -->
+<div class="col-span-12 xl:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant/20 card-warm-shadow overflow-hidden">
+<div class="p-lg border-b border-outline-variant/10 flex justify-between items-center">
+<div>
+<h5 class="font-headline-md text-headline-md text-primary">Regional Performance Breakdown</h5>
+<p class="text-label-sm text-on-surface-variant">Lagos State Local Government Areas (LGAs)</p>
+</div>
+<div class="flex bg-surface-container rounded-lg p-1">
+<button class="px-md py-1.5 text-label-sm bg-white rounded-md shadow-sm">Table</button>
+<button class="px-md py-1.5 text-label-sm text-on-surface-variant">Heatmap</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant">LGA</th>
+<th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant">Active Traders</th>
+<th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant">Transaction Vol.</th>
+<th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant">Youth Employment</th>
+<th class="px-lg py-md font-label-lg text-label-lg text-on-surface-variant">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+{% for item in lga_data %}
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-lg py-md font-headline-md text-headline-md">{{ item.lga|default:"Surulere" }}</td>
+<td class="px-lg py-md font-body-md">{{ item.active_traders }}</td>
+<td class="px-lg py-md font-body-md">Data Fetching...</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-2">
+<div class="w-16 bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+<span class="text-label-sm">65%</span>
+</div>
+</td>
+<td class="px-lg py-md"><span class="px-3 py-1 rounded-full bg-primary-fixed/20 text-primary text-[10px] font-bold uppercase">Optimal</span></td>
+</tr>
+{% empty %}
+<tr><td colspan="5" class="text-center py-4 text-outline">No LGA data available.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+<div class="p-md text-center">
+<button class="text-primary font-label-lg text-label-lg hover:underline">View All 20 LGAs</button>
+</div>
+</div>
+<!-- Side Cards Column -->
+<div class="col-span-12 xl:col-span-4 space-y-xl">
+<!-- Sector Performance Chart -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant/20 card-warm-shadow">
+<h5 class="font-headline-md text-headline-md text-primary mb-lg">Sector Growth (YoY)</h5>
+<div class="space-y-lg">
+<div class="space-y-2">
+<div class="flex justify-between text-label-lg">
+<span>FMCG &amp; Retail</span>
+<span class="text-primary font-bold">+24%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-lg overflow-hidden">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-lg">
+<span>Logistics &amp; Tech</span>
+<span class="text-primary font-bold">+18%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-lg overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-lg">
+<span>Agriculture</span>
+<span class="text-secondary font-bold">+31%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-lg overflow-hidden">
+<div class="bg-secondary-container h-full w-[92%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Financial Inclusion Progress (Visual Indicator) -->
+<div class="bg-primary-container p-lg rounded-xl text-on-primary-container border border-primary relative overflow-hidden">
+<!-- Subtle background texture -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="40" id="grid" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="1"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<div class="relative z-10">
+<h5 class="font-headline-md text-headline-md mb-md">OjaScore Transition</h5>
+<div class="flex items-center gap-lg mb-lg">
+<div class="text-center">
+<p class="text-[32px] font-display-md leading-none">42k</p>
+<p class="text-[10px] uppercase font-bold opacity-70">Low Score</p>
+</div>
+<div class="flex-1 flex items-center justify-center">
+<span class="material-symbols-outlined text-[32px] animate-pulse">trending_flat</span>
+</div>
+<div class="text-center">
+<p class="text-[32px] font-display-md leading-none text-secondary-container">118k</p>
+<p class="text-[10px] uppercase font-bold opacity-70">Qualifying</p>
+</div>
+</div>
+<p class="font-label-lg text-label-lg opacity-90 mb-xl">Financial dignity is rising. Users moved from high-risk to credit-eligible status via consistent trade history.</p>
+<button class="w-full bg-secondary-container text-on-secondary-container py-3 rounded-lg font-headline-md hover:bg-opacity-90 transition-all flex items-center justify-center gap-2">
+                            Review Policy Levers <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footnote / System Meta -->
+<footer class="mt-xl pt-lg border-t border-outline-variant/10 flex justify-between items-center text-on-surface-variant/60">
+<p class="text-label-sm">© 2024 OjaPass Institutional Framework. Data latency: 1.4s</p>
+<div class="flex gap-lg">
+<a class="text-label-sm hover:text-primary" href="#">System Integrity</a>
+<a class="text-label-sm hover:text-primary" href="#">Privacy Governance</a>
+</div>
+</footer>
+</main>
+<!-- Contextual FAB (Hidden on this dashboard per rules but logic check done) -->
+</body></html>

@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}Gig Marketplace | OjaPass{% endblock %}
+
+{% block page_title %}Gig Marketplace{% endblock %}
+{% block page_subtitle %}Manage your opportunities and connect with talent{% endblock %}
+
+{% block content %}
+<!-- Toggle & Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-xl gap-md">
+    <div>
+        <span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider">Workspace</span>
+        <h3 class="font-headline-lg text-headline-lg text-on-surface">Manage your opportunities</h3>
+    </div>
+    <div class="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/20 self-start md:self-auto">
+        <button id="btn-employer" onclick="setRole('employer')" class="px-6 py-2 rounded-lg {% if role == 'employer' %}bg-white shadow-sm text-primary font-bold{% else %}text-on-surface-variant hover:text-on-surface{% endif %} font-label-lg transition-all">Employer View</button>
+        <button id="btn-seeker" onclick="setRole('seeker')" class="px-6 py-2 rounded-lg {% if role == 'seeker' %}bg-white shadow-sm text-primary font-bold{% else %}text-on-surface-variant hover:text-on-surface{% endif %} font-label-lg transition-all">Seeker View</button>
+    </div>
+</div>
+
+<div class="grid grid-cols-12 gap-lg pb-12">
+    <!-- Left Column: Employer Active Gigs (Bento Card 1) -->
+    <div class="col-span-12 lg:col-span-8 space-y-lg">
+        <section class="bg-white rounded-xl p-lg border border-outline-variant/20 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-secondary"></div>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-xl gap-md">
+                <div class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">campaign</span>
+                    <h4 class="font-headline-md text-headline-md">Your Active Postings</h4>
+                </div>
+                <button onclick="showPostModal()" class="w-full sm:w-auto bg-primary text-on-primary px-lg py-md rounded-lg flex items-center justify-center gap-sm font-label-lg hover:opacity-90 transition-all">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    Post a New Gig
+                </button>
+            </div>
+            <div class="space-y-md">
+                {% for g in gigs %}
+                <div class="group flex flex-col sm:flex-row sm:items-center justify-between p-md border border-outline-variant/10 rounded-xl hover:bg-surface-container-low transition-colors gap-md">
+                    <div class="flex gap-md items-center">
+                        <div class="w-12 h-12 {% if g.status == 'open' %}bg-primary/10 text-primary{% else %}bg-secondary/10 text-secondary{% endif %} rounded-lg flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined">{% if g.status == 'open' %}campaign{% else %}work{% endif %}</span>
+                        </div>
+                        <div>
+                            <p class="font-label-lg text-on-surface">{{ g.title }}</p>
+                            <p class="text-label-sm text-on-surface-variant">{{ g.created_at|timesince }} ago • <span class="text-tertiary">₦{{ g.pay_rate }}/gig</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-md">
+                        {% if g.status == 'open' %}
+                            <button onclick="findMatches({{ g.id }}, '{{ g.title }}')" class="w-full sm:w-auto px-4 py-2 bg-primary/10 text-primary rounded-lg text-label-sm font-bold hover:bg-primary hover:text-white transition-all whitespace-nowrap">Find Matches</button>
+                        {% elif g.status == 'pending_escrow' %}
+                            <button onclick="initiatePayment({{ g.id }})" class="w-full sm:w-auto px-4 py-2 bg-secondary text-on-secondary rounded-lg text-label-sm font-bold hover:opacity-90 transition-all whitespace-nowrap flex items-center gap-1 shadow-md">
+                                <span class="material-symbols-outlined text-sm">payments</span> Fund Escrow
+                            </button>
+                        {% elif g.status == 'matched' %}
+                            <button onclick="updateGigStatus({{ g.id }}, 'started')" class="w-full sm:w-auto px-4 py-2 bg-tertiary/10 text-tertiary rounded-lg text-label-sm font-bold hover:bg-tertiary hover:text-white transition-all whitespace-nowrap flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">play_circle</span> Start Work
+                            </button>
+                        {% elif g.status == 'in_progress' %}
+                            <button onclick="completeGig({{ g.id }})" class="w-full sm:w-auto px-4 py-2 bg-secondary text-on-secondary rounded-lg text-label-sm font-bold hover:bg-secondary hover:text-white transition-all whitespace-nowrap flex items-center gap-1 shadow-md">
+                                <span class="material-symbols-outlined text-sm">check_circle</span> Mark Complete
+                            </button>
+                        {% elif g.status == 'paid' %}
+                            <span class="px-4 py-1 bg-primary text-on-primary rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">verified</span> Paid
+                            </span>
+                        {% elif g.status == 'completed' %}
+                            <span class="px-4 py-1 bg-surface-container-highest text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-wider">Processing Payout</span>
+                        {% else %}
+                            <span class="px-4 py-1 bg-surface-container rounded-full text-[10px] font-bold uppercase tracking-wider">{{ g.status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-xl text-center border-2 border-dashed border-outline-variant rounded-xl">
+                    <p class="text-on-surface-variant italic">You haven't posted any gigs yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        <!-- Nearby Gig Feed -->
+        <section class="bg-surface-container-low/50 rounded-xl p-lg border border-outline-variant/10">
+            <div class="flex justify-between items-center mb-lg">
+                <h4 class="font-headline-md text-headline-md text-on-surface">Recommended Gigs for You</h4>
+                <a class="text-primary font-label-lg hover:underline" href="#">View Feed</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                {% for g in recommended %}
+                <div class="bg-white p-md rounded-xl border border-outline-variant/20 shadow-sm hover:shadow-md transition-shadow relative group">
+                    <div class="mb-md">
+                        <h5 class="font-label-lg text-on-surface mb-1">{{ g.title }}</h5>
+                        <p class="text-label-sm text-on-surface-variant flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">location_on</span>
+                            {{ g.location|default:"Lagos" }}
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-xs mb-md">
+                        <span class="px-2 py-1 bg-surface-container rounded-md text-[10px] text-on-surface-variant">{{ g.duration }}</span>
+                        <span class="px-2 py-1 bg-surface-container rounded-md text-[10px] text-on-surface-variant">Verified</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-md border-t border-outline-variant/10">
+                        <p class="font-headline-md text-primary">₦{{ g.pay_rate }} <span class="text-label-sm font-normal text-on-surface-variant">/ gig</span></p>
+                        <button onclick="applyGig({{ g.id }})" class="bg-surface-variant px-3 py-1.5 rounded-lg text-primary font-bold text-label-sm hover:bg-primary hover:text-on-primary transition-all">Apply</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full py-xl text-center">
+                    <p class="text-on-surface-variant italic">No new gigs available in your area.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+    <!-- Right Column: Stats & OjaScore -->
+    <div class="col-span-12 lg:col-span-4 space-y-lg">
+        <!-- Identity Card Component -->
+        <div class="bg-gradient-to-br from-primary to-tertiary text-on-primary rounded-xl p-lg shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="flex justify-between items-start mb-xl relative z-10">
+                <div>
+                    <p class="font-label-sm text-on-primary/70 uppercase">Merchant Identity</p>
+                    <h4 class="font-display-md text-display-md">{{ user.full_name }}</h4>
+                </div>
+                <div class="bg-secondary text-on-secondary px-3 py-1 rounded-full text-label-sm font-bold shadow-md uppercase">
+                    {{ role|default:"Merchant" }}
+                </div>
+            </div>
+            <div class="mb-lg relative z-10">
+                <p class="text-label-sm text-on-primary/70 mb-1">Market Trust Score (OjaScore)</p>
+                <div class="flex items-end gap-2">
+                    <span class="font-display-lg text-display-lg">{{ user.ojapass_score }}</span>
+                    <span class="material-symbols-outlined text-secondary pb-2">trending_up</span>
+                </div>
+            </div>
+            <div class="bg-white/20 h-2 rounded-full overflow-hidden relative z-10">
+                <div class="bg-secondary h-full" style="width: {% widthratio user.ojapass_score|default:0 1000 100 %}%"></div>
+            </div>
+        </div>
+        <!-- Match Analysis Card -->
+        <section class="bg-white rounded-xl p-lg border border-outline-variant/20 shadow-sm">
+            <h4 class="font-label-lg text-label-lg text-on-surface mb-md">Hiring Insights</h4>
+            <div class="space-y-md">
+                <div class="flex items-center gap-md p-sm bg-surface-container-low rounded-lg">
+                    <span class="material-symbols-outlined text-primary">psychology</span>
+                    <div>
+                        <p class="text-label-sm font-bold">Smart Matching Active</p>
+                        <p class="text-[11px] text-on-surface-variant">Matching based on verified skills & OjaScore history.</p>
+                    </div>
+                </div>
+                <div class="py-md border-y border-outline-variant/10">
+                    <div class="flex justify-between mb-sm">
+                        <p class="text-label-sm text-on-surface-variant">Fill Rate</p>
+                        <p class="text-label-sm font-bold text-primary">{{ insights.fill_rate }}%</p>
+                    </div>
+                    <div class="h-1.5 w-full bg-surface-container-highest rounded-full">
+                        <div class="bg-primary h-full rounded-full" style="width: {{ insights.fill_rate }}%"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-md">
+                    <div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center text-[10px] font-bold border-2 border-white">+{{ insights.total_applicants }}</div>
+                    <p class="text-label-sm text-on-surface-variant">Total applicants across all gigs.</p>
+                </div>
+            </div>
+        </section>
+        <!-- Map View Hint -->
+        <div class="rounded-xl overflow-hidden border border-outline-variant/20 h-48 relative">
+            <img alt="Map View" class="w-full h-full object-cover grayscale opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAypc0UqwsAQkztHu-H8CTah3mv8P-trUjfgrbitaghb9gdNnSDigG3opY6aSg9Fi8-krmtXo6eA4-wHvRol8ZwZ_us8rFiUwG5Ngn02BjlsfeU7ZZ3pSE5CKY1ZtP10o2o2M3HeF5u5kT1aILjpXVZKCmUWlc5EPZiiCrjct5sMmZ5CxwhQVLo36rr4zFM9XhGEfdQ-4EabT-_jGsaXyqMdD98Hbpsq6d3VgoXYnG6AWKWcFJ-n1QgmEXGy2g0bwQhJ2L_Z3UXU1g"/>
+            <div class="absolute inset-0 bg-primary/10 pointer-events-none"></div>
+            <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-2">
+                <span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+                <p class="text-[11px] font-bold text-on-surface">Live gigs near Surulere</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sticky FAB for Mobile Posting -->
+<button onclick="showPostModal()" class="fixed bottom-24 right-6 bg-primary text-on-primary w-16 h-16 rounded-full flex items-center justify-center shadow-2xl lg:hidden z-50">
+    <span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+{% endblock %}
+
+{% block modals %}
+<!-- AI Match Modal -->
+<div id="match-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+        <div class="p-lg border-b border-outline-variant/20 bg-primary text-white flex justify-between items-center">
+            <div>
+                <h3 class="font-headline-lg text-headline-lg" id="match-gig-title">Matching Seekers</h3>
+                <p class="font-label-lg text-white/80 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">psychology</span> Powered by Gemini AI
+                </p>
+            </div>
+            <button onclick="closeMatchModal()" class="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div id="match-results" class="p-lg overflow-y-auto space-y-md bg-background">
+            <!-- AI results injected here -->
+        </div>
+    </div>
+</div>
+
+<!-- Post Gig Modal -->
+<div id="post-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        <div class="p-lg border-b border-outline-variant/20 flex justify-between items-center">
+            <h3 class="font-headline-lg text-headline-lg">Post a New Gig</h3>
+            <button onclick="closePostModal()" class="material-symbols-outlined">close</button>
+        </div>
+        <div class="p-lg space-y-md">
+            <input id="gig-title" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Gig Title (e.g. Delivery Rider)"/>
+            <textarea id="gig-desc" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20 h-24" placeholder="Description & Requirements"></textarea>
+            <div class="grid grid-cols-2 gap-md">
+                <input id="gig-pay" type="number" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Pay Rate (₦)"/>
+                <input id="gig-duration" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Duration"/>
+            </div>
+            <input id="gig-location" class="w-full border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Location"/>
+            <button onclick="submitGig()" class="w-full bg-primary text-on-primary py-lg rounded-xl font-headline-md hover:opacity-90 transition-all">Launch Gig Posting</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setRole(role) {
+    window.location.href = `?role=${role}`;
+}
+
+function showPostModal() { document.getElementById('post-modal').classList.remove('hidden'); }
+function closePostModal() { document.getElementById('post-modal').classList.add('hidden'); }
+
+async function submitGig() {
+    const data = {
+        title: document.getElementById('gig-title').value,
+        description: document.getElementById('gig-desc').value,
+        payRate: document.getElementById('gig-pay').value,
+        duration: document.getElementById('gig-duration').value,
+        location: document.getElementById('gig-location').value
+    };
+    const res = await fetch('{% url "gig_list" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify(data)
+    });
+    if (await res.json()) window.location.reload();
+}
+
+function closeMatchModal() { document.getElementById('match-modal').classList.add('hidden'); }
+
+async function findMatches(gigId, title) {
+    document.getElementById('match-modal').classList.remove('hidden');
+    document.getElementById('match-gig-title').innerText = title;
+    document.getElementById('match-results').innerHTML = '<div class="py-xl text-center"><span class="material-symbols-outlined animate-spin text-4xl text-primary">sync</span><p class="mt-md text-on-surface-variant">AI Matchmaker is analyzing seekers...</p></div>';
+    
+    try {
+        const res = await fetch(`/gigs/${gigId}/match/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        });
+        const data = await res.json();
+        const container = document.getElementById('match-results');
+        container.innerHTML = '';
+        
+        data.matches.forEach(m => {
+            container.innerHTML += `
+                <div class="p-lg bg-white rounded-2xl border border-outline-variant/10 hover:border-primary/30 shadow-sm transition-all">
+                    <div class="flex flex-col sm:flex-row justify-between items-start mb-md gap-md">
+                        <div class="flex items-center gap-md">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary border-2 border-primary-fixed">${m.name[0]}</div>
+                            <div>
+                                <p class="font-headline-md text-on-surface">${m.name}</p>
+                                <p class="text-label-sm text-on-surface-variant">OjaScore: ${m.ojaScore}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="bg-primary text-on-primary px-3 py-1 rounded-full text-xs font-bold">${m.matchScore}% MATCH</span>
+                        </div>
+                    </div>
+                    <div class="bg-surface-container-low p-md rounded-xl text-body-md italic text-on-surface-variant mb-md border-l-4 border-primary">
+                        "${m.reasoning}"
+                    </div>
+                    <button id="accept-btn-${m.id}" onclick="acceptApplicant(${gigId}, ${m.id})" class="w-full bg-primary text-on-primary py-md rounded-xl font-label-lg hover:bg-primary-container transition-all">Hire this Seeker</button>
+                </div>
+            `;
+        });
+    } catch (e) { console.error(e); }
+}
+
+async function acceptApplicant(gigId, seekerId) {
+    const btn = document.getElementById(`accept-btn-${seekerId}`);
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+        const res = await fetch(`/gigs/${gigId}/accept/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ seeker_id: seekerId })
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.checkoutUrl) {
+            // Redirect employer to Squad checkout
+            window.location.href = data.checkoutUrl;
+        } else {
+            alert('Error: ' + (data.message || 'Failed to initiate escrow'));
+            btn.disabled = false;
+            btn.textContent = 'Accept';
+        }
+    } catch (err) {
+        alert('Network error. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Accept';
+    }
+}
+
+async function applyGig(gigId) {
+    const res = await fetch(`/gigs/${gigId}/apply/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    });
+    const data = await res.json();
+    if (data.success) {
+        alert("Applied successfully!");
+        window.location.reload();
+    } else {
+        alert("Error: " + data.message);
+    }
+}
+
+async function completeGig(gigId) {
+    const rating = prompt('Rate the worker (1-5):') || '5';
+    const review = prompt('Leave a short review (optional):') || '';
+
+    const res = await fetch(`/gigs/${gigId}/status/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ status: 'completed', rating, review })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        alert(data.message);
+        window.location.reload();
+    } else {
+        alert('Error: ' + data.message);
+    }
+}
+async function updateGigStatus(gigId, status) {
+    try {
+        const res = await fetch(`/gigs/${gigId}/status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ status: status })
+        });
+        const data = await res.json();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        alert('Network error.');
+    }
+}
+async function initiatePayment(gigId) {
+    // This handles cases where the link might be missing or expired
+    try {
+        const res = await fetch(`/gigs/${gigId}/initiate-escrow-payment/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        });
+        const data = await res.json();
+        if (data.success && data.checkoutUrl) {
+            window.location.href = data.checkoutUrl;
+        } else {
+            alert('Failed to initiate payment: ' + (data.message || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Network error. Please try again.');
+    }
+}
+</script>
+{% endblock %}

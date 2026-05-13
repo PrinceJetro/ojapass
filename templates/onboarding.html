@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>OjaPass Onboarding - High Fidelity</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#005231",
+                        "secondary-container": "#ffb21d",
+                        "background": "#fcf9f3",
+                        "on-surface": "#1c1c18",
+                        "on-surface-variant": "#3f4942",
+                        "outline-variant": "#bfc9bf",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#1b6b45",
+                        "on-primary": "#ffffff"
+                    },
+                    "fontFamily": {
+                        "display": ["Fraunces", "serif"],
+                        "body": ["DM Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fcf9f3;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 9999px;
+            border: 2px solid #bfc9bf;
+            transition: all 0.2s ease-in-out;
+        }
+        .pin-dot.filled {
+            background-color: #005231;
+            border-color: #005231;
+            transform: scale(1.1);
+        }
+        .keypad-btn {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1.25rem;
+            transition: all 0.15s;
+        }
+        .keypad-btn:active {
+            background-color: #f0eee8;
+            transform: scale(0.92);
+        }
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233f4942'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5em;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center py-12 px-4">
+    <!-- Onboarding Progress -->
+    <div class="w-full max-w-xl mb-8">
+        <div class="flex justify-between items-center mb-2">
+            <span id="step-indicator" class="font-bold text-primary">Step 1 of 3</span>
+            <span id="step-title" class="text-on-surface-variant font-medium">Profile Setup</span>
+        </div>
+        <div class="h-2 w-full bg-outline-variant/20 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-secondary-container w-1/3 transition-all duration-500"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-xl bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden relative">
+        <div class="h-1.5 bg-secondary-container w-full"></div>
+        
+        <div class="p-8 md:p-12">
+            <!-- Step 1: Profile Setup -->
+            <div id="step-1" class="step-content active">
+                <header class="text-center mb-10">
+                    <h1 class="font-display text-3xl text-primary font-bold mb-2">Personal Identity</h1>
+                    <p class="text-on-surface-variant">Tell us who you are. This information is used for identity verification.</p>
+                </header>
+                
+                <form id="form-step-1" class="space-y-5">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="firstName">First Name</label>
+                            <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="firstName" placeholder="e.g. John" type="text"/>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="lastName">Last Name</label>
+                            <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="lastName" placeholder="e.g. Doe" type="text"/>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-on-surface" for="middleName">Middle Name (Optional)</label>
+                        <input class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="middleName" placeholder="Legal middle name" type="text"/>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="phone">Phone Number</label>
+                            <div class="relative flex items-center">
+                                <span class="absolute left-4 text-on-surface-variant">0</span>
+                                <input required class="w-full pl-14 pr-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="phone" placeholder="801 234 5678" type="tel"/>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="email">Email Address</label>
+                            <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="email" placeholder="john@example.com" type="email"/>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="dob">Date of Birth</label>
+                            <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="dob" type="date"/>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="gender">Gender</label>
+                            <select required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all custom-select" id="gender">
+                                <option value="" disabled selected>Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-on-surface" for="address">Residential Address</label>
+                        <textarea required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none" id="address" placeholder="House number, street, city..." rows="2"></textarea>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-on-surface" for="bvn">BVN (11 Digits)</label>
+                        <div class="relative">
+                            <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="bvn" maxlength="11" placeholder="Enter your 11-digit BVN" type="password"/>
+                            <button type="button" id="toggle-bvn" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
+                                <span class="material-symbols-outlined text-lg">visibility</span>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-on-surface-variant italic">BVN is used only for identity verification and background checks.</p>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-primary text-white rounded-full font-bold shadow-lg hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2 mt-4">
+                        Continue to Security
+                        <span class="material-symbols-outlined text-xl">arrow_forward</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Step 2: PIN Setup -->
+            <div id="step-2" class="step-content">
+                <header class="text-center mb-8">
+                    <div class="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-3xl text-primary">lock</span>
+                    </div>
+                    <h1 id="pin-title" class="font-display text-3xl text-primary font-bold mb-2">Create your PIN</h1>
+                    <p id="pin-desc" class="text-on-surface-variant">This 4-digit code will be your digital signature for all transactions.</p>
+                </header>
+
+                <div class="flex flex-col items-center">
+                    <!-- PIN Dots -->
+                    <div class="flex gap-6 mb-10">
+                        <div class="pin-dot" id="dot-1"></div>
+                        <div class="pin-dot" id="dot-2"></div>
+                        <div class="pin-dot" id="dot-3"></div>
+                        <div class="pin-dot" id="dot-4"></div>
+                    </div>
+
+                    <!-- Numeric Keypad -->
+                    <div class="w-full max-w-xs grid grid-cols-3 gap-4">
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('1')">1</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('2')">2</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('3')">3</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('4')">4</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('5')">5</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('6')">6</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('7')">7</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('8')">8</button>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('9')">9</button>
+                        <div class="keypad-btn opacity-0 pointer-events-none"></div>
+                        <button class="keypad-btn text-on-surface hover:bg-surface-container-high" onclick="handleKeyPress('0')">0</button>
+                        <button class="keypad-btn text-on-surface-variant hover:bg-surface-container-high" onclick="handleDelete()">
+                            <span class="material-symbols-outlined">backspace</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-10 w-full flex gap-4">
+                        <button id="back-to-1" class="flex-1 py-3 border border-outline-variant text-on-surface rounded-full font-bold hover:bg-surface-container-high transition-all">Back</button>
+                        <button id="pin-continue" disabled class="flex-1 py-3 bg-primary text-white rounded-full font-bold opacity-40 transition-all">Confirm PIN</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Business Details -->
+            <div id="step-3" class="step-content">
+                <header class="text-center mb-10">
+                    <h1 class="font-display text-3xl text-primary font-bold mb-2">Business Details</h1>
+                    <p class="text-on-surface-variant">Tell us about your trade to initialize your OjaScore.</p>
+                </header>
+
+                <form id="form-step-3" class="space-y-6">
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-on-surface" for="businessName">Business Name</label>
+                        <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="businessName" placeholder="e.g. Mama Tunde's Catering" type="text"/>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="tradeCategory">Trade Category</label>
+                            <select required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all custom-select" id="tradeCategory">
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="Food & Groceries">Food & Groceries</option>
+                                <option value="Fashion & Apparel">Fashion & Apparel</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Beauty & Personal Care">Beauty & Personal Care</option>
+                                <option value="Home & Furniture">Home & Furniture</option>
+                                <option value="Services">Services</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-bold text-on-surface" for="yearsInBusiness">Years in Business</label>
+                            <input required class="w-full px-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="yearsInBusiness" placeholder="e.g. 5" type="number"/>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-on-surface" for="dailySales">Average Daily Sales (₦)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">₦</span>
+                            <input required class="w-full pl-10 pr-4 py-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="dailySales" placeholder="50,000" type="text"/>
+                        </div>
+                        <p class="text-[10px] text-on-surface-variant italic">This estimate helps determine your loan eligibility.</p>
+                    </div>
+
+                    <div class="pt-4 space-y-4">
+                        <button type="submit" class="w-full py-4 bg-primary text-white rounded-full font-bold shadow-lg hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                            Complete Profile
+                            <span class="material-symbols-outlined text-xl">verified</span>
+                        </button>
+                        <button type="button" id="back-to-2" class="w-full py-3 text-on-surface font-bold hover:underline transition-all">Go back to security</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Branding Footer -->
+    <div class="mt-12 flex flex-col items-center gap-4">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+            <span class="font-display text-xl font-bold text-primary">OjaFinance</span>
+        </div>
+        <p class="text-xs text-on-surface-variant opacity-60">Bank-grade encryption & security</p>
+    </div>
+
+    <!-- Success Modal (Hidden) -->
+    <div id="success-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-sm hidden">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center scale-90 transition-transform duration-300">
+            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="material-symbols-outlined text-5xl">check_circle</span>
+            </div>
+            <h2 class="text-2xl font-bold text-primary mb-2">Welcome to OjaPass!</h2>
+            <p class="text-on-surface-variant mb-8">Your account is ready and your OjaScore has been initialized to 650.</p>
+            <div class="bg-surface-container-low p-4 rounded-xl mb-8">
+                <p class="text-xs text-on-surface-variant uppercase font-bold mb-1">Your Virtual Account</p>
+                <p id="virtual-acc" class="text-xl font-mono font-bold text-primary">---</p>
+            </div>
+            <button onclick="window.location.href='/profile/'" class="w-full py-4 bg-primary text-white rounded-full font-bold">Go to Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let userData = {};
+        let pin = "";
+        let confirmPin = "";
+        let isConfirmingPin = false;
+
+        // Step 1 Navigation
+        document.getElementById('form-step-1').addEventListener('submit', function(e) {
+            e.preventDefault();
+            userData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                middleName: document.getElementById('middleName').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                dob: document.getElementById('dob').value,
+                gender: document.getElementById('gender').value,
+                address: document.getElementById('address').value,
+                bvn: document.getElementById('bvn').value
+            };
+            
+            // Call Resolve BVN
+            fetch('/resolve-bvn/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ bvn: userData.bvn })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    goToStep(2);
+                } else {
+                    alert(data.message || "Invalid BVN");
+                }
+            });
+        });
+
+        // PIN Keypad Logic
+        function handleKeyPress(num) {
+            if (isConfirmingPin) {
+                if (confirmPin.length < 4) confirmPin += num;
+            } else {
+                if (pin.length < 4) pin += num;
+            }
+            updatePinDots();
+            checkPinComplete();
+        }
+
+        function handleDelete() {
+            if (isConfirmingPin) {
+                confirmPin = confirmPin.slice(0, -1);
+            } else {
+                pin = pin.slice(0, -1);
+            }
+            updatePinDots();
+            checkPinComplete();
+        }
+
+        function updatePinDots() {
+            const current = isConfirmingPin ? confirmPin : pin;
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i <= current.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            }
+        }
+
+        function checkPinComplete() {
+            const current = isConfirmingPin ? confirmPin : pin;
+            const btn = document.getElementById('pin-continue');
+            if (current.length === 4) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-40');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-40');
+            }
+        }
+
+        document.getElementById('pin-continue').addEventListener('click', function() {
+            if (!isConfirmingPin) {
+                isConfirmingPin = true;
+                document.getElementById('pin-title').innerText = "Confirm your PIN";
+                document.getElementById('pin-desc').innerText = "Please re-enter your 4-digit PIN to confirm.";
+                document.getElementById('pin-continue').innerText = "Verify & Continue";
+                confirmPin = "";
+                updatePinDots();
+                checkPinComplete();
+            } else {
+                if (pin === confirmPin) {
+                    userData.pin = pin;
+                    goToStep(3);
+                } else {
+                    alert("PINs do not match. Please try again.");
+                    isConfirmingPin = false;
+                    pin = "";
+                    confirmPin = "";
+                    document.getElementById('pin-title').innerText = "Create your PIN";
+                    document.getElementById('pin-desc').innerText = "This 4-digit code will be your digital signature.";
+                    document.getElementById('pin-continue').innerText = "Confirm PIN";
+                    updatePinDots();
+                    checkPinComplete();
+                }
+            }
+        });
+
+        // Step 3 Completion
+        document.getElementById('form-step-3').addEventListener('submit', function(e) {
+            e.preventDefault();
+            userData.businessName = document.getElementById('businessName').value;
+            userData.tradeCategory = document.getElementById('tradeCategory').value;
+            userData.yearsInBusiness = document.getElementById('yearsInBusiness').value;
+            userData.dailySales = document.getElementById('dailySales').value;
+            userData.role = 'trader';
+
+            // Show Loading State
+            const btn = e.submitter;
+            btn.innerHTML = `<span class="animate-spin material-symbols-outlined">progress_activity</span> Processing...`;
+            btn.disabled = true;
+
+            fetch('/register/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(userData)
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    document.getElementById('virtual-acc').innerText = data.user.virtualAccount;
+                    document.getElementById('success-modal').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.querySelector('#success-modal > div').classList.remove('scale-90');
+                    }, 10);
+                } else {
+                    alert(data.message || "Registration failed. Please try again.");
+                    btn.innerHTML = `Complete Profile <span class="material-symbols-outlined text-xl">verified</span>`;
+                    btn.disabled = false;
+                }
+            }).catch(err => {
+                alert("A server error occurred. Please try again later.");
+                btn.innerHTML = `Complete Profile <span class="material-symbols-outlined text-xl">verified</span>`;
+                btn.disabled = false;
+            });
+        });
+
+        // Navigation Helpers
+        function goToStep(step) {
+            document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step-${step}`).classList.add('active');
+            
+            currentStep = step;
+            const progress = (step / 3) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('step-indicator').innerText = `Step ${step} of 3`;
+            
+            const titles = ["Profile Setup", "Security", "Business Details"];
+            document.getElementById('step-title').innerText = titles[step-1];
+            window.scrollTo(0, 0);
+        }
+
+        document.getElementById('back-to-1').addEventListener('click', () => goToStep(1));
+        document.getElementById('back-to-2').addEventListener('click', () => goToStep(2));
+
+        // BVN visibility toggle
+        document.getElementById('toggle-bvn').addEventListener('click', function() {
+            const input = document.getElementById('bvn');
+            const icon = this.querySelector('span');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerText = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.innerText = 'visibility';
+            }
+        });
+    </script>
+</body>
+</html>

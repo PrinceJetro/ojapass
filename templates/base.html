@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{% block title %}OjaPass{% endblock %} | OjaFinance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background-color: #fcf9f3;
+    }
+    .font-display { font-family: 'Fraunces', serif; }
+</style>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+            "inverse-surface": "#31312d",
+            "outline-variant": "#bfc9bf",
+            "secondary-fixed": "#ffddaf",
+            "surface-container": "#f0eee8",
+            "inverse-primary": "#8ad7a8",
+            "tertiary-fixed": "#b9efcb",
+            "tertiary-container": "#36684b",
+            "secondary-container": "#ffb21d",
+            "on-tertiary-fixed": "#002111",
+            "on-primary-fixed-variant": "#005231",
+            "background": "#fcf9f3",
+            "error": "#ba1a1a",
+            "primary": "#005231",
+            "on-primary-container": "#9be9b9",
+            "on-secondary": "#ffffff",
+            "outline": "#6f7a71",
+            "tertiary": "#1d5035",
+            "surface-container-low": "#f6f3ed",
+            "inverse-on-surface": "#f3f0ea",
+            "surface-tint": "#1b6b45",
+            "on-primary": "#ffffff",
+            "surface-bright": "#fcf9f3",
+            "surface-container-highest": "#e5e2dc",
+            "on-surface-variant": "#3f4942",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#6b4800",
+            "on-tertiary-container": "#afe4c1",
+            "secondary-fixed-dim": "#ffba44",
+            "primary-fixed-dim": "#8ad7a8",
+            "on-tertiary-fixed-variant": "#1d5035",
+            "surface-variant": "#e5e2dc",
+            "surface-dim": "#dcdad4",
+            "on-tertiary": "#ffffff",
+            "on-secondary-fixed-variant": "#614000",
+            "tertiary-fixed-dim": "#9dd3b0",
+            "on-error-container": "#93000a",
+            "on-background": "#1c1c18",
+            "surface": "#fcf9f3",
+            "on-surface": "#1c1c18",
+            "primary-container": "#1b6b45",
+            "on-error": "#ffffff",
+            "error-container": "#ffdad6",
+            "secondary": "#805600",
+            "surface-container-high": "#ebe8e2",
+            "on-primary-fixed": "#002111",
+            "primary-fixed": "#a5f3c3",
+            "on-secondary-fixed": "#281800"
+        },
+        "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+        },
+        "spacing": {
+            "lg": "24px",
+            "margin-mobile": "20px",
+            "xs": "4px",
+            "sm": "8px",
+            "md": "16px",
+            "xl": "32px",
+            "margin-desktop": "64px",
+            "gutter": "16px",
+            "base": "4px"
+        },
+        "fontFamily": {
+            "display-lg": ["Fraunces"],
+            "body-md": ["dmSans"],
+            "headline-md": ["dmSans"],
+            "label-lg": ["dmSans"],
+            "label-sm": ["dmSans"],
+            "body-lg": ["dmSans"],
+            "headline-lg": ["Fraunces"],
+            "display-md": ["Fraunces"]
+        },
+        "fontSize": {
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+            "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+            "display-md": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+        }
+      },
+    },
+  }
+</script>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="bg-surface text-on-surface">
+
+<!-- SideNavBar — Desktop only -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface dark:bg-inverse-surface border-r border-outline-variant/20 dark:border-outline-variant/10 hidden lg:flex flex-col py-md z-50">
+    <div class="px-md mb-xl">
+        <span class="font-display-lg text-display-lg font-bold text-primary dark:text-inverse-primary">OjaFinance</span>
+        <div class="flex items-center gap-sm mt-md">
+            <div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
+                <img alt="Merchant Profile Picture" class="w-full h-full object-cover"
+                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgICrJlVmY6Na-kqGmAKofz4VmPVK4Wk0ele8oBAGrgEQkTBNX6uXJBs4sxTN3lLXZWleAYS-b-bNx9MpUa9xxrct4gu0vORKiJOMdYYKRXpqvrEXUuDq6OIlzZYbTnZ4q4TNNoAw1ENU5lq6cAOZntSPoyD2Kspjh54M6nGayn5jeFeOpJPnJUfdQSdhClUTB09AL77ElizmE9vdaFvAYNEkZI7pLqQBLY0e7-1oVQkjonUnGWS3i3tEqdrcJMh3-djgHuRDKlP8"/>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-label-lg text-label-lg text-on-surface">Verified Merchant</span>
+                <span class="text-xs text-on-surface-variant">ID: {{ user.ojapass_id }}</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="flex-1 space-y-xs px-sm">
+        <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'profile' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'profile' %}">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="font-label-lg text-label-lg">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'mamatally_dashboard' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'mamatally_dashboard' %}">
+            <span class="material-symbols-outlined">inventory_2</span>
+            <span class="font-label-lg text-label-lg">Mamatally</span>
+        </a>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'gig_list' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'gig_list' %}">
+            <span class="material-symbols-outlined">storefront</span>
+            <span class="font-label-lg text-label-lg">Marketplace</span>
+        </a>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'ajo_list' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'ajo_list' %}">
+            <span class="material-symbols-outlined">groups</span>
+            <span class="font-label-lg text-label-lg">Ajo Savings</span>
+        </a>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'loans' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'loans' %}">
+            <span class="material-symbols-outlined">payments</span>
+            <span class="font-label-lg text-label-lg">Loans</span>
+        </a>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'notification_list' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'notification_list' %}">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="font-label-lg text-label-lg">Notifications</span>
+        </a>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors transition-transform active:scale-95 duration-150" href="{% url 'logout' %}">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="font-label-lg text-label-lg">Logout</span>
+        </a>
+    </nav>
+
+    <div class="mt-auto px-md">
+        <button class="w-full py-md bg-secondary text-on-secondary font-label-lg text-label-lg rounded-xl hover:opacity-90 transition-opacity">
+            Upgrade Account
+        </button>
+    </div>
+</aside>
+
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-4 lg:px-margin-desktop h-20 w-full lg:w-[calc(100%-16rem)] lg:ml-64 sticky top-0 z-40 bg-background dark:bg-on-background border-b border-outline-variant/10">
+    <div class="flex items-center gap-4">
+        <h1 class="font-display text-xl font-bold text-primary lg:hidden">OjaPass</h1>
+        <div class="hidden lg:block">
+            <h1 class="font-headline-lg text-headline-lg text-primary dark:text-inverse-primary">{% block page_title %}Dashboard{% endblock %}</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant">{% block page_subtitle %}Welcome back, {{ user.full_name }}{% endblock %}</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-lg">
+        <div class="relative hidden sm:flex items-center bg-surface-container rounded-full px-md py-xs border border-outline-variant/30">
+            <span class="material-symbols-outlined text-on-surface-variant">search</span>
+            <input class="bg-transparent border-none focus:ring-0 text-body-md font-body-md ml-sm w-32 md:w-64" placeholder="{% block search_placeholder %}Search...{% endblock %}" type="text"/>
+        </div>
+        <div class="flex items-center gap-md">
+            <div class="relative z-50">
+                <button onclick="document.getElementById('notif-dropdown').classList.toggle('hidden')" class="relative w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors focus:ring-2 focus:ring-primary">
+                    <span class="material-symbols-outlined">notifications</span>
+                    {% if unread_notifications_count > 0 %}
+                    <span class="absolute top-0 right-0 w-4 h-4 bg-error text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-surface">
+                        {{ unread_notifications_count }}
+                    </span>
+                    {% endif %}
+                </button>
+
+                <!-- Notifications Dropdown -->
+                <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                    <div class="p-md border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
+                        <h3 class="font-headline-md text-headline-md text-on-surface">Notifications</h3>
+                        <div class="flex items-center gap-sm">
+                            <a href="{% url 'notification_list' %}" class="text-xs text-primary font-bold hover:underline tracking-wider uppercase">View All</a>
+                            <button onclick="document.getElementById('notif-dropdown').classList.add('hidden')" class="text-on-surface-variant hover:text-error transition-colors p-1 rounded-full hover:bg-error/10">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="max-h-96 overflow-y-auto">
+                        {% for n in request.user.notifications.all|slice:":5" %}
+                        <div class="p-md hover:bg-surface-container-low transition-colors border-b border-outline-variant/5 last:border-0 flex gap-sm items-start">
+                            <div class="mt-1">
+                                {% if not n.is_read %}
+                                <span class="w-2.5 h-2.5 bg-primary rounded-full block"></span>
+                                {% else %}
+                                <span class="w-2.5 h-2.5 bg-outline-variant/50 rounded-full block"></span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="text-sm {% if not n.is_read %}font-bold text-on-surface{% else %}text-on-surface-variant{% endif %} leading-relaxed">{{ n.message }}</p>
+                                <p class="text-xs text-on-surface-variant/70 mt-1 uppercase tracking-widest font-bold">{{ n.created_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-xl text-center flex flex-col items-center">
+                            <span class="material-symbols-outlined text-4xl text-outline-variant/50 mb-sm">notifications_off</span>
+                            <p class="text-on-surface-variant text-sm font-bold">No new notifications</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'profile' %}" class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
+                <img alt="Merchant Profile" class="w-full h-full object-cover"
+                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdggPXT-LNPhdyTqOGfibBqZSze9gunk1ltv2ye2t7aQIag09WcpzqPgj-rEJfK5BZGHrrcGdQAyLiVpOpzxcmLVMIq26R0C3HU9LCQ7mIv_eTx8TU_XSePTEc0mr-m-yCg_gRm8UBjU7pW-uRSPm3roe04xyCn13pigWV_KOD7rO6rLm4MOx9MxqN75XC-zQ76wOzY9E0Mk0o7I_UZHagVV3TcY4ln80w74l8jeWgMYAy3rpSgulWgS40F0eIFfQhVot8SnlvLuY"/>
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- Main Canvas -->
+<main class="lg:ml-64 p-4 lg:p-margin-desktop bg-surface min-h-[calc(100vh-80px)]">
+    <div class="max-w-7xl mx-auto space-y-lg">
+        <div class="lg:hidden mb-lg">
+            <h1 class="font-headline-lg text-headline-lg text-primary">{% block mobile_page_title %}{{ block.super }}{% endblock %}</h1>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<!-- BottomNavBar — Mobile only -->
+<nav class="docked full-width bottom-0 fixed z-50 md:hidden bg-surface dark:bg-inverse-surface border-t border-outline-variant/20 shadow-[0_-8px_20px_rgba(27,107,69,0.08)] flex justify-around items-center w-full px-margin-mobile py-sm">
+    <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'profile' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'profile' %}">
+        <span class="material-symbols-outlined">home</span>
+        <span class="font-label-sm text-label-sm">Home</span>
+    </a>
+    <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'mamatally_dashboard' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'mamatally_dashboard' %}">
+        <span class="material-symbols-outlined">handyman</span>
+        <span class="font-label-sm text-label-sm">Tools</span>
+    </a>
+    <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'gig_list' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'gig_list' %}">
+        <span class="material-symbols-outlined">shopping_bag</span>
+        <span class="font-label-sm text-label-sm">Market</span>
+    </a>
+    <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'ajo_list' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'ajo_list' %}">
+        <span class="material-symbols-outlined">groups</span>
+        <span class="font-label-sm text-label-sm">Ajo</span>
+    </a>
+    <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'loans' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'loans' %}">
+        <span class="material-symbols-outlined">payments</span>
+        <span class="font-label-sm text-label-sm">Loans</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'logout' %}">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-label-sm text-label-sm">Logout</span>
+    </a>
+</nav>
+
+{% block modals %}{% endblock %}
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

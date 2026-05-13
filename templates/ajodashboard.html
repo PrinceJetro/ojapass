@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Ajo Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    .business-id-gradient {
+        background: linear-gradient(135deg, #1b6b45 0%, #005231 100%);
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}Ajo Savings{% endblock %}
+{% block page_subtitle %}Manage your contributions and payouts{% endblock %}
+
+{% block content %}
+<!-- Hero Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
+    <!-- Business Identity Card -->
+    <div class="md:col-span-2 business-id-gradient rounded-xl p-lg text-white shadow-lg flex flex-col justify-between min-h-[220px] relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="font-label-sm text-label-sm opacity-80 uppercase tracking-widest">Business Identity Score</p>
+                <h2 class="font-display-lg text-display-lg">{{ user.ojapass_score }}</h2>
+            </div>
+            <div class="bg-secondary-container text-on-secondary-container px-md py-sm rounded-full flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+                <span class="font-label-lg">{% if user.ojapass_score > 800 %}Elite Tier{% elif user.ojapass_score > 500 %}Growth Tier{% else %}Starter Tier{% endif %}</span>
+            </div>
+        </div>
+        <div class="flex justify-between items-end">
+            <div>
+                <p class="font-label-sm text-label-sm opacity-80">Verified Since</p>
+                <p class="font-headline-md text-headline-md">{{ user.date_joined|date:"M Y" }}</p>
+            </div>
+            <div class="text-right">
+                <p class="font-label-sm text-label-sm opacity-80">Oja ID</p>
+                <p class="font-label-lg">#PASS-{{ user.id }}-NG</p>
+            </div>
+        </div>
+    </div>
+    <!-- Next Payout Card -->
+    <div class="bg-white border border-outline-variant/20 rounded-xl p-lg flex flex-col justify-between border-t-4 border-t-secondary shadow-sm">
+        <div>
+            <p class="font-label-lg text-label-lg text-on-surface-variant mb-base">Next Payout Date</p>
+            <h3 class="font-display-md text-display-md text-secondary">{% if next_payout_date %}{{ next_payout_date|date:"M d" }}{% else %}N/A{% endif %}</h3>
+        </div>
+        <div>
+            <p class="font-label-sm text-label-sm text-on-surface-variant">Estimated Payout</p>
+            <p class="font-headline-lg text-headline-lg text-primary">₦{{ next_payout_amount|floatformat:0 }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Bento Stats Section -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-lg mb-xl">
+    <div class="bg-surface-container-low rounded-xl p-lg flex flex-col items-center justify-center text-center">
+        <p class="font-label-lg text-label-lg text-on-surface-variant">Total Contributed</p>
+        <p class="font-display-md text-display-md text-primary mt-sm">₦{{ total_saved|floatformat:0 }}</p>
+    </div>
+    <div class="bg-surface-container-low rounded-xl p-lg flex flex-col items-center justify-center text-center">
+        <p class="font-label-lg text-label-lg text-on-surface-variant">Active Cycles</p>
+        <p class="font-display-md text-display-md text-primary mt-sm">{{ active_cycles_count }}</p>
+    </div>
+    <div class="lg:col-span-2 bg-white border border-outline-variant/20 rounded-xl p-lg flex items-center gap-lg">
+        <div class="w-16 h-16 rounded-full border-4 border-tertiary-fixed-dim border-t-secondary-container flex items-center justify-center">
+            <span class="font-label-lg text-primary">75%</span>
+        </div>
+        <div>
+            <p class="font-headline-md text-headline-md text-on-surface">Savings Growth</p>
+            <p class="font-body-md text-body-md text-on-surface-variant">You're 25% away from your goal!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Active Groups Section -->
+<section class="mb-xl">
+    <div class="flex justify-between items-center mb-lg">
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Active Groups</h2>
+        <a href="{% url 'ajo_history' %}" class="text-primary font-label-lg flex items-center gap-xs">View History <span class="material-symbols-outlined">chevron_right</span></a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+        {% for m in memberships %}
+        <div onclick="window.location.href='{% url 'ajo_detail' m.group.id %}'" class="cursor-pointer bg-white rounded-xl p-lg border border-outline-variant/20 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex justify-between items-start mb-md">
+                <div class="flex gap-md items-center">
+                    <div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">groups</span>
+                    </div>
+                    <div>
+                        <h4 class="font-headline-md text-headline-md">{{ m.group.name }}</h4>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant">{{ m.group.frequency|capfirst }} Contribution: ₦{{ m.group.contribution_amount }}</p>
+                    </div>
+                </div>
+                <span class="bg-tertiary-fixed text-on-tertiary-fixed-variant px-sm py-xs rounded-full text-xs font-bold">{{ m.group.status|capfirst }}</span>
+            </div>
+            <div class="space-y-sm">
+                <div class="flex justify-between text-label-sm font-label-sm text-on-surface-variant">
+                    <span>Rotation Cycle ({{ m.group.current_cycle }}/{{ m.group.max_members }})</span>
+                    <span>{% widthratio m.group.current_cycle m.group.max_members 100 %}%</span>
+                </div>
+                <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+                    <div class="h-full bg-secondary-container" style="width: {% widthratio m.group.current_cycle m.group.max_members 100 %}%"></div>
+                </div>
+                <div class="flex justify-between items-center mt-md pt-md border-t border-outline-variant/10">
+                    <p class="font-label-sm text-label-sm text-on-surface-variant">Your turn: Position {{ m.rotation_order }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-xl text-center border-2 border-dashed border-outline-variant rounded-xl">
+            <p class="text-on-surface-variant italic">You are not in any Ajo groups yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Discover Groups Section -->
+<section>
+    <div class="flex justify-between items-center mb-lg">
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Discover New Groups</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+        {% for g in discover_groups %}
+        <div class="bg-white border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm hover:scale-[1.02] transition-transform">
+            <div class="h-32 bg-primary relative">
+                <div class="absolute inset-0 opacity-20">
+                    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=300"/>
+                </div>
+                <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-md py-xs rounded-full">
+                    <p class="text-xs font-bold text-primary">PUBLIC GROUP</p>
+                </div>
+            </div>
+            <div class="p-lg">
+                <h5 class="font-headline-md text-headline-md mb-xs">{{ g.name }}</h5>
+                <p class="font-body-md text-body-md text-on-surface-variant mb-md">Verified community savings group for traders.</p>
+                <div class="flex items-center gap-md mb-lg">
+                    <div class="flex flex-col">
+                        <span class="text-xs text-on-surface-variant">CONTRIBUTION</span>
+                        <span class="font-label-lg">₦{{ g.contribution_amount }}/{{ g.frequency }}</span>
+                    </div>
+                    <div class="w-px h-8 bg-outline-variant/30"></div>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-on-surface-variant">MEMBERS</span>
+                        <span class="font-label-lg">{{ g.memberships.count }}/{{ g.max_members }}</span>
+                    </div>
+                </div>
+                <button onclick="joinGroup({{ g.id }})" class="w-full py-md bg-surface-container-high text-on-surface font-label-lg rounded-xl hover:bg-primary hover:text-on-primary transition-colors">Apply to Join</button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-xl text-center">
+            <p class="text-on-surface-variant italic">No new groups to discover right now.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- FAB -->
+<button onclick="showModal()" class="fixed bottom-24 right-6 md:bottom-12 md:right-12 w-16 h-16 bg-secondary text-on-secondary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-[60]">
+    <span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+{% endblock %}
+
+{% block modals %}
+<!-- Create Group Modal -->
+<div id="create-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md">
+    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        <div class="p-lg border-b border-outline-variant/20 flex justify-between items-center">
+            <h3 class="font-headline-lg text-headline-lg">Start New Ajo Group</h3>
+            <button onclick="closeModal()" class="material-symbols-outlined">close</button>
+        </div>
+        <div class="p-lg space-y-md">
+            <input id="group-name" class="w-full border border-outline-variant rounded-lg p-md" placeholder="Group Name (e.g. Mushin Traders)"/>
+            <div class="grid grid-cols-2 gap-md">
+                <input id="group-amount" type="number" class="w-full border border-outline-variant rounded-lg p-md" placeholder="Contribution (₦)"/>
+                <select id="group-freq" class="w-full border border-outline-variant rounded-lg p-md">
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+            <input id="group-max" type="number" class="w-full border border-outline-variant rounded-lg p-md" placeholder="Max Members (e.g. 10)"/>
+            <button onclick="submitGroup()" class="w-full bg-primary text-on-primary py-lg rounded-xl font-headline-md hover:opacity-90 transition-all">Launch Ajo Group</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showModal() { document.getElementById('create-modal').classList.remove('hidden'); }
+function closeModal() { document.getElementById('create-modal').classList.add('hidden'); }
+
+async function submitGroup() {
+    const data = {
+        name: document.getElementById('group-name').value,
+        contributionAmount: document.getElementById('group-amount').value,
+        frequency: document.getElementById('group-freq').value,
+        maxMembers: document.getElementById('group-max').value
+    };
+    const res = await fetch('{% url "ajo_list" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify(data)
+    });
+    if (await res.json()) window.location.reload();
+}
+
+async function joinGroup(groupId) {
+    const res = await fetch(`/ajo/join/${groupId}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    });
+    const result = await res.json();
+    if (result.success) window.location.reload();
+    else alert(result.message || "Failed to join group.");
+}
+</script>
+{% endblock %}

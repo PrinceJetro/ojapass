@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Lender Risk Engine | OjaFinance{% endblock %}
+
+{% block page_title %}Lender Risk Engine{% endblock %}
+{% block page_subtitle %}Institutional-grade risk assessment and portfolio monitoring.{% endblock %}
+
+{% block content %}
+<div class="space-y-xl pb-24">
+    <!-- Bento Grid: Top Portfolio Metrics -->
+    <div class="grid grid-cols-12 gap-lg">
+        <!-- Portfolio Summary Card -->
+        <div class="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-lg bg-white p-lg rounded-xl border border-outline-variant/20 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-secondary"></div>
+            <div class="space-y-sm">
+                <p class="font-label-lg text-label-lg text-on-surface-variant">Total Disbursed</p>
+                <h2 class="font-display-md text-display-md font-bold text-primary">₦{{ total_disbursed|default:"12.5M" }}</h2>
+                <div class="flex items-center gap-xs text-primary">
+                    <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                    <span class="text-label-sm font-label-sm">+14.2% MoM</span>
+                </div>
+            </div>
+            <div class="space-y-sm">
+                <p class="font-label-lg text-label-lg text-on-surface-variant">Active Portfolio</p>
+                <h2 class="font-display-md text-display-md font-bold text-on-surface">₦{{ active_portfolio|default:"4.2M" }}</h2>
+                <p class="text-label-sm font-label-sm text-on-surface-variant">Across {{ loan_count|default:"1,240" }} Loans</p>
+            </div>
+            <div class="space-y-sm">
+                <p class="font-label-lg text-label-lg text-on-surface-variant">Default Rate</p>
+                <h2 class="font-display-md text-display-md font-bold text-error">{{ default_rate|default:"1.2%" }}</h2>
+                <div class="flex items-center gap-xs text-error">
+                    <span class="material-symbols-outlined text-[16px]">warning</span>
+                    <span class="text-label-sm font-label-sm">Safe Threshold: 2%</span>
+                </div>
+            </div>
+        </div>
+        <!-- Real-time Signals Card -->
+        <div class="col-span-12 lg:col-span-4 bg-white p-lg rounded-xl border border-outline-variant/20 shadow-sm space-y-md">
+            <div class="flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md text-on-surface">Market Signals</h3>
+                <span class="bg-tertiary-fixed text-on-tertiary-fixed font-label-sm px-sm py-xs rounded-full">LIVE</span>
+            </div>
+            <div class="space-y-sm text-body-md">
+                <p class="text-on-surface-variant">Sector Health Index</p>
+                <div class="flex items-center justify-between p-sm bg-surface-container-low rounded-lg">
+                    <span>Retail Sector</span>
+                    <span class="text-primary font-bold">+12.4</span>
+                </div>
+                <div class="flex items-center justify-between p-sm bg-surface-container-low rounded-lg">
+                    <span>Logistics</span>
+                    <span class="text-error font-bold">-4.1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Table -->
+    <div class="grid grid-cols-12 gap-lg">
+        <div class="col-span-12 bg-white rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden">
+            <div class="p-lg border-b border-outline-variant/10 flex justify-between items-center">
+                <div>
+                    <h3 class="font-headline-md text-headline-md text-on-surface">At-Risk Loan Monitoring</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Live tracking of traders with declining OjaScores</p>
+                </div>
+                <button class="border border-outline px-md py-sm rounded-lg font-label-lg flex items-center gap-sm hover:bg-surface-container transition-colors">
+                    <span class="material-symbols-outlined">analytics</span>
+                    Full Export
+                </button>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-surface-container-low text-on-surface-variant">
+                    <tr>
+                        <th class="px-lg py-md font-label-lg">Trader</th>
+                        <th class="px-lg py-md font-label-lg">OjaScore</th>
+                        <th class="px-lg py-md font-label-lg">Loan Status</th>
+                        <th class="px-lg py-md font-label-lg text-right">Risk Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                    {% for risk in at_risk_traders %}
+                    <tr>
+                        <td class="px-lg py-md">
+                            <div class="flex items-center gap-md">
+                                <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold">
+                                    {{ risk.user.full_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <p class="font-label-lg text-on-surface">{{ risk.user.full_name }}</p>
+                                    <p class="text-[10px] text-on-surface-variant">{{ risk.user.business_name|default:"General Trader" }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-lg py-md">
+                            <div class="flex items-center gap-sm">
+                                <div class="w-12 h-2 bg-outline-variant/30 rounded-full overflow-hidden">
+                                    <div class="h-full {% if risk.user.ojapass_score < 40 %}bg-error{% else %}bg-secondary{% endif %}" style="width: {{ risk.user.ojapass_score }}%"></div>
+                                </div>
+                                <span class="font-label-lg {% if risk.user.ojapass_score < 40 %}text-error{% endif %}">{{ risk.user.ojapass_score }}</span>
+                            </div>
+                        </td>
+                        <td class="px-lg py-md">
+                            <span class="px-sm py-xs rounded bg-error/10 text-error font-label-sm">{{ risk.drop_percent }}% DROP</span>
+                        </td>
+                        <td class="px-lg py-md text-right">
+                            <button class="text-primary font-label-lg hover:underline">Restructure</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-lg py-xl text-center text-on-surface-variant italic">
+                            No high-risk events detected in the last 24 hours.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

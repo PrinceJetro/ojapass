@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Cycle History & Payouts{% endblock %}
+
+{% block page_title %}Cycle History{% endblock %}
+{% block page_subtitle %}View your journey through the current and past Ajo cycles{% endblock %}
+
+{% block content %}
+<!-- Summary Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg mb-xl">
+    <!-- Card 1: Total Contributed -->
+    <div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-lg shadow-sm group hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-md mb-md">
+            <div class="w-12 h-12 rounded-lg bg-tertiary-container/10 flex items-center justify-center text-tertiary">
+                <span class="material-symbols-outlined">savings</span>
+            </div>
+            <div class="w-full">
+                <p class="text-label-sm text-on-surface-variant">Total Contributed</p>
+                <p class="font-headline-md text-headline-md text-on-surface">₦{{ total_contributed|floatformat:2 }}</p>
+            </div>
+        </div>
+        <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+            <div class="h-full bg-secondary rounded-full" style="width: {{ progress }}%"></div>
+        </div>
+        <div class="mt-sm flex justify-between text-label-sm">
+            <span class="text-on-surface-variant">Current Progress</span>
+            <span class="text-secondary font-bold">{{ progress }}% of Cycle Target</span>
+        </div>
+    </div>
+    <!-- Card 2: Total Received -->
+    <div class="bg-surface-container-lowest border border-outline-variant/20 border-t-4 border-t-secondary-container rounded-xl p-lg shadow-sm group hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-md mb-md">
+            <div class="w-12 h-12 rounded-lg bg-secondary-container/10 flex items-center justify-center text-secondary">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+            </div>
+            <div>
+                <p class="text-label-sm text-on-surface-variant">Total Received</p>
+                <p class="font-headline-md text-headline-md text-on-surface">₦{{ total_received|floatformat:2 }}</p>
+            </div>
+        </div>
+        <div class="mt-md flex items-center gap-xs text-primary font-bold">
+            <span class="material-symbols-outlined text-sm">trending_up</span>
+            <span class="text-label-sm">Active participation logged.</span>
+        </div>
+    </div>
+</div>
+
+<!-- Ledger Table Section -->
+<div class="bg-white border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm">
+    <div class="px-lg py-md border-b border-outline-variant/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-md bg-surface-container-low">
+        <h3 class="font-headline-md text-headline-md">Transaction Ledger</h3>
+        <div class="flex items-center gap-sm w-full md:w-auto">
+            <div class="relative flex-1 md:w-64">
+                <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+                <input class="w-full pl-xl pr-md py-sm bg-surface border border-outline-variant rounded-lg text-label-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Search cycles..." type="text"/>
+            </div>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-surface-container-low text-on-surface-variant">
+                    <th class="px-lg py-md text-label-sm font-bold border-b border-outline-variant/10">Cycle No.</th>
+                    <th class="px-lg py-md text-label-sm font-bold border-b border-outline-variant/10">Date</th>
+                    <th class="px-lg py-md text-label-sm font-bold border-b border-outline-variant/10">Beneficiary</th>
+                    <th class="px-lg py-md text-label-sm font-bold border-b border-outline-variant/10">Amount</th>
+                    <th class="px-lg py-md text-label-sm font-bold border-b border-outline-variant/10">Status</th>
+                    <th class="px-lg py-md text-label-sm font-bold border-b border-outline-variant/10 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/10">
+                {% for c in cycles %}
+                <tr class="hover:bg-surface-container transition-colors group">
+                    <td class="px-lg py-md text-body-md font-bold">#CYC-{{ c.id }}</td>
+                    <td class="px-lg py-md text-body-md text-on-surface-variant">{{ c.created_at|date:"M d, Y" }}</td>
+                    <td class="px-lg py-md">
+                        <div class="flex items-center gap-sm">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
+                                {{ c.beneficiary.full_name|slice:":2"|upper }}
+                            </div>
+                            <span class="text-body-md font-medium">{{ c.beneficiary.full_name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-lg py-md text-body-md font-bold text-primary">₦{{ c.collected_amount }}</td>
+                    <td class="px-lg py-md">
+                        <span class="px-md py-xs rounded-full {% if c.status == 'disbursed' %}bg-tertiary-fixed-dim/20 text-primary{% else %}bg-secondary-container/20 text-secondary{% endif %} text-label-sm font-bold flex items-center gap-xs w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full {% if c.status == 'disbursed' %}bg-primary{% else %}bg-secondary{% endif %}"></span>
+                            {{ c.status|capfirst }}
+                        </span>
+                    </td>
+                    <td class="px-lg py-md text-right">
+                        {% if c.status == 'disbursed' %}
+                        <button class="text-primary font-bold text-label-sm hover:underline flex items-center gap-xs justify-end ml-auto">
+                            View Receipt <span class="material-symbols-outlined text-sm">arrow_outward</span>
+                        </button>
+                        {% else %}
+                        <span class="text-on-surface-variant opacity-50 text-label-sm italic">In Progress</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-lg py-xl text-center text-on-surface-variant italic">No cycle history found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

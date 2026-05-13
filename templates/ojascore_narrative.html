@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}OjaScore Insights | OjaPass{% endblock %}
+
+{% block extra_head %}
+<style>
+    .font-display { font-family: 'Fraunces', serif; }
+    .narrative-card {
+        background: white;
+        border: 1px solid rgba(191, 201, 191, 0.2);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 82, 49, 0.05);
+    }
+    .gradient-text {
+        background: linear-gradient(135deg, #005231 0%, #1b6b45 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}OjaScore Narrative{% endblock %}
+{% block page_subtitle %}The Economic Heart of OjaPass{% endblock %}
+
+{% block content %}
+<main class="max-w-4xl mx-auto space-y-12 pb-32">
+    <!-- Hero Section -->
+    <section class="text-center space-y-4">
+        <h2 class="font-display text-4xl md:text-5xl font-bold gradient-text">The Economic Heart of OjaPass</h2>
+        <p class="text-lg text-on-surface/70 leading-relaxed">
+            The OjaScore is a dynamic, AI-driven trust metric that replaces traditional credit scores, capturing the reality of Nigeria's informal economy.
+        </p>
+    </section>
+
+    <!-- The Ingredients -->
+    <section class="space-y-6">
+        <h3 class="font-display text-2xl font-bold border-b pb-2 border-primary/10">1. How the Score is Calculated</h3>
+        <div class="grid grid-cols-1 gap-6">
+            <div class="narrative-card flex flex-col md:flex-row gap-6">
+                <span class="material-symbols-outlined text-primary text-4xl">trending_up</span>
+                <div>
+                    <h4 class="font-bold text-lg mb-1">Financial Velocity</h4>
+                    <p class="text-on-surface/70">Every sale logged via Mamatally and every payment received through Squad adds "Growth Points." It proves your business is active and generating cash flow.</p>
+                </div>
+            </div>
+            <div class="narrative-card flex flex-col md:flex-row gap-6 border-l-4 border-l-primary">
+                <span class="material-symbols-outlined text-primary text-4xl">savings</span>
+                <div>
+                    <h4 class="font-bold text-lg mb-1">Savings Discipline (The Heavyweight)</h4>
+                    <p class="text-on-surface/70">Consistent, on-time Ajo contributions are our strongest signal of reliability. On-time payments boost you rapidly; missing one is the fastest way to drop your score.</p>
+                </div>
+            </div>
+            <div class="narrative-card flex flex-col md:flex-row gap-6">
+                <span class="material-symbols-outlined text-primary text-4xl">handshake</span>
+                <div>
+                    <h4 class="font-bold text-lg mb-1">Marketplace Reputation</h4>
+                    <p class="text-on-surface/70">Completing gigs and getting high ratings provides "Trust Points." For employers, maintaining a high "Fill Rate" for postings boosts your standing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Tiers -->
+    <section class="space-y-6">
+        <h3 class="font-display text-2xl font-bold border-b pb-2 border-primary/10">2. The Tier System</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="p-4 rounded-xl bg-white border border-outline-variant/30 text-center space-y-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface/50">0 - 30</span>
+                <h4 class="font-bold text-md">Newcomer</h4>
+                <p class="text-xs text-on-surface/60">Building initial trust. Basic platform tools enabled.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white border border-outline-variant/30 text-center space-y-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-primary/70">31 - 55</span>
+                <h4 class="font-bold text-md text-primary/80">Rising Star</h4>
+                <p class="text-xs text-on-surface/60">Consistent activity. Unlocks automated Savings Goals.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-primary/10 border border-primary/20 text-center space-y-2 transform lg:scale-105 shadow-md">
+                <span class="text-xs font-bold uppercase tracking-widest text-primary">56 - 74</span>
+                <h4 class="font-bold text-md text-primary">Trusted</h4>
+                <p class="text-xs text-primary/70">Proven reliability. Unlocks Working Capital Loans.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white border border-outline-variant/30 text-center space-y-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-secondary/80">75 - 89</span>
+                <h4 class="font-bold text-md text-secondary/80">Elite</h4>
+                <p class="text-xs text-on-surface/60">High performance. Increased loan limits and better rates.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white border border-outline-variant/30 text-center space-y-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-secondary">90 - 100</span>
+                <h4 class="font-bold text-md text-secondary">Pro</h4>
+                <p class="text-xs text-on-surface/60">Maximum limits, priority gig placement, and VIP support.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why It Matters -->
+    <section class="bg-primary text-on-primary rounded-3xl p-8 md:p-12 space-y-8 relative overflow-hidden">
+        <span class="material-symbols-outlined absolute -right-8 -top-8 text-[200px] opacity-10">verified_user</span>
+        <h3 class="font-display text-3xl font-bold">3. Why It Matters</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+            <div class="space-y-2">
+                <h4 class="font-bold text-xl">Access to Loans</h4>
+                <p class="opacity-80">Instant approval for inventory restocking or emergency funds based on your behavioral track record.</p>
+            </div>
+            <div class="space-y-2">
+                <h4 class="font-bold text-xl">Automated Matching</h4>
+                <p class="opacity-80">AI matchmakers prioritize high OjaScores, ensuring the most reliable workers get the best jobs.</p>
+            </div>
+            <div class="space-y-2">
+                <h4 class="font-bold text-xl">Digital Collateral</h4>
+                <p class="opacity-80">Your reputation replaces land titles. A high OjaScore is your most valuable asset in the informal economy.</p>
+            </div>
+            <div class="space-y-2">
+                <h4 class="font-bold text-xl">Global Trust</h4>
+                <p class="opacity-80">Exportable trust. Use your OjaScore to prove your credit-worthiness to any formal financial partner.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Closing Statement -->
+    <section class="text-center p-8 md:p-12 bg-white rounded-3xl border border-outline-variant/20 shadow-sm">
+        <p class="font-display text-2xl italic text-primary leading-relaxed">
+            "OjaPass turns the daily grind of an informal trader into a formal credit history. The person selling Ankara in the market today can get the capital they need to own a boutique tomorrow."
+        </p>
+    </section>
+
+    <!-- Summary Feedback -->
+    <section class="bg-surface-container rounded-2xl p-8 border border-outline-variant/20">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <p class="text-sm text-on-surface/60">Your Financial Narrative</p>
+                <p class="font-headline-md text-primary">{% if user.ojapass_score >= 90 %}Verified Pro{% elif user.ojapass_score >= 75 %}Business Elite{% elif user.ojapass_score >= 56 %}Trusted Merchant{% elif user.ojapass_score >= 31 %}Rising Star{% else %}Newcomer{% endif %}</p>
+                <p class="text-body-md text-on-surface-variant mt-2 max-w-xl">
+                    {{ user.ojapass_narrative }}
+                </p>
+            </div>
+            <div class="text-center md:text-right shrink-0">
+                <p class="text-sm text-on-surface/60">Current Score</p>
+                <p class="text-display-md text-primary font-bold">{{ user.ojapass_score }}</p>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

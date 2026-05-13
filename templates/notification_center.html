@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Notification Center | OjaPass</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed": "#b9efcb",
+            "surface-tint": "#1b6b45",
+            "secondary-container": "#ffb21d",
+            "outline": "#6f7a71",
+            "on-primary": "#ffffff",
+            "surface-bright": "#fcf9f3",
+            "on-secondary": "#ffffff",
+            "tertiary-container": "#36684b",
+            "on-tertiary-fixed": "#002111",
+            "surface-container-highest": "#e5e2dc",
+            "on-tertiary-fixed-variant": "#1d5035",
+            "inverse-on-surface": "#f3f0ea",
+            "primary-fixed-dim": "#8ad7a8",
+            "on-tertiary": "#ffffff",
+            "on-background": "#1c1c18",
+            "tertiary-fixed-dim": "#9dd3b0",
+            "secondary-fixed": "#ffddaf",
+            "outline-variant": "#bfc9bf",
+            "on-secondary-container": "#6b4800",
+            "surface-container": "#f0eee8",
+            "on-tertiary-container": "#afe4c1",
+            "primary": "#005231",
+            "on-surface": "#1c1c18",
+            "on-error-container": "#93000a",
+            "surface": "#fcf9f3",
+            "on-primary-fixed-variant": "#005231",
+            "on-secondary-fixed-variant": "#614000",
+            "on-primary-container": "#9be9b9",
+            "error": "#ba1a1a",
+            "on-secondary-fixed": "#281800",
+            "secondary": "#805600",
+            "primary-container": "#1b6b45",
+            "background": "#fcf9f3",
+            "surface-container-lowest": "#ffffff",
+            "on-surface-variant": "#3f4942",
+            "inverse-surface": "#31312d",
+            "on-error": "#ffffff",
+            "on-primary-fixed": "#002111",
+            "error-container": "#ffdad6",
+            "inverse-primary": "#8ad7a8",
+            "surface-dim": "#dcdad4",
+            "surface-container-high": "#ebe8e2",
+            "secondary-fixed-dim": "#ffba44",
+            "primary-fixed": "#a5f3c3",
+            "tertiary": "#1d5035",
+            "surface-variant": "#e5e2dc",
+            "surface-container-low": "#f6f3ed"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "lg": "24px",
+            "gutter": "16px",
+            "base": "4px",
+            "xl": "32px",
+            "md": "16px",
+            "sm": "8px",
+            "margin-desktop": "64px",
+            "xs": "4px",
+            "margin-mobile": "20px"
+          },
+          "fontFamily": {
+            "label-sm": ["dmSans"],
+            "body-md": ["dmSans"],
+            "body-lg": ["dmSans"],
+            "headline-md": ["dmSans"],
+            "display-md": ["Fraunces"],
+            "headline-lg": ["Fraunces"],
+            "label-lg": ["dmSans"],
+            "display-lg": ["Fraunces"]
+          },
+          "fontSize": {
+            "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+            "display-md": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body { background-color: #fcf9f3; font-family: 'dmSans', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .text-ink { color: #1c1c18; }
+    .bg-warm-smoke { background-color: #fcf9f3; }
+    .border-muted-sage { border-color: rgba(111, 122, 113, 0.2); }
+  </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 flex flex-col h-full py-lg px-md space-y-md border-r border-outline-variant/20 bg-surface-container-low dark:bg-surface-container-lowest h-screen w-64 docked left-0 shadow-sm dark:shadow-none z-[60]">
+<div class="flex items-center gap-sm mb-xl">
+<span class="font-display-md text-display-md font-bold text-primary dark:text-primary-fixed">OjaPass</span>
+</div>
+<div class="flex flex-col items-center gap-sm p-md mb-lg rounded-xl bg-surface-container-high/50">
+<div class="w-12 h-12 rounded-full border-2 border-primary overflow-hidden">
+<img alt="Merchant Avatar" src="https://lh3.googleusercontent.com/a/default-user=s96-c"/>
+</div>
+<div class="text-center">
+<p class="font-headline-md text-headline-md text-on-surface">{{ user.full_name|truncatechars:15 }}</p>
+<p class="font-label-lg text-label-lg text-on-surface-variant">Score: {{ user.ojapass_score }}</p>
+</div>
+</div>
+<nav class="flex-1 space-y-sm">
+<a class="flex items-center gap-md text-on-surface-variant hover:text-on-surface px-md py-sm hover:bg-surface-container-high transition-all rounded-xl" href="{% url 'profile' %}">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant hover:text-on-surface px-md py-sm hover:bg-surface-container-high transition-all rounded-xl" href="{% url 'transaction_list' %}">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-lg text-label-lg">Transaction History</span>
+</a>
+<a class="flex items-center gap-md bg-primary-container text-on-primary-container font-bold rounded-xl px-md py-sm border-l-4 border-secondary scale-[0.98] transition-transform duration-100" href="{% url 'notification_list' %}">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-label-lg text-label-lg">Notification Center</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant hover:text-on-surface px-md py-sm hover:bg-surface-container-high transition-all rounded-xl" href="{% url 'gig_list' %}">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-label-lg text-label-lg">Marketplace</span>
+</a>
+</nav>
+<a href="{% url 'logout' %}" class="mt-auto bg-surface-container-high text-on-surface px-lg py-md rounded-xl font-label-lg text-label-lg hover:opacity-90 transition-opacity text-center">
+      Logout
+    </a>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex justify-between items-center w-full px-lg py-sm bg-surface dark:bg-surface-dim border-b border-outline-variant/20 dark:border-outline-variant/10">
+<div class="flex items-center gap-md">
+<div class="relative">
+<input class="bg-surface-container-low border-none rounded-full px-xl py-xs w-64 text-body-md font-body-md focus:ring-2 focus:ring-primary" placeholder="Search notifications..." type="text"/>
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary hover:bg-surface-container-high p-sm rounded-full transition-colors cursor-pointer">help</span>
+<span class="material-symbols-outlined text-primary hover:bg-surface-container-high p-sm rounded-full transition-colors cursor-pointer">settings</span>
+</div>
+</header>
+<!-- Canvas -->
+<div class="p-xl grid grid-cols-12 gap-lg">
+<!-- Notification Center Content -->
+<section class="col-span-8 flex flex-col gap-lg">
+<!-- Header & Tabs -->
+<div class="flex flex-col gap-md">
+<div class="flex items-baseline gap-sm">
+<h1 class="font-display-md text-display-md text-primary">Notification Center</h1>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-[2px] rounded-full text-label-sm font-label-sm">{{ unread_count }} Unread</span>
+</div>
+<div class="flex gap-md border-b border-outline-variant/30">
+<button class="pb-sm font-label-lg text-label-lg text-primary border-b-2 border-primary">All Notifications</button>
+</div>
+</div>
+<!-- Notification List -->
+<div class="flex flex-col gap-sm">
+{% for n in notifications %}
+<div class="{% if not n.is_read %}bg-tertiary-fixed/10 border-tertiary-fixed/30{% else %}bg-surface-container-lowest border-muted-sage/20{% endif %} p-md rounded-xl border flex gap-md items-start relative overflow-hidden transition-all hover:shadow-md" id="notif-{{ n.id }}">
+{% if not n.is_read %}<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>{% endif %}
+<div class="w-10 h-10 rounded-full {% if not n.is_read %}bg-primary-container text-on-primary-container{% else %}bg-surface-container-high text-on-surface-variant{% endif %} flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">{% if 'Ajo' in n.message %}group{% elif 'OjaScore' in n.message or 'Score' in n.message %}trending_up{% elif 'Pay' in n.message %}payments{% else %}notifications{% endif %}</span>
+</div>
+<div class="flex flex-col flex-1 gap-xs">
+<div class="flex justify-between items-center">
+<p class="font-label-lg text-label-lg {% if not n.is_read %}text-primary{% else %}text-on-surface-variant{% endif %}">
+    {% if 'Ajo' in n.message %}Ajo Savings{% elif 'Score' in n.message %}Identity Score{% elif 'Gig' in n.message %}Gig Marketplace{% else %}System Update{% endif %}
+</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">{{ n.created_at|timesince }} ago</span>
+</div>
+<p class="font-body-md text-body-md {% if not n.is_read %}text-on-surface{% else %}text-on-surface-variant{% endif %}">{{ n.message|safe }}</p>
+{% if not n.is_read %}
+<div class="flex gap-md mt-sm">
+<button onclick="markAsRead({{ n.id }})" class="text-primary font-label-lg text-label-lg hover:underline flex items-center gap-xs">
+                   Mark as Read <span class="material-symbols-outlined text-[16px]">done</span>
+</button>
+</div>
+{% endif %}
+</div>
+{% if not n.is_read %}<div class="w-2 h-2 rounded-full bg-primary mt-2"></div>{% endif %}
+</div>
+{% empty %}
+<div class="py-xl text-center">
+    <span class="material-symbols-outlined text-4xl text-outline-variant/30">notifications_off</span>
+    <p class="text-on-surface-variant mt-md">No notifications yet. You're all caught up!</p>
+</div>
+{% endfor %}
+</div>
+</section>
+<!-- Sidebar Widget: Recent Score Updates -->
+<aside class="col-span-4 flex flex-col gap-lg">
+<!-- OjaScore Identity Card (Specialized Component) -->
+<div class="bg-gradient-to-br from-primary to-tertiary p-lg rounded-xl text-on-primary shadow-lg border border-primary/20 flex flex-col gap-md relative overflow-hidden">
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+<div class="flex justify-between items-start">
+<span class="font-label-lg text-label-lg opacity-80 uppercase tracking-widest">Identity Score</span>
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div class="mt-sm">
+<p class="font-label-sm text-label-sm opacity-80">Live OjaScore</p>
+<p class="font-display-md text-display-md">{{ user.ojapass_score }}<span class="text-headline-md opacity-60">/100</span></p>
+</div>
+<div class="w-full bg-white/20 h-2 rounded-full mt-sm">
+<div class="bg-secondary-container h-full rounded-full" style="width: {{ user.ojapass_score }}%"></div>
+</div>
+<div class="flex justify-between items-center mt-base">
+<span class="font-label-sm text-label-sm">Grade: {{ user.ojapass_narrative|truncatechars:30|default:"Building trust" }}</span>
+<span class="material-symbols-outlined text-[18px]">info</span>
+</div>
+</div>
+<!-- Recent Score Activities -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border-t-4 border-secondary shadow-sm">
+<h3 class="font-headline-md text-headline-md text-primary mb-md">Score Insights</h3>
+<div class="flex flex-col gap-md">
+{% for h in score_history %}
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-lg bg-tertiary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">{% if h.score > 0 %}add{% else %}remove{% endif %}</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">{{ h.reason|default:"Platform Activity" }}</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">{{ h.timestamp|date:"d M" }}</p>
+</div>
+</div>
+{% empty %}
+<p class="text-on-surface-variant text-sm italic">No recent score updates.</p>
+{% endfor %}
+</div>
+<a href="{% url 'profile' %}" class="block text-center w-full mt-lg py-sm border border-primary text-primary rounded-xl font-label-lg text-label-lg hover:bg-primary/5 transition-colors">
+            Analyze My Growth
+          </a>
+</div>
+</aside>
+</div>
+</main>
+<script>
+async function markAsRead(id) {
+    const res = await fetch(`/notifications/${id}/mark-read/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    });
+    if (res.ok) {
+        document.getElementById(`notif-${id}`).classList.remove('bg-tertiary-fixed/10', 'border-tertiary-fixed/30');
+        document.getElementById(`notif-${id}`).classList.add('bg-surface-container-lowest', 'border-muted-sage/20');
+        window.location.reload();
+    }
+}
+</script>
+</body></html>
