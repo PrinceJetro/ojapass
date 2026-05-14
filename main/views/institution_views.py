@@ -66,3 +66,37 @@ class GovernmentDashboardView(LoginRequiredMixin, View):
             'lga_data': lga_data,
         }
         return render(request, 'institution/gov_dashboard.html', context)
+
+
+class InstitutionUserRegistryView(LoginRequiredMixin, View):
+    """
+    Full directory of all users (traders/seekers) for lenders and gov.
+    """
+    def get(self, request):
+        if request.user.role not in ['lender', 'gov'] and not request.user.is_staff:
+            return JsonResponse({"success": False, "message": "Unauthorized."}, status=403)
+            
+        role_filter = request.GET.get('role')
+        category_filter = request.GET.get('category')
+        search = request.GET.get('search')
+        
+        users = OjaUser.objects.all().order_by('-ojapass_score')
+        
+        if role_filter:
+            users = users.filter(role=role_filter)
+        if category_filter:
+            users = users.filter(trade_category__icontains=category_filter)
+        if search:
+            from django.db.models import Q
+            users = users.filter(
+                Q(full_name__icontains=search) | 
+                Q(phone__icontains=search) | 
+                Q(lga__icontains=search)
+            )
+            
+        context = {
+            'users': users,
+            'roles': ['trader', 'seeker', 'both'],
+            'categories': ['Creative & Design', 'Tech & IT', 'Logistics & Delivery', 'Beauty & Fashion', 'Domestic Services', 'Construction', 'Other'],
+        }
+        return render(request, 'institution/user_registry.html', context)

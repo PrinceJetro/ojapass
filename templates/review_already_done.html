@@ -1,0 +1,24 @@
+{% extends 'public_base.html' %}
+{% load static %}
+
+{% block title %}Review Already Submitted | Oja Verified{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-32 text-center">
+    <div class="bg-white rounded-3xl p-xl shadow-xl border border-outline-variant/10">
+        <div class="w-24 h-24 rounded-full bg-secondary-container/20 mx-auto mb-md flex items-center justify-center">
+            <span class="material-symbols-outlined text-secondary text-5xl">check_circle</span>
+        </div>
+        <h1 class="font-display-md text-display-md text-on-surface mb-md">Review Completed!</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant mb-xl leading-relaxed">
+            Thank you! Your feedback for <span class="font-bold text-primary">{{ post.seeker.full_name }}</span> has already been successfully recorded and verified.
+        </p>
+        <div class="pt-md border-t border-outline-variant/10">
+            <p class="text-sm text-on-surface-variant mb-xl italic">"Verified reviews help builders and craftsmen grow their economic identity."</p>
+            <a href="{% url 'index' %}" class="inline-block py-md px-xl bg-primary text-on-primary rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all shadow-md">
+                Learn More About OjaPass
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

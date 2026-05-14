@@ -68,7 +68,7 @@ class GigListView(LoginRequiredMixin, View):
 class GigMatchView(LoginRequiredMixin, View):
     def post(self, request, pk):
         gig = get_object_or_404(Gig, id=pk, employer=request.user)
-        seekers = OjaUser.objects.filter(role='seeker').exclude(id=request.user.id)
+        seekers = OjaUser.objects.filter(role__in=['seeker', 'both']).exclude(id=request.user.id)
         
         matches = GeminiService.match_seekers(gig, seekers)
         

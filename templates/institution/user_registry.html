@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>User Registry | OjaPass Institutional</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap" rel="stylesheet"/>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { background-color: #fcf9f3; font-family: 'DM Sans', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(111, 122, 113, 0.1); }
+    </style>
+    <script id="tailwind-config">
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#005231",
+                "primary-container": "#1b6b45",
+                "on-primary": "#ffffff",
+                "secondary": "#805600",
+                "secondary-container": "#ffb21d",
+                "surface": "#fcf9f3",
+                "on-surface": "#1c1c18",
+                "outline-variant": "#bfc9bf",
+                "surface-container-low": "#f6f3ed",
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="text-on-surface">
+
+    <!-- Sidebar -->
+    <aside class="h-full w-64 fixed left-0 top-0 border-r border-outline-variant/20 bg-surface-container-low flex flex-col h-screen py-8 px-4 z-50">
+        <div class="mb-12 px-4">
+            <h1 class="text-3xl font-bold text-primary" style="font-family: 'Fraunces', serif;">OjaPass</h1>
+            <p class="text-xs uppercase tracking-widest text-slate-500 font-bold mt-1">Institutional</p>
+        </div>
+        <nav class="flex-1 space-y-2">
+            <a href="{% url 'lender_dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-white rounded-xl transition-all">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="font-bold text-sm">Dashboard</span>
+            </a>
+            <a href="{% url 'institution_registry' %}" class="flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-xl shadow-lg">
+                <span class="material-symbols-outlined">group</span>
+                <span class="font-bold text-sm">User Registry</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-white rounded-xl transition-all">
+                <span class="material-symbols-outlined">monitoring</span>
+                <span class="font-bold text-sm">Economic Trends</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 p-12">
+        <header class="flex justify-between items-end mb-12">
+            <div>
+                <h2 class="text-4xl font-bold text-primary" style="font-family: 'Fraunces', serif;">Global User Registry</h2>
+                <p class="text-slate-500 mt-2">Comprehensive oversight of all verified participants in the OjaPass ecosystem.</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="bg-white border border-outline-variant/30 px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-50 transition-all">
+                    <span class="material-symbols-outlined text-lg">download</span> Export CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- Search & Filter Bar -->
+        <section class="glass-card p-6 rounded-3xl mb-12">
+            <form action="." method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="md:col-span-2 relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                    <input type="text" name="search" value="{{ request.GET.search|default:'' }}" placeholder="Search by name, phone, or LGA..." class="w-full pl-12 pr-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary/20">
+                </div>
+                <div>
+                    <select name="role" onchange="this.form.submit()" class="w-full p-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary/20 font-bold text-sm text-slate-600">
+                        <option value="">All Roles</option>
+                        {% for role in roles %}
+                        <option value="{{ role }}" {% if request.GET.role == role %}selected{% endif %}>{{ role|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <select name="category" onchange="this.form.submit()" class="w-full p-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary/20 font-bold text-sm text-slate-600">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if request.GET.category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </section>
+
+        <!-- User Table -->
+        <section class="glass-card rounded-[2rem] overflow-hidden shadow-xl">
+            <table class="w-full text-left">
+                <thead class="bg-primary/5 text-primary border-b border-primary/10">
+                    <tr>
+                        <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest">User Details</th>
+                        <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest">Role</th>
+                        <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest">Trade / Expertise</th>
+                        <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest">OjaScore</th>
+                        <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest">Reputation Tier</th>
+                        <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest">Location</th>
+                        <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white/50">
+                    {% for u in users %}
+                    <tr class="hover:bg-white transition-colors group">
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center font-bold text-primary border border-primary/20">
+                                    {{ u.full_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-900">{{ u.full_name }}</p>
+                                    <p class="text-xs text-slate-500 font-mono">{{ u.phone }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider 
+                                {% if u.role == 'trader' %}bg-blue-100 text-blue-700
+                                {% elif u.role == 'seeker' %}bg-purple-100 text-purple-700
+                                {% else %}bg-amber-100 text-amber-700{% endif %}">
+                                {{ u.role }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="text-sm font-medium text-slate-700">{{ u.trade_category|default:u.skills|truncatechars:30|default:"N/A" }}</span>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary" style="width: {{ u.ojapass_score }}%"></div>
+                                </div>
+                                <span class="font-bold text-primary">{{ u.ojapass_score }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="text-xs font-bold px-3 py-1 rounded-xl bg-secondary-container/10 text-on-secondary-container border border-secondary-container/20">
+                                {{ u.tier.name }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-6 text-sm text-slate-500 font-medium">
+                            {{ u.lga|default:"Lagos" }}
+                        </td>
+                        <td class="px-8 py-6">
+                            <a href="{% url 'public_portfolio' u.phone %}" target="_blank" class="text-primary hover:underline font-bold text-sm flex items-center gap-1">
+                                Audit <span class="material-symbols-outlined text-sm">open_in_new</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-8 py-20 text-center">
+                            <span class="material-symbols-outlined text-6xl text-slate-200 mb-4">search_off</span>
+                            <p class="text-slate-500 italic">No users found matching your criteria.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+</body>
+</html>

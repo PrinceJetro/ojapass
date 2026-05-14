@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+import uuid
 
 class OjaUserManager(BaseUserManager):
     def create_user(self, phone, password=None, **extra_fields):
@@ -59,6 +60,18 @@ class OjaUser(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['full_name']
+
+    @property
+    def tier(self):
+        from .services.oja_score import get_tier
+        return get_tier(self.ojapass_score)
+
+    @property
+    def pts_to_next(self):
+        t = self.tier
+        if t['next_min']:
+            return t['next_min'] - self.ojapass_score
+        return 0
 
     def __str__(self):
         return self.phone
@@ -420,3 +433,85 @@ class SavingsGoal(models.Model):
 
     def __str__(self):
         return f"{self.user.full_name} - {self.name} ({self.progress_percent:.0f}%)"
+
+
+class PortfolioPost(models.Model):
+    """A piece of work a seeker posts — their digital proof of work"""
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+    ]
+    CATEGORY_CHOICES = [
+        ('electrical', 'Electrical'),
+        ('plumbing', 'Plumbing'),
+        ('carpentry', 'Carpentry'),
+        ('tailoring', 'Tailoring'),
+        ('catering', 'Catering'),
+        ('delivery', 'Delivery'),
+        ('cleaning', 'Cleaning'),
+        ('it_tech', 'IT / Tech'),
+        ('beauty', 'Beauty & Hair'),
+        ('tutoring', 'Tutoring'),
+        ('design', 'Design & Creative'),
+        ('other', 'Other'),
+    ]
+
+    seeker = models.ForeignKey(
+        OjaUser, on_delete=models.CASCADE, related_name='portfolio_posts'
+    )
+    title = models.CharField(max_length=255)
+    # e.g. "Full house wiring — 4 bedroom flat in Surulere"
+    description = models.TextField(blank=True, null=True)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    location = models.CharField(max_length=255)
+    # When the work was done — not when posted
+    work_date = models.DateField()
+    client_name = models.CharField(max_length=255)
+    # Client's phone or email — used to send the review request link
+    client_contact = models.CharField(max_length=255)
+    # Amount paid for the job — optional, feeds into earning history
+    amount_earned = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    # Unique token for the public review link — not guessable
+    review_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    review_requested_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def review_link(self):
+        return f"/portfolio/review/{self.review_token}/"
+
+    @property
+    def is_verified(self):
+        """A post is verified when it has a completed client review"""
+        return hasattr(self, 'client_review') and self.client_review.is_completed
+
+    def __str__(self):
+        return f"{self.seeker.full_name} — {self.title}"
+
+
+class ClientReview(models.Model):
+    """
+    Review left by a client on a portfolio post.
+    One review per post — enforced at model level.
+    Client does NOT need an OjaPass account.
+    """
+    post = models.OneToOneField(
+        PortfolioPost, on_delete=models.CASCADE, related_name='client_review'
+    )
+    # Star rating 1-5
+    rating = models.IntegerField()
+    # Written review — optional but encouraged
+    comment = models.TextField(blank=True, null=True)
+    # Client identity — no account needed
+    reviewer_name = models.CharField(max_length=255)
+    reviewer_phone = models.CharField(max_length=15, blank=True, null=True)
+    # Track if review was completed or just opened
+    is_completed = models.BooleanField(default=False)
+    reviewed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.rating}★ on '{self.post.title}' by {self.reviewer_name}"

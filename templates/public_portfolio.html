@@ -1,0 +1,178 @@
+{% extends 'public_base.html' %}
+{% load static %}
+
+{% block title %}{{ seeker.full_name }} | Oja Verified Portfolio{% endblock %}
+
+{% block content %}
+<main class="pt-32 pb-xl px-4 md:px-margin-desktop max-w-7xl mx-auto">
+    <!-- Seeker Profile Section: Asymmetric Layout -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start mb-xl">
+        <!-- Left: Identity Card (Premium ID Style) -->
+        <div class="lg:col-span-5 relative group">
+            <div class="bg-primary rounded-3xl p-lg shadow-2xl text-white relative overflow-hidden h-full flex flex-col justify-between min-h-[500px]">
+                <!-- Texture/Pattern Overlay -->
+                <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 24px 24px;"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-lg">
+                        <div class="w-32 h-32 rounded-2xl border-4 border-white/20 overflow-hidden shadow-2xl bg-white/10">
+                            <img alt="{{ seeker.full_name }}" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name={{ seeker.full_name|urlencode }}&background=ffffff&color=005231&size=256">
+                        </div>
+                        <div class="text-right">
+                            <div class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full text-label-sm font-bold inline-flex items-center gap-2 shadow-lg">
+                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                                VERIFIED PROFESSIONAL
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h1 class="font-display-md text-display-md mb-xs">{{ seeker.full_name }}</h1>
+                    <p class="font-headline-md text-headline-md opacity-90 mb-lg text-secondary-fixed">
+                        {{ seeker.trade_category|default:"Independent Professional" }}
+                    </p>
+                    
+                    <div class="flex gap-2 flex-wrap mb-xl">
+                        {% for skill in seeker.skills.split|slice:":5" %}
+                        <span class="bg-white/15 backdrop-blur-md px-4 py-1.5 rounded-full text-label-sm font-medium border border-white/10">{{ skill|title }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Identity Score Section -->
+                <div class="relative z-10 bg-white/10 backdrop-blur-xl p-lg rounded-2xl border border-white/20">
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70 mb-1">Trust Rating</p>
+                            <p class="font-display-md text-display-md text-secondary-container">{{ seeker.ojapass_score }}<span class="text-lg opacity-60">/100</span></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold opacity-70 mb-1 uppercase tracking-widest">Reputation Tier</p>
+                            <p class="font-headline-md text-headline-md text-white">
+                                {{ seeker.tier.name }}
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="h-2 w-full bg-white/20 rounded-full overflow-hidden">
+                        <div class="h-full bg-secondary-container transition-all duration-1000" style="width: {{ seeker.ojapass_score }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: About & Stats (Clean Typography) -->
+        <div class="lg:col-span-7 flex flex-col gap-lg h-full justify-center py-lg">
+            <div class="space-y-md">
+                <h2 class="font-headline-lg text-headline-lg text-primary italic">"{{ seeker.business_name|default:"Dedicated to excellence in every task." }}"</h2>
+                <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    {{ seeker.bio|default:"A verified professional on the OjaPass network, committed to providing high-quality services and building trust through consistent performance." }}
+                </p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-md pt-lg border-t border-outline-variant/30">
+                <div>
+                    <p class="font-display-md text-display-md text-primary">{{ verified_count }}</p>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-bold">Verified Jobs</p>
+                </div>
+                <div>
+                    <p class="font-display-md text-display-md text-primary">100%</p>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-bold">Completion</p>
+                </div>
+                <div>
+                    <p class="font-display-md text-display-md text-primary">{{ avg_rating|default:"5.0" }}</p>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-bold">Avg Rating</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-md mt-md">
+                <button class="bg-primary text-on-primary px-8 py-4 rounded-2xl font-headline-md text-headline-md shadow-xl hover:translate-y-[-2px] transition-all flex items-center gap-3">
+                    <span class="material-symbols-outlined">mail</span>
+                    Hire {{ seeker.first_name }}
+                </button>
+                <button class="border-2 border-outline px-8 py-4 rounded-2xl font-headline-md text-headline-md text-on-surface-variant hover:bg-surface-container transition-all">
+                    Download Credentials
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Verified Work History: Bento Grid Style -->
+    <section class="mt-xl">
+        <div class="flex justify-between items-end mb-lg border-b border-outline-variant/20 pb-md">
+            <div>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface">Verified Work History</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant">Authenticated via Oja Ledger for total transparency.</p>
+            </div>
+            <div class="hidden md:flex gap-2">
+                <button class="p-2 rounded-full border border-outline hover:bg-surface-container transition-colors"><span class="material-symbols-outlined">filter_list</span></button>
+                <button class="p-2 rounded-full border border-outline hover:bg-surface-container transition-colors"><span class="material-symbols-outlined">grid_view</span></button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+            {% for post in posts %}
+            {% if post.is_verified %}
+            <div class="bg-white rounded-3xl shadow-sm border border-outline-variant/30 overflow-hidden flex flex-col group transition-all hover:shadow-xl hover:border-primary/20">
+                <div class="h-48 overflow-hidden relative">
+                    <img alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=600">
+                    <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                        <span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="font-bold text-sm">{{ post.client_review.rating }}.0</span>
+                    </div>
+                </div>
+                <div class="p-lg flex flex-col justify-between flex-1">
+                    <div>
+                        <span class="bg-tertiary/10 text-tertiary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-md inline-block">{{ post.category }}</span>
+                        <h3 class="font-headline-md text-headline-md mb-sm text-on-surface leading-tight">{{ post.title }}</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mb-lg line-clamp-3 italic">"{{ post.client_review.comment }}"</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-md pt-md border-t border-outline-variant/10">
+                        <div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+                            <img alt="{{ post.client_review.reviewer_name }}" src="https://ui-avatars.com/api/?name={{ post.client_review.reviewer_name|urlencode }}&background=f0eee8&color=1c1c18">
+                        </div>
+                        <div>
+                            <p class="font-label-lg text-label-lg text-on-surface">{{ post.client_review.reviewer_name }}</p>
+                            <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">{{ post.work_date|date:"F Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% empty %}
+            <div class="col-span-full py-20 text-center bg-surface-container-low rounded-3xl border-2 border-dashed border-outline-variant/30">
+                <span class="material-symbols-outlined text-6xl text-outline-variant/50 mb-4">history_edu</span>
+                <p class="font-body-lg text-on-surface-variant">No verified projects visible yet.</p>
+            </div>
+            {% endfor %}
+
+            <!-- Call to Action Card -->
+            <div class="lg:row-span-1 bg-primary text-on-primary rounded-3xl p-lg flex flex-col justify-center items-center text-center shadow-2xl relative overflow-hidden">
+                <div class="absolute inset-0 opacity-5" style="background-image: repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%); background-size: 10px 10px;"></div>
+                <span class="material-symbols-outlined text-[64px] mb-md opacity-40">handshake</span>
+                <h3 class="font-display-md text-display-md mb-md relative z-10">Hire Quality.</h3>
+                <p class="font-body-lg text-body-lg mb-lg relative z-10">Verified skills. Proven results. Trust-first engagement.</p>
+                <button class="bg-white text-primary px-8 py-3 rounded-full font-label-lg text-label-lg hover:bg-surface-bright transition-all relative z-10 font-bold">Start Engagement</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Footer -->
+    <section class="mt-xl text-center py-20 bg-primary-container/10 rounded-[3rem] border border-primary/10">
+        <h2 class="font-display-md text-display-md text-primary mb-md">Ready to scale your project?</h2>
+        <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-xl">
+            {{ seeker.first_name }} is a top-tier professional on the OjaVerified network, currently available for verified engagements.
+        </p>
+        <div class="flex flex-col md:flex-row gap-md justify-center items-center">
+            <a class="bg-primary text-on-primary px-xl py-md rounded-2xl font-headline-md text-headline-md flex items-center gap-3 shadow-xl hover:scale-105 transition-transform" href="#">
+                <span class="material-symbols-outlined">send</span>
+                Send Project Brief
+            </a>
+            <a class="bg-secondary-container text-on-secondary-container px-xl py-md rounded-2xl font-headline-md text-headline-md flex items-center gap-3 shadow-md hover:scale-105 transition-transform" href="#">
+                <span class="material-symbols-outlined">calendar_today</span>
+                Schedule Discovery
+            </a>
+        </div>
+    </section>
+</main>
+{% endblock %}

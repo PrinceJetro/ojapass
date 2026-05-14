@@ -8,7 +8,7 @@ from django.core.cache import cache
 class GeminiService:
     @staticmethod
     def match_seekers(gig, seekers):
-        api_key = "AIzaSyAE86H4sXuPIsQaWEEJF7fuiCmeuxS0Exk"
+        api_key = os.environ.get("GEMINI_API_KEY")
         
         if not api_key:
             print("WARNING: GOOGLE_API_KEY not found. Returning empty matches.")
@@ -103,7 +103,7 @@ class GeminiService:
 
     @staticmethod
     def generate_score_narrative(user, history_record=None):
-        api_key = "AIzaSyAE86H4sXuPIsQaWEEJF7fuiCmeuxS0Exk"
+        api_key = os.environ.get("GEMINI_API_KEY")
         
         if not api_key:
             return "Keep trading and completing gigs to build your OjaScore and unlock new tiers!"

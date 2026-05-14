@@ -28,6 +28,7 @@ from ..services.oja_score import recalculate_ojascore
 SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
 SQUAD_BASE_URL = "https://sandbox-api-d.squadco.com"
 
+
 # ---------------------------------------------------------------------------
 # HELPERS
 # ---------------------------------------------------------------------------
@@ -48,9 +49,9 @@ def _handle_payment_link_success(link, transaction_ref, amount):
         link.paid_at = timezone.now()
         link.save()
 
-        # Log items as individual sales and decrement stock
-        # NOTE: relies on link.items reverse relation from PaymentLinkItem
-        # If that model doesn't exist yet, the for-loop simply won't execute
+        # Log items as individual sales and decrement stock.
+        # NOTE: relies on link.items reverse relation from PaymentLinkItem.
+        # If that model doesn't exist yet, the for-loop simply won't execute.
         for item in link.items.all():
             product = item.product
             qty = item.quantity

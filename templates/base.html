@@ -120,14 +120,14 @@
 <!-- SideNavBar — Desktop only -->
 <aside class="h-screen w-64 fixed left-0 top-0 bg-surface dark:bg-inverse-surface border-r border-outline-variant/20 dark:border-outline-variant/10 hidden lg:flex flex-col py-md z-50">
     <div class="px-md mb-xl">
-        <span class="font-display-lg text-display-lg font-bold text-primary dark:text-inverse-primary">OjaFinance</span>
+        <span class="font-display-lg text-display-lg font-bold text-primary dark:text-inverse-primary">OjaPass</span>
         <div class="flex items-center gap-sm mt-md">
             <div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
-                <img alt="Merchant Profile Picture" class="w-full h-full object-cover"
-                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgICrJlVmY6Na-kqGmAKofz4VmPVK4Wk0ele8oBAGrgEQkTBNX6uXJBs4sxTN3lLXZWleAYS-b-bNx9MpUa9xxrct4gu0vORKiJOMdYYKRXpqvrEXUuDq6OIlzZYbTnZ4q4TNNoAw1ENU5lq6cAOZntSPoyD2Kspjh54M6nGayn5jeFeOpJPnJUfdQSdhClUTB09AL77ElizmE9vdaFvAYNEkZI7pLqQBLY0e7-1oVQkjonUnGWS3i3tEqdrcJMh3-djgHuRDKlP8"/>
+                <img alt="User Profile Picture" class="w-full h-full object-cover"
+                     src="https://ui-avatars.com/api/?name={{ user.full_name|urlencode }}&background=005231&color=fff">
             </div>
             <div class="flex flex-col">
-                <span class="font-label-lg text-label-lg text-on-surface">Verified Merchant</span>
+                <span class="font-label-lg text-label-lg text-on-surface">Verified {{ user.role|title }}</span>
                 <span class="text-xs text-on-surface-variant">ID: {{ user.ojapass_id }}</span>
             </div>
         </div>
@@ -138,14 +138,27 @@
             <span class="material-symbols-outlined">dashboard</span>
             <span class="font-label-lg text-label-lg">Dashboard</span>
         </a>
+
+        {% if user.role == 'trader' or user.role == 'both' %}
         <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'mamatally_dashboard' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'mamatally_dashboard' %}">
             <span class="material-symbols-outlined">inventory_2</span>
             <span class="font-label-lg text-label-lg">Mamatally</span>
         </a>
+        {% endif %}
+
         <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'gig_list' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'gig_list' %}">
             <span class="material-symbols-outlined">storefront</span>
             <span class="font-label-lg text-label-lg">Marketplace</span>
         </a>
+
+        {% if user.role == 'seeker' or user.role == 'both' %}
+        <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'portfolio' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'portfolio' %}">
+            <span class="material-symbols-outlined">badge</span>
+            <span class="font-label-lg text-label-lg">Professional Portfolio</span>
+        </a>
+        {% endif %}
+
+        {% if user.role == 'trader' or user.role == 'both' %}
         <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'ajo_list' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'ajo_list' %}">
             <span class="material-symbols-outlined">groups</span>
             <span class="font-label-lg text-label-lg">Ajo Savings</span>
@@ -154,6 +167,8 @@
             <span class="material-symbols-outlined">payments</span>
             <span class="font-label-lg text-label-lg">Loans</span>
         </a>
+        {% endif %}
+
         <a class="flex items-center gap-md px-md py-sm rounded-lg {% if request.resolver_match.url_name == 'notification_list' %}text-primary dark:text-inverse-primary font-bold border-r-4 border-primary dark:border-inverse-primary bg-primary-container/10{% else %}text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest{% endif %} transition-colors transition-transform active:scale-95 duration-150" href="{% url 'notification_list' %}">
             <span class="material-symbols-outlined">notifications</span>
             <span class="font-label-lg text-label-lg">Notifications</span>
@@ -232,8 +247,8 @@
                 </div>
             </div>
             <a href="{% url 'profile' %}" class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
-                <img alt="Merchant Profile" class="w-full h-full object-cover"
-                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdggPXT-LNPhdyTqOGfibBqZSze9gunk1ltv2ye2t7aQIag09WcpzqPgj-rEJfK5BZGHrrcGdQAyLiVpOpzxcmLVMIq26R0C3HU9LCQ7mIv_eTx8TU_XSePTEc0mr-m-yCg_gRm8UBjU7pW-uRSPm3roe04xyCn13pigWV_KOD7rO6rLm4MOx9MxqN75XC-zQ76wOzY9E0Mk0o7I_UZHagVV3TcY4ln80w74l8jeWgMYAy3rpSgulWgS40F0eIFfQhVot8SnlvLuY"/>
+                <img alt="User Profile" class="w-full h-full object-cover"
+                     src="https://ui-avatars.com/api/?name={{ user.full_name|urlencode }}&background=005231&color=fff">
             </a>
         </div>
     </div>
@@ -255,14 +270,27 @@
         <span class="material-symbols-outlined">home</span>
         <span class="font-label-sm text-label-sm">Home</span>
     </a>
+    
+    {% if user.role == 'trader' or user.role == 'both' %}
     <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'mamatally_dashboard' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'mamatally_dashboard' %}">
-        <span class="material-symbols-outlined">handyman</span>
-        <span class="font-label-sm text-label-sm">Tools</span>
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span class="font-label-sm text-label-sm">Mama</span>
     </a>
+    {% endif %}
+
     <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'gig_list' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'gig_list' %}">
-        <span class="material-symbols-outlined">shopping_bag</span>
+        <span class="material-symbols-outlined">storefront</span>
         <span class="font-label-sm text-label-sm">Market</span>
     </a>
+
+    {% if user.role == 'seeker' or user.role == 'both' %}
+    <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'portfolio' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'portfolio' %}">
+        <span class="material-symbols-outlined">badge</span>
+        <span class="font-label-sm text-label-sm">Works</span>
+    </a>
+    {% endif %}
+
+    {% if user.role == 'trader' or user.role == 'both' %}
     <a class="flex flex-col items-center justify-center {% if request.resolver_match.url_name == 'ajo_list' %}bg-secondary-container text-on-secondary-container rounded-full px-4 py-1{% else %}text-on-surface-variant{% endif %} active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'ajo_list' %}">
         <span class="material-symbols-outlined">groups</span>
         <span class="font-label-sm text-label-sm">Ajo</span>
@@ -271,9 +299,11 @@
         <span class="material-symbols-outlined">payments</span>
         <span class="font-label-sm text-label-sm">Loans</span>
     </a>
+    {% endif %}
+
     <a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-container-highest transition-transform active:scale-90 duration-200" href="{% url 'logout' %}">
         <span class="material-symbols-outlined">logout</span>
-        <span class="font-label-sm text-label-sm">Logout</span>
+        <span class="font-label-sm text-label-sm">Exit</span>
     </a>
 </nav>
 

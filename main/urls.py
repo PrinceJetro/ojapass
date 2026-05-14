@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path 
 from django.views.generic import TemplateView
 
 from .views import (
@@ -12,10 +12,17 @@ from .views import (
     AjoGroupListView, AjoGroupDetailView, AjoJoinView, AjoContributeView, AjoDisbursementView, UserAjoHistoryView, FundWalletView,
     GigListView, GigMatchView, GigApplyView, GigStatusUpdateView, GigAcceptAndEscrowView, GigEscrowPaymentView,
     PayrollBatchView, ScoreNarrativeView, ScoreNarrativeAPIView, LoanDashboardView, LoanApplyView, LoanRepaymentView,
-    SavingsGoalView, LenderDashboardView, GovernmentDashboardView
+    SavingsGoalView, LenderDashboardView, GovernmentDashboardView, InstitutionUserRegistryView,
+    PortfolioListView, ReviewRequestView, ReviewShareView, PublicPortfolioView, HiringMarketplaceView
 )
 
 urlpatterns = [
+    # Institution / Government Dashboards
+    path('institution/lender/', LenderDashboardView.as_view(), name='lender_dashboard'),
+    path('institution/gov/', GovernmentDashboardView.as_view(), name='gov_dashboard'),
+    path('institution/registry/', InstitutionUserRegistryView.as_view(), name='institution_registry'),
+    path('talents/', HiringMarketplaceView.as_view(), name='hiring_marketplace'),
+
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('onboarding/', RegisterView.as_view(), name='onboarding'),
     path('resolve-bvn/', ResolveBVNView.as_view(), name='resolve_bvn'),
@@ -75,7 +82,9 @@ urlpatterns = [
     path('loans/<int:loan_id>/repay/', LoanRepaymentView.as_view(), name='loan_repay'),
     path('savings/', SavingsGoalView.as_view(), name='savings_goals'),
     
-    # Institution / Government Dashboards
-    path('institution/lender/', LenderDashboardView.as_view(), name='lender_dashboard'),
-    path('institution/gov/', GovernmentDashboardView.as_view(), name='gov_dashboard'),
+    # Portfolio
+    path('portfolio/', PortfolioListView.as_view(), name='portfolio'),
+    path('portfolio/review/<uuid:token>/', ReviewRequestView.as_view(), name='leave_review'),
+    path('portfolio/share/<int:post_id>/', ReviewShareView.as_view(), name='review_share'),
+    path('profile/<str:phone>/', PublicPortfolioView.as_view(), name='public_portfolio'),
 ]

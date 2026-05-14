@@ -79,6 +79,9 @@ class RegisterView(View):
                 phone=data.get('phone'), password=data.get('pin'), full_name=full_name, email=data.get('email'),
                 dob=data.get('dob'), gender=data.get('gender'), address=data.get('address'), bvn=data.get('bvn'),
                 role=data.get('role', 'trader'), ojapass_id=ojapass_id, 
+                lga=data.get('lga', 'Surulere'),
+                bio=data.get('bio', ''),
+                skills=data.get('skills', ''),
                 ojapass_score=0,
                 ojapass_narrative="Welcome to OjaPass! Start trading and taking gigs to build your credit profile.",
                 virtual_account_number=account_data.get('virtual_account_number'),
@@ -182,7 +185,7 @@ class UserProfileView(LoginRequiredMixin, View):
                 'notifications': user.notifications.all().order_by('-created_at')[:5],
                 'active_gigs': user.gigs_taken.filter(status__in=['matched', 'in_progress']).order_by('-created_at')
             }
-            return render(request, 'seeker_dashboard.html', context)
+            return render(request, 'profile.html', context)
 
         context = {
             'user': user, 

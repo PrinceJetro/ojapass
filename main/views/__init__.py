@@ -7,3 +7,4 @@ from .ajo_views import *
 from .utility_views import *
 from .loan_views import *
 from .institution_views import *
+from .portfolio_views import *

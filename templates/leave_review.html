@@ -1,0 +1,193 @@
+{% extends 'public_base.html' %}
+{% load static %}
+
+{% block title %}Rate {{ post.seeker.full_name }} | Oja Verified{% endblock %}
+
+{% block content %}
+<main class="min-h-screen flex flex-col items-center pt-xl px-4 md:px-margin-desktop pb-32">
+    <div class="w-full max-w-2xl">
+        <!-- Breadcrumb / Context -->
+        <div class="mb-lg flex items-center gap-2 text-on-surface-variant">
+            <span class="font-label-lg text-label-lg">Review Request</span>
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+            <span class="font-label-lg text-label-lg text-primary">Portfolio ID: #{{ post.id|stringformat:"04d" }}</span>
+        </div>
+
+        <!-- Main Review Card -->
+        <section class="bg-white rounded-3xl border border-outline-variant/20 shadow-xl overflow-hidden border-t-[8px] border-secondary-container/50">
+            <!-- Business Identity Context -->
+            <div class="p-lg bg-surface-container-low/50 border-b border-outline-variant/10">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+                    <div class="flex items-center gap-md">
+                        <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-primary-container/20 bg-surface-container">
+                            <img alt="{{ post.seeker.full_name }}" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name={{ post.seeker.full_name|urlencode }}&background=005231&color=fff&size=128">
+                        </div>
+                        <div>
+                            <h1 class="font-headline-lg text-headline-lg text-primary">Rate {{ post.seeker.full_name }}'s Work</h1>
+                            <p class="font-body-md text-body-md text-on-surface-variant">Verified Professional since {{ post.seeker.date_joined|date:"Y"|default:"2023" }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-primary-container px-md py-sm rounded-full flex items-center gap-2 self-start md:self-center">
+                        <span class="material-symbols-outlined text-on-primary-container text-sm" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+                        <span class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider font-bold">OjaPass Secure</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specific Project Details -->
+            <div class="p-lg">
+                <div class="bg-surface-bright rounded-2xl p-lg border border-outline-variant/20 mb-xl">
+                    <span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-xs block font-bold">Project details</span>
+                    <h2 class="font-headline-md text-headline-md mb-xs text-on-surface">{{ post.title }}</h2>
+                    <div class="flex items-center gap-md text-on-surface-variant">
+                        <span class="font-body-md text-body-md">{{ post.get_category_display }}</span>
+                        <span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+                        <span class="font-body-md text-body-md">Completed: {{ post.work_date|date:"F d, Y" }}</span>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form id="review-form" class="space-y-xl">
+                    {% csrf_token %}
+                    <input type="hidden" name="rating" id="rating-input" required>
+                    
+                    <!-- Rating Widget -->
+                    <div class="flex flex-col items-center gap-md py-md bg-surface-container-lowest rounded-2xl border border-outline-variant/10">
+                        <label class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider font-bold">Your Overall Rating</label>
+                        <div class="flex gap-sm">
+                            {% for i in "12345" %}
+                            <button type="button" onclick="setRating({{ i }})" class="star-btn p-1 transition-transform active:scale-90 hover:scale-110">
+                                <span class="material-symbols-outlined text-5xl text-outline-variant" data-star="{{ i }}">star</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <p id="rating-text" class="font-headline-md text-headline-md text-secondary h-8 italic">Tap to rate your experience</p>
+                    </div>
+
+                    <!-- Comment -->
+                    <div class="space-y-sm">
+                        <label class="font-label-lg text-label-lg text-on-surface block font-bold" for="comment">Your Feedback</label>
+                        <textarea class="w-full rounded-2xl border border-outline-variant bg-white p-md font-body-lg text-body-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline" id="comment" name="comment" placeholder="How was the quality of work? Was {{ post.seeker.full_name }} professional and on time?" rows="4"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                        <!-- Name -->
+                        <div class="space-y-sm">
+                            <label class="font-label-lg text-label-lg text-on-surface block font-bold" for="reviewer_name">Reviewer Name</label>
+                            <input class="w-full rounded-2xl border border-outline-variant bg-white px-md py-4 font-body-lg text-body-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" id="reviewer_name" name="reviewer_name" placeholder="Full name" type="text" required>
+                        </div>
+                        <!-- Phone -->
+                        <div class="space-y-sm">
+                            <label class="font-label-lg text-label-lg text-on-surface block font-bold" for="reviewer_phone">Reviewer Phone</label>
+                            <input class="w-full rounded-2xl border border-outline-variant bg-white px-md py-4 font-body-lg text-body-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" id="reviewer_phone" name="reviewer_phone" placeholder="+234..." type="tel">
+                            <p class="text-[11px] text-on-surface-variant uppercase tracking-wider font-medium flex items-center gap-1 mt-1 opacity-70">
+                                <span class="material-symbols-outlined text-xs">info</span>
+                                Only used for verification, never shared publicly.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-md">
+                        <button class="w-full bg-primary text-on-primary py-xl rounded-2xl font-headline-md text-headline-md hover:opacity-90 transition-all shadow-lg active:scale-[0.98] flex justify-center items-center gap-md" type="submit">
+                            Submit Review
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Verification Badge -->
+        <div class="mt-xl flex flex-col items-center gap-md text-center">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">gpp_good</span>
+                <span class="font-label-lg text-label-lg uppercase tracking-widest font-bold">Verified by OjaPass Ecosystem</span>
+            </div>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-md mx-auto leading-relaxed">
+                Reviews submitted through Oja Verified are analyzed for authenticity to protect both buyers and service providers.
+            </p>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function setRating(val) {
+        document.getElementById('rating-input').value = val;
+        const stars = document.querySelectorAll('.star-btn span');
+        const text = document.getElementById('rating-text');
+        
+        const labels = {
+            1: 'Needs Improvement',
+            2: 'Fair',
+            3: 'Good Quality',
+            4: 'Very Professional',
+            5: 'Exceptional Craftsmanship!'
+        };
+        
+        text.innerText = labels[val];
+
+        stars.forEach((star, index) => {
+            const starVal = index + 1;
+            if (starVal <= val) {
+                star.style.fontVariationSettings = "'FILL' 1";
+                star.classList.remove('text-outline-variant');
+                star.classList.add('text-secondary');
+            } else {
+                star.style.fontVariationSettings = "'FILL' 0";
+                star.classList.add('text-outline-variant');
+                star.classList.remove('text-secondary');
+            }
+        });
+    }
+
+    // Handle Review Submission
+    document.getElementById('review-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const rating = formData.get('rating');
+        
+        if (!rating) {
+            alert('Please select a star rating first!');
+            return;
+        }
+
+        const data = {
+            rating: parseInt(rating),
+            comment: formData.get('comment'),
+            reviewerName: formData.get('reviewer_name'),
+            reviewerPhone: formData.get('reviewer_phone'),
+        };
+
+        const btn = form.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `Submitting... <span class="animate-spin material-symbols-outlined">sync</span>`;
+
+        try {
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            alert('Something went wrong. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+</script>
+{% endblock %}
