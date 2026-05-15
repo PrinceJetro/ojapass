@@ -35,14 +35,27 @@ class StorefrontCheckoutView(View):
                     total += float(order.total_amount)
                     oids.append(str(order.id))
                     
-                ref = f"OJA-{uuid.uuid4().hex[:12].upper()}"
+                ref = f"SF-{uuid.uuid4().hex[:12].upper()}"
+                
+                # Create PaymentLink so webhook can resolve the merchant (user)
+                PaymentLink.objects.create(
+                    user=user,
+                    transaction_ref=ref,
+                    amount=total,
+                    status='pending',
+                    description=f"Storefront Order: {data.get('customerName')}"
+                )
+
                 payload = {
                     "amount": int(total * 100), 
                     "email": data.get('customerEmail'), 
                     "currency": "NGN",
                     "initiate_type": "inline",
                     "transaction_ref": ref, 
-                    "metadata": {"order_ids": ",".join(oids)},
+                    "metadata": {
+                        "type": "storefront_order",
+                        "order_ids": ",".join(oids)
+                    },
                     "callback_url": request.build_absolute_uri(f"/payment-link/verify/{ref}/")
                 }
                 
@@ -56,6 +69,8 @@ class StorefrontCheckoutView(View):
                     res = res_raw.json()
                     
                     if res_raw.status_code == 200 and res.get('success') and 'data' in res and 'checkout_url' in res['data']:
+                        # Update the payment link with the actual checkout URL
+                        PaymentLink.objects.filter(transaction_ref=ref).update(checkout_url=res['data']['checkout_url'])
                         return JsonResponse({"success": True, "checkoutUrl": res['data']['checkout_url']})
                     
                     raise Exception(res.get('message', 'Squad initiation failed'))

@@ -48,16 +48,28 @@
             <span class="font-display text-2xl font-bold text-primary">OjaPass</span>
         </div>
         <nav class="hidden md:flex items-center gap-8">
-            <a class="text-sm font-bold text-primary" href="#">Home</a>
-            <a class="text-sm font-medium text-on-surface/60 hover:text-primary transition-colors" href="#">Identity</a>
+            <a class="text-sm font-bold text-primary" href="{% url 'index' %}">Home</a>
+            <a class="text-sm font-medium text-on-surface/60 hover:text-primary transition-colors" href="{% url 'how_it_works' %}">How it Works</a>
             <a class="text-sm font-medium text-on-surface/60 hover:text-primary transition-colors" href="#">Mamatally</a>
             <a class="text-sm font-medium text-on-surface/60 hover:text-primary transition-colors" href="#">Marketplace</a>
             <a href="{% url 'login' %}" class="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md hover:scale-105 transition-all">Login</a>
         </nav>
-        <button class="md:hidden p-2 text-primary">
+        <button id="mobile-menu-button" class="md:hidden p-2 text-primary focus:outline-none">
             <span class="material-symbols-outlined">menu</span>
         </button>
     </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-primary/95 z-[60] flex flex-col items-center justify-center gap-8 text-white translate-x-full transition-transform duration-300 md:hidden">
+        <button id="close-menu" class="absolute top-6 right-6 p-2 text-white">
+            <span class="material-symbols-outlined text-3xl">close</span>
+        </button>
+        <a class="text-2xl font-bold" href="{% url 'index' %}">Home</a>
+        <a class="text-2xl font-medium opacity-80" href="{% url 'how_it_works' %}">How it Works</a>
+        <a class="text-2xl font-medium opacity-80" href="#">Mamatally</a>
+        <a class="text-2xl font-medium opacity-80" href="#">Marketplace</a>
+        <a href="{% url 'login' %}" class="bg-white text-primary px-10 py-4 rounded-full text-lg font-bold mt-4">Login</a>
+    </div>
 
     <main>
         <!-- Hero Section -->
@@ -76,12 +88,12 @@
                         The ultimate economic identity and banking backbone for traders. Track sales, build your OjaScore, and unlock formal credit instantly.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                        <a href="{% url 'login' %}" class="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
-                            Get Your OjaPass ID <span class="material-symbols-outlined">trending_flat</span>
+                        <a href="{% url 'onboarding' %}" class="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                            Get Your Started <span class="material-symbols-outlined">trending_flat</span>
                         </a>
-                        <button class="border-2 border-primary/20 text-primary px-10 py-5 rounded-2xl font-bold text-lg hover:bg-primary/5 transition-all">
+                        <a href="{% url 'how_it_works' %}" class="border-2 border-primary/20 text-primary px-10 py-5 rounded-2xl font-bold text-lg hover:bg-primary/5 transition-all text-center">
                             How it works
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -92,7 +104,7 @@
                     </div>
                     
                     <!-- Floating ID Card -->
-                    <div class="absolute -bottom-6 -left-6 md:-bottom-10 md:-left-10 id-gradient p-8 rounded-3xl text-white w-72 shadow-2xl animate-bounce-slow">
+                    <div class="absolute -bottom-4 -right-4 md:-bottom-10 md:-left-10 id-gradient p-6 md:p-8 rounded-2xl md:rounded-3xl text-white w-64 md:w-72 shadow-2xl animate-bounce-slow z-20">
                         <div class="flex justify-between items-start mb-10">
                             <span class="font-display text-xl font-bold">OjaPass ID</span>
                             <div class="p-2 bg-white/20 rounded-xl backdrop-blur-md">
@@ -227,5 +239,25 @@
             <p class="text-sm text-on-surface/30">© 2026 OjaFinance. Built for the hustle.</p>
         </div>
     </footer>
+    <script>
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.remove('translate-x-full');
+        });
+
+        closeMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.add('translate-x-full');
+        });
+
+        // Close menu on link click
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('translate-x-full');
+            });
+        });
+    </script>
 </body>
 </html>

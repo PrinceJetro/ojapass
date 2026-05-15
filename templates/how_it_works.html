@@ -1,0 +1,150 @@
+{% extends "public_base.html" %}
+
+{% block title %}How it Works{% endblock %}
+
+{% block content %}
+<section class="py-20 px-6 md:px-16 bg-background">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-20">
+            <h1 class="font-display text-5xl md:text-7xl mb-8">How <span class="text-primary italic">OjaPass</span> Works</h1>
+            <p class="text-xl text-on-surface/60 max-w-3xl mx-auto leading-relaxed">
+                We're bridging the gap between the informal economy and formal financial systems. 
+                Here's how we turn your daily hustle into a powerful economic identity.
+            </p>
+        </div>
+
+        <div class="space-y-32">
+            <!-- Step 1: Identity -->
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="flex-1 order-2 lg:order-1">
+                    <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-white text-3xl">fingerprint</span>
+                    </div>
+                    <h2 class="font-display text-4xl mb-6">1. Create Your Digital Identity</h2>
+                    <p class="text-lg text-on-surface/60 mb-8 leading-relaxed">
+                        Sign up in minutes using your BVN. We create a verified OjaPass ID that represents you across the entire ecosystem. 
+                        This ID is your passport to formal banking, loans, and trust.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary">check_circle</span>
+                            <span class="font-medium">Instant BVN Verification</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary">check_circle</span>
+                            <span class="font-medium">Professional Digital Portfolio</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="flex-1 order-1 lg:order-2 relative">
+                    <div class="aspect-square bg-primary/5 rounded-[48px] flex items-center justify-center overflow-hidden border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-[200px] text-primary/10">account_circle</span>
+                    </div>
+                    <!-- Decorative element -->
+                    <div class="absolute -bottom-8 -right-8 w-48 h-48 bg-secondary-container/10 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+
+            <!-- Step 2: Mamatally -->
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="flex-1 relative">
+                    <div class="aspect-square bg-secondary/5 rounded-[48px] flex items-center justify-center overflow-hidden border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-[200px] text-secondary/10">inventory_2</span>
+                    </div>
+                    <!-- Decorative element -->
+                    <div class="absolute -top-8 -left-8 w-48 h-48 bg-primary/10 rounded-full blur-3xl"></div>
+                </div>
+                <div class="flex-1">
+                    <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-secondary/20">
+                        <span class="material-symbols-outlined text-white text-3xl">receipt_long</span>
+                    </div>
+                    <h2 class="font-display text-4xl mb-6">2. Log Sales with Mamatally</h2>
+                    <p class="text-lg text-on-surface/60 mb-8 leading-relaxed">
+                        Use Mamatally to record your daily transactions. Every sale you log builds your business history and contributes to your OjaScore. 
+                        No more paper ledgers or lost records.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-secondary">check_circle</span>
+                            <span class="font-medium">Digital Receipts for Customers</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-secondary">check_circle</span>
+                            <span class="font-medium">Real-time Stock Management</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Step 3: OjaScore -->
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="flex-1 order-2 lg:order-1">
+                    <div class="w-16 h-16 bg-primary-container rounded-2xl flex items-center justify-center mb-8 shadow-lg">
+                        <span class="material-symbols-outlined text-primary text-3xl">trending_up</span>
+                    </div>
+                    <h2 class="font-display text-4xl mb-6">3. Build Your OjaScore</h2>
+                    <p class="text-lg text-on-surface/60 mb-8 leading-relaxed">
+                        Our AI engine analyzes your trading patterns, savings history, and community trust. 
+                        As your OjaScore grows, you unlock access to higher credit limits and better interest rates.
+                    </p>
+                    <div class="bg-surface p-8 rounded-3xl border border-outline-variant/20 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-bold text-sm uppercase tracking-wider text-on-surface/40">Current Score</span>
+                            <span class="text-primary font-bold">Good</span>
+                        </div>
+                        <div class="h-4 bg-outline-variant/20 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary w-[75%]"></div>
+                        </div>
+                        <p class="mt-4 text-sm text-on-surface/60 italic">"Your score increased by 45 points this month!"</p>
+                    </div>
+                </div>
+                <div class="flex-1 order-1 lg:order-2">
+                    <div class="aspect-square bg-primary/5 rounded-[48px] flex items-center justify-center overflow-hidden border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-[200px] text-primary/10">monitoring</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Scale -->
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="flex-1">
+                    <div class="aspect-square bg-secondary/5 rounded-[48px] flex items-center justify-center overflow-hidden border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-[200px] text-secondary/10">rocket_launch</span>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="w-16 h-16 bg-secondary-container rounded-2xl flex items-center justify-center mb-8 shadow-lg">
+                        <span class="material-symbols-outlined text-on-secondary-container text-3xl">payments</span>
+                    </div>
+                    <h2 class="font-display text-4xl mb-6">4. Access Formal Credit & Scale</h2>
+                    <p class="text-lg text-on-surface/60 mb-8 leading-relaxed">
+                        With a verified history and a strong OjaScore, you can apply for loans directly through the app. 
+                        No collateral needed—your hustle is your collateral. Scale your business to new heights.
+                    </p>
+                    <a href="{% url 'login' %}" class="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all">
+                        Get Started Now <span class="material-symbols-outlined">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-24 px-6 md:px-16 bg-primary text-white text-center">
+    <div class="max-w-3xl mx-auto">
+        <h2 class="font-display text-4xl md:text-5xl mb-8">Ready to join the movement?</h2>
+        <p class="text-xl opacity-80 mb-12">
+            Join thousands of traders who are formalizing their hustle and unlocking their financial potential.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-6 justify-center">
+            <a href="{% url 'register' %}" class="bg-white text-primary px-10 py-5 rounded-2xl font-bold text-lg hover:bg-secondary-container hover:text-on-secondary-container transition-all">
+                Create Account
+            </a>
+            <a href="{% url 'login' %}" class="border-2 border-white/20 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all">
+                Login to Dashboard
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

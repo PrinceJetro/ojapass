@@ -44,9 +44,10 @@ class SquadService:
     @staticmethod
     def process_transfer(amount, recipient_account, remark, secret_key, base_url, bank_code="058", account_name="Oja Merchant"):
         """
-        Processes a transfer via Squad Transfer API.
+        Processes a transfer via Squad Payout API.
         """
-        url = f"{base_url}/transfer"
+        # FIX: The payout endpoint requires /payout/ prefix in Squad API
+        url = f"{base_url}/payout/transfer"
         
         payload = {
             "amount": int(float(amount) * 100), # Kobo
@@ -54,7 +55,9 @@ class SquadService:
             "account_number": recipient_account,
             "account_name": account_name,
             "remark": remark,
-            "currency_id": "NGN"
+            "currency_id": "NGN",
+            # FIX: transaction_reference is REQUIRED for payouts
+            "transaction_reference": f"OJA-{uuid.uuid4().hex[:12].upper()}"
         }
         
         headers = {
@@ -63,7 +66,7 @@ class SquadService:
         }
         
         try:
-            response = requests.post(url, json=payload, headers=headers, timeout=5)
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
             return response.json()
         except requests.exceptions.RequestException as e:
             return {

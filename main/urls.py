@@ -24,6 +24,7 @@ urlpatterns = [
     path('talents/', HiringMarketplaceView.as_view(), name='hiring_marketplace'),
 
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('how-it-works/', TemplateView.as_view(template_name='how_it_works.html'), name='how_it_works'),
     path('onboarding/', RegisterView.as_view(), name='onboarding'),
     path('resolve-bvn/', ResolveBVNView.as_view(), name='resolve_bvn'),
     path('register/', RegisterView.as_view(), name='register'),

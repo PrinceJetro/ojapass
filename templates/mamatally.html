@@ -112,11 +112,13 @@
         </div>
         <div class="flex items-end justify-between h-48 gap-sm">
             {% for d in daily_revenue_list %}
-            <div class="w-full flex flex-col items-center gap-sm group">
-                <div class="w-full bg-tertiary/20 group-hover:bg-primary transition-all relative" style="height: {{ d.height }}%">
-                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface p-1 rounded border border-outline-variant text-[10px] hidden group-hover:block z-10">₦{{ d.amount|floatformat:0|intcomma }}</div>
+            <div class="w-full h-full flex flex-col items-center group">
+                <div class="flex-1 w-full flex items-end group">
+                    <div class="w-full bg-primary/20 group-hover:bg-primary transition-all relative rounded-t-sm" style="height: {{ d.height }}%">
+                        <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface p-1 rounded border border-outline-variant text-[10px] hidden group-hover:block z-10">₦{{ d.amount|floatformat:0|intcomma }}</div>
+                    </div>
                 </div>
-                <span class="font-label-sm text-label-sm">{{ d.day }}</span>
+                <span class="font-label-sm text-label-sm mt-sm">{{ d.day }}</span>
             </div>
             {% endfor %}
         </div>
@@ -202,7 +204,7 @@
                 <label class="font-label-lg text-label-lg text-on-surface-variant">Supplier Name</label>
                 <input id="restock-supplier" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Alaba Market Wholesalers"/>
             </div>
-            <button onclick="logRestock()" type="button" class="w-full bg-secondary text-on-secondary font-label-lg py-md rounded-lg shadow-lg hover:opacity-90 active:scale-95 transition-all mt-md">
+            <button id="restock-btn" onclick="logRestock()" type="button" class="w-full bg-secondary text-on-secondary font-label-lg py-md rounded-lg shadow-lg hover:opacity-90 active:scale-95 transition-all mt-md">
                 Confirm Restock
             </button>
         </form>
@@ -225,20 +227,47 @@
                 </div>
                 <div>
                     <label class="font-label-lg text-label-lg text-on-surface-variant">Category</label>
-                    <input id="new-p-cat" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Grains, Electronics"/>
+                    <select id="new-p-cat" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" required>
+                        <option value="">Select Category</option>
+                        <option value="Grains">Grains</option>
+                        <option value="Tubers">Tubers</option>
+                        <option value="Oils">Oils & Fats</option>
+                        <option value="Vegetables">Vegetables</option>
+                        <option value="Fruits">Fruits</option>
+                        <option value="Proteins">Proteins (Meat/Fish)</option>
+                        <option value="Spices">Spices & Condiments</option>
+                        <option value="Canned Goods">Canned Goods</option>
+                        <option value="Bakery">Bakery & Bread</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Snacks">Snacks & Confectionery</option>
+                        <option value="Household">Household Supplies</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Apparel">Apparel & Clothing</option>
+                        <option value="Footwear">Footwear</option>
+                        <option value="Personal Care">Personal Care</option>
+                        <option value="Stationery">Stationery & Office</option>
+                        <option value="Hardware">Hardware & Tools</option>
+                        <option value="Services">Services</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-md">
                 <div>
-                    <label class="font-label-lg text-label-lg text-on-surface-variant">Cost Price (₦)</label>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Cost Price (Unit) (₦)</label>
                     <input id="new-p-cost" type="number" step="0.01" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
                 </div>
                 <div>
-                    <label class="font-label-lg text-label-lg text-on-surface-variant">Selling Price (₦)</label>
-                    <input id="new-p-sell" type="number" step="0.01" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Total Initial Cost (₦)</label>
+                    <input id="new-p-total-cost" type="number" step="0.01" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="Total Paid"/>
                 </div>
             </div>
-            <button onclick="addNewProduct()" type="button" class="w-full bg-primary text-on-primary font-label-lg py-md rounded-lg shadow-lg hover:opacity-90 active:scale-95 transition-all mt-md">
+            <div>
+                <label class="font-label-lg text-label-lg text-on-surface-variant">Selling Price (Unit) (₦)</label>
+                <input id="new-p-sell" type="number" step="0.01" class="w-full bg-white border border-outline-variant rounded-lg p-md outline-none focus:ring-2 focus:ring-primary/20" placeholder="0.00" required/>
+            </div>
+            <p class="text-[10px] text-on-surface-variant mt-sm italic">* You can enter either the Unit Cost or the Total Cost; the system will calculate the other based on the quantity.</p>
+            <button id="add-product-btn" onclick="addNewProduct()" type="button" class="w-full bg-primary text-on-primary font-label-lg py-md rounded-lg shadow-lg hover:opacity-90 active:scale-95 transition-all mt-md">
                 Save Product
             </button>
         </form>
@@ -250,29 +279,92 @@
     <span class="material-symbols-outlined text-[32px]">add</span>
 </button>
 
-<!-- Success Modal (Hidden) -->
-<div id="sale-success-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-primary/20 backdrop-blur-sm hidden">
+<!-- Generic Success Modal -->
+<div id="success-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-primary/20 backdrop-blur-sm hidden">
     <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center scale-90 transition-transform duration-300">
         <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <span class="material-symbols-outlined text-5xl">check_circle</span>
         </div>
-        <h2 class="text-2xl font-bold text-primary mb-2">Sale Recorded!</h2>
-        <p class="text-on-surface-variant mb-8">The transaction has been logged and your OjaScore has been updated.</p>
+        <h2 id="success-title" class="text-2xl font-bold text-primary mb-2">Success!</h2>
+        <p id="success-message" class="text-on-surface-variant mb-8">Action completed successfully.</p>
         <button onclick="window.location.reload()" class="w-full py-4 bg-primary text-white rounded-full font-bold">Continue</button>
+    </div>
+</div>
+
+<!-- Restock Confirmation Modal -->
+<div id="restock-confirm-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-secondary/20 backdrop-blur-sm hidden">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center scale-90 transition-transform duration-300">
+        <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-symbols-outlined text-5xl">inventory_2</span>
+        </div>
+        <h2 class="text-2xl font-bold text-on-surface mb-2">Confirm Restock</h2>
+        <p id="restock-confirm-text" class="text-on-surface-variant mb-8">Are you sure you want to add this stock?</p>
+        <div class="flex gap-md">
+            <button onclick="document.getElementById('restock-confirm-modal').classList.add('hidden')" class="flex-1 py-4 border border-outline-variant rounded-full font-bold">Cancel</button>
+            <button id="restock-confirm-btn" class="flex-1 py-4 bg-secondary text-white rounded-full font-bold">Confirm</button>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Auto-update price when product is selected
-document.getElementById('sale-product').addEventListener('change', function() {
-    const selected = this.options[this.selectedIndex];
-    const price = selected.getAttribute('data-price');
-    if (price) {
-        document.getElementById('sale-price').value = price;
+// Auto-calculation for Sales Recorder
+document.getElementById('sale-qty').addEventListener('input', updateSaleTotal);
+document.getElementById('sale-product').addEventListener('change', updateSaleTotal);
+
+function updateSaleTotal() {
+    const qtyInput = document.getElementById('sale-qty');
+    const select = document.getElementById('sale-product');
+    const priceInput = document.getElementById('sale-price');
+    
+    const qty = parseFloat(qtyInput.value) || 0;
+    const selected = select.options[select.selectedIndex];
+    const unitPrice = parseFloat(selected?.getAttribute('data-price')) || 0;
+    
+    if (unitPrice > 0) {
+        priceInput.value = (qty * unitPrice).toFixed(2);
     }
-});
+}
+
+// Add auto-calculation for Add Product form
+document.getElementById('new-p-qty').addEventListener('input', updateProductCost);
+document.getElementById('new-p-cost').addEventListener('input', updateProductTotalCost);
+document.getElementById('new-p-total-cost').addEventListener('input', updateProductUnitCost);
+
+function updateProductCost() {
+    const qty = parseFloat(document.getElementById('new-p-qty').value) || 0;
+    const unitCost = parseFloat(document.getElementById('new-p-cost').value) || 0;
+    if (qty > 0 && unitCost > 0) {
+        document.getElementById('new-p-total-cost').value = (qty * unitCost).toFixed(2);
+    }
+}
+
+function updateProductTotalCost() {
+    const qty = parseFloat(document.getElementById('new-p-qty').value) || 0;
+    const unitCost = parseFloat(document.getElementById('new-p-cost').value) || 0;
+    if (qty > 0) {
+        document.getElementById('new-p-total-cost').value = (qty * unitCost).toFixed(2);
+    }
+}
+
+function updateProductUnitCost() {
+    const qty = parseFloat(document.getElementById('new-p-qty').value) || 0;
+    const totalCost = parseFloat(document.getElementById('new-p-total-cost').value) || 0;
+    if (qty > 0) {
+        document.getElementById('new-p-cost').value = (totalCost / qty).toFixed(2);
+    }
+}
+
+function showSuccess(title, message) {
+    document.getElementById('success-title').innerText = title;
+    document.getElementById('success-message').innerText = message;
+    const modal = document.getElementById('success-modal');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.querySelector('div').classList.remove('scale-90');
+    }, 10);
+}
 
 async function recordSale() {
     const productId = document.getElementById('sale-product').value;
@@ -288,7 +380,7 @@ async function recordSale() {
     const btn = document.getElementById('record-sale-btn');
     const originalContent = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Recording...';
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">sync</span> Processing...';
 
     try {
         const response = await fetch('/mamatally/sales/', { 
@@ -307,10 +399,7 @@ async function recordSale() {
         
         const data = await response.json();
         if (data.success) {
-            document.getElementById('sale-success-modal').classList.remove('hidden');
-            setTimeout(() => {
-                document.querySelector('#sale-success-modal > div').classList.remove('scale-90');
-            }, 10);
+            showSuccess("Sale Recorded!", "The transaction has been logged and your OjaScore has been updated.");
         } else {
             alert("Error: " + (data.message || "Failed to record sale"));
             btn.disabled = false;
@@ -326,6 +415,7 @@ async function recordSale() {
 
 async function logRestock() {
     const productId = document.getElementById('restock-product').value;
+    const productName = document.getElementById('restock-product').options[document.getElementById('restock-product').selectedIndex].text;
     const qty = document.getElementById('restock-qty').value;
     const cost = document.getElementById('restock-cost').value;
     const supplier = document.getElementById('restock-supplier').value;
@@ -335,26 +425,47 @@ async function logRestock() {
         return;
     }
 
-    if (!confirm(`Are you sure you want to log a restock of ${qty} items?`)) return;
-
-    try {
-        const response = await fetch('/mamatally/restock/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
-                productId: productId,
-                quantity: qty,
-                costPaid: cost,
-                supplierName: supplier
-            })
-        });
-        const data = await response.json();
-        if (data.success) window.location.reload();
-        else alert("Error: " + data.message);
-    } catch (e) { alert("Server error"); }
+    // Show Confirmation Modal
+    const confirmModal = document.getElementById('restock-confirm-modal');
+    const confirmText = document.getElementById('restock-confirm-text');
+    const confirmBtn = document.getElementById('restock-confirm-btn');
+    
+    confirmText.innerText = `You are adding ${qty} units of ${productName}. Total cost: ₦${parseFloat(cost).toLocaleString()}. Confirm?`;
+    confirmModal.classList.remove('hidden');
+    
+    confirmBtn.onclick = async () => {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Processing...";
+        
+        try {
+            const response = await fetch('/mamatally/restock/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    productId: productId,
+                    quantity: qty,
+                    costPaid: cost,
+                    supplierName: supplier
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                confirmModal.classList.add('hidden');
+                showSuccess("Restock Complete", "Inventory levels have been updated.");
+            } else {
+                alert("Error: " + data.message);
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = "Confirm";
+            }
+        } catch (e) { 
+            alert("Server error"); 
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = "Confirm";
+        }
+    };
 }
 
 async function addNewProduct() {
@@ -364,12 +475,15 @@ async function addNewProduct() {
     const cost = document.getElementById('new-p-cost').value;
     const sell = document.getElementById('new-p-sell').value;
 
-    if (!name || !qty || !cost || !sell) {
-        alert("Please fill required fields");
+    if (!name || !qty || !cat || !cost || !sell) {
+        alert("Please fill all required fields including Category");
         return;
     }
 
-    if (!confirm(`Do you want to add the new product "${name}" to your inventory?`)) return;
+    const btn = document.getElementById('add-product-btn');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">sync</span> Saving...';
 
     try {
         const response = await fetch('/mamatally/products/', {
@@ -387,9 +501,18 @@ async function addNewProduct() {
             })
         });
         const data = await response.json();
-        if (data.success) window.location.reload();
-        else alert("Error: " + data.message);
-    } catch (e) { alert("Server error"); }
+        if (data.success) {
+            showSuccess("Product Added", `${name} is now available in your inventory.`);
+        } else {
+            alert("Error: " + data.message);
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    } catch (e) { 
+        alert("Server error"); 
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
 }
 </script>
 {% endblock %}

@@ -1,19 +1,70 @@
-check the onboarding where they select the if they are a seeker or trader, is there a place when onboarding that they get to choose if they are a trader or seeker
+hamburger button on the home page is not working
+
+the div where the OjaPass ID
+verified
+OjaScore
+
+842
+
+person
+Chika Obi
+
+Verified Pro Merchant is for mobile is coevring the image there
+
+do the how it works page
+
+add both to the onboarding ...
+
+add debug messages
+
+padding or margin to the mobile view of the landing page 
+
+spacing for the icon in the search of the seekr view to be 4
+add the switch to the top of the page and then the profile at thr right
 
 
-add commas to the account balance
+Daily Revenue graph
+Sat
+Sun
+Mon
+Tue
+Wed
+Thu
+Fri
 
-add confirmation for restock and for adding product
 
-check the sales trend, there is meant to bbe a sales trend in the inventry page 
+add a dropdown for categories  in the add product view or form
 
-use a proper rating, 5 stars etc to rate seekers, include reviews, not the way it is now.
+confirm the price in the add inventory page and the restock if it is for individual items or the quantity added
+add a loader when adding inventory
+
+change the time to the local time
+
+remove squad pay from the sales page
+
+add a confirmatoion for restock
 
 
-what happens if a trader does into pay his ajo dues intime
+check Sales Trend (Last 7 Days)
 
-can we auto debit the traders contribution on the agreed days
+seed the database with fake users
 
-what happens if the trader has insufficient funds
 
-satoshi font
+check the deduction of money from the VA of a trader to the escrow on a gig match
+
+check the entire process of the gig.  AND OW IT RELATES TO THE SEEKER
+
+work on image posting
+
+work on the ajo joining
+
+
+spacing for the join ajo on the  mobile
+
+how does the transaction increases?
+
+check the payment webhook for transactions on the checkout page 
+
+integrate images
+
+work on the modal in the add work page in the seekers page

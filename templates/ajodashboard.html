@@ -233,7 +233,7 @@ async function submitGroup() {
 }
 
 async function joinGroup(groupId) {
-    const res = await fetch(`/ajo/join/${groupId}/`, {
+    const res = await fetch(`/ajo/${groupId}/join/`, {
         method: 'POST',
         headers: { 'X-CSRFToken': '{{ csrf_token }}' }
     });

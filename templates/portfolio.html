@@ -170,53 +170,55 @@
 
 {% block modals %}
 <!-- Add Work Modal -->
-<div id="add-work-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-on-background/60 backdrop-blur-sm p-4">
-    <div class="bg-surface rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div class="px-xl py-lg bg-primary text-on-primary flex justify-between items-center">
+<div id="add-work-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-on-background/60 backdrop-blur-sm p-2 sm:p-4">
+    <div class="bg-surface rounded-2xl w-full max-w-lg max-h-[95vh] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col">
+        <div class="px-lg py-md sm:px-xl sm:py-lg bg-primary text-on-primary flex justify-between items-center shrink-0">
             <h3 class="font-headline-md text-headline-md">Add Proof of Work</h3>
             <button onclick="document.getElementById('add-work-modal').classList.add('hidden')" class="text-on-primary/80 hover:text-on-primary">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form method="POST" action="{% url 'portfolio' %}" class="p-xl space-y-md">
-            {% csrf_token %}
-            <div class="space-y-1">
-                <label class="font-label-lg text-label-lg text-on-surface-variant">Project Title</label>
-                <input type="text" name="title" required placeholder="e.g. 500kva Transformer Installation" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
-            </div>
-            <div class="space-y-1">
-                <label class="font-label-lg text-label-lg text-on-surface-variant">Description</label>
-                <textarea name="description" placeholder="Briefly describe what you did..." class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md" rows="2"></textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-md">
+        <div class="overflow-y-auto p-lg sm:p-xl custom-scrollbar">
+            <form method="POST" action="{% url 'portfolio' %}" class="space-y-md">
+                {% csrf_token %}
                 <div class="space-y-1">
-                    <label class="font-label-lg text-label-lg text-on-surface-variant">Category</label>
-                    <select name="category" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
-                        <option value="Construction">Construction</option>
-                        <option value="Electrical">Electrical</option>
-                        <option value="Plumbing">Plumbing</option>
-                        <option value="Consultancy">Consultancy</option>
-                        <option value="Trade">Trade</option>
-                        <option value="Other">Other</option>
-                    </select>
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Project Title</label>
+                    <input type="text" name="title" required placeholder="e.g. 500kva Transformer Installation" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
                 </div>
                 <div class="space-y-1">
-                    <label class="font-label-lg text-label-lg text-on-surface-variant">Amount Earned</label>
-                    <input type="number" name="amount_earned" placeholder="₦" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Description</label>
+                    <textarea name="description" placeholder="Briefly describe what you did..." class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md" rows="2"></textarea>
                 </div>
-            </div>
-            <div class="space-y-1">
-                <label class="font-label-lg text-label-lg text-on-surface-variant">Project Location</label>
-                <input type="text" name="location" placeholder="e.g. Ikeja, Lagos" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
-            </div>
-            <div class="space-y-1">
-                <label class="font-label-lg text-label-lg text-on-surface-variant">Client Phone (to send link)</label>
-                <input type="text" name="client_contact" placeholder="080XXXXXXXX" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
-            </div>
-            <div class="pt-md">
-                <button type="submit" class="w-full bg-primary text-on-primary py-lg rounded-xl font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all">Generate Review Link</button>
-            </div>
-        </form>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                    <div class="space-y-1">
+                        <label class="font-label-lg text-label-lg text-on-surface-variant">Category</label>
+                        <select name="category" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
+                            <option value="Construction">Construction</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Plumbing">Plumbing</option>
+                            <option value="Consultancy">Consultancy</option>
+                            <option value="Trade">Trade</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="font-label-lg text-label-lg text-on-surface-variant">Amount Earned</label>
+                        <input type="number" name="amount_earned" placeholder="₦" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Project Location</label>
+                    <input type="text" name="location" placeholder="e.g. Ikeja, Lagos" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-label-lg text-label-lg text-on-surface-variant">Client Phone (to send link)</label>
+                    <input type="text" name="client_contact" placeholder="080XXXXXXXX" class="w-full bg-surface-container rounded-xl border-outline-variant/30 focus:border-primary focus:ring-primary p-md">
+                </div>
+                <div class="pt-md">
+                    <button type="submit" class="w-full bg-primary text-on-primary py-lg rounded-xl font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all">Generate Review Link</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -286,13 +286,11 @@ class GigStatusUpdateView(LoginRequiredMixin, View):
                 gig.save()
 
                 # Log transactions
+                # Log inflow for worker. 
+                # (Employer outflow was already logged during the escrow phase to prevent double-deduction).
                 OjaTransaction.objects.get_or_create(
                     transaction_reference=payout_ref,
                     defaults={'user': gig.worker, 'amount': gig.pay_rate, 'status': 'success', 'transaction_type': 'inflow', 'sender_name': gig.employer.full_name, 'sender_bank': 'OjaPass Escrow'}
-                )
-                OjaTransaction.objects.get_or_create(
-                    transaction_reference=f"OUT-{payout_ref}",
-                    defaults={'user': gig.employer, 'amount': gig.pay_rate, 'status': 'success', 'transaction_type': 'outflow', 'sender_name': gig.worker.full_name}
                 )
 
                 PaymentLink.objects.filter(transaction_ref=gig.escrow_transaction_ref).update(status='paid')

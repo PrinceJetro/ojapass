@@ -112,33 +112,37 @@ class SquadWebhookView(View):
         amount = float(amount_raw) / 100 if amount_raw else 0
 
         # Resolve user — prefer payment link owner, then VA lookup
-        payment_link = (
-            PaymentLink.objects
-            .filter(transaction_ref=transaction_ref)
-            .select_for_update()
-            .first()
-        )
-        user = (
-            payment_link.user if payment_link
-            else OjaUser.objects.filter(
-                virtual_account_number=body.get('virtual_account_number')
-            ).first()
-        )
+        with transaction.atomic():
+            payment_link = (
+                PaymentLink.objects
+                .filter(transaction_ref=transaction_ref)
+                .select_for_update()
+                .first()
+            )
+            user = (
+                payment_link.user if payment_link
+                else OjaUser.objects.filter(
+                    virtual_account_number=body.get('virtual_account_number')
+                ).first()
+            )
 
-        if not user:
-            return HttpResponse("ignored", status=200)
+            if not user:
+                return HttpResponse("ignored", status=200)
 
-        OjaTransaction.objects.get_or_create(
-            transaction_reference=transaction_ref,
-            defaults={
-                'user': user,
-                'amount': amount,
-                'status': 'success',
-                'transaction_type': 'inflow',
-            }
-        )
+            metadata = body.get('meta') or body.get('metadata') or {}
+            transaction_type = 'inflow'
+            if metadata.get('type') in ['gig_escrow', 'ajo_contribution', 'loan_repayment']:
+                transaction_type = 'outflow'
 
-        metadata = body.get('meta') or body.get('metadata') or {}
+            OjaTransaction.objects.get_or_create(
+                transaction_reference=transaction_ref,
+                defaults={
+                    'user': user,
+                    'amount': amount,
+                    'status': 'success',
+                    'transaction_type': transaction_type,
+                }
+            )
 
         # --- Ajo contribution ---
         if metadata.get('type') == 'ajo_contribution':
@@ -404,6 +408,7 @@ class VerifyPaymentView(View):
         amount = float(amount_raw) / 100 if amount_raw is not None else 0
 
         user = None
+        transaction_type = 'inflow' # Default
         success_msg = "Your payment was successful."
         context = {}
 
@@ -473,6 +478,7 @@ class VerifyPaymentView(View):
                     user=user,
                     message=f"AJO CONTRIBUTION CONFIRMED: ₦{ajo_contrib.amount:,.0f} to '{cycle.group.name}'."
                 )
+            transaction_type = 'outflow'
             success_msg = "Ajo Contribution Successful!"
 
         # 2. LOAN REPAYMENT
@@ -511,6 +517,7 @@ class VerifyPaymentView(View):
                     recalculate_ojascore(loan.user.id)
 
                 user = loan.user
+                transaction_type = 'outflow'
                 success_msg = "Repayment Successful!"
             except Exception as e:
                 print(f"[VERIFY] Loan repayment error: {e}")
@@ -532,6 +539,7 @@ class VerifyPaymentView(View):
                     )
                 # FIX: set user and fall through to shared tx logging below
                 user = gig.employer
+                transaction_type = 'outflow'
                 success_msg = "Escrow Confirmed!"
             except Exception as e:
                 print(f"[VERIFY] Gig escrow error: {e}")
@@ -590,7 +598,7 @@ class VerifyPaymentView(View):
                     'user': user,
                     'amount': amount,
                     'status': 'success',
-                    'transaction_type': 'inflow',
+                    'transaction_type': transaction_type,
                 }
             )
             if created:

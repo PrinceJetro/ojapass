@@ -12,10 +12,6 @@
         <span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider">Workspace</span>
         <h3 class="font-headline-lg text-headline-lg text-on-surface">Manage your opportunities</h3>
     </div>
-    <div class="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/20 self-start md:self-auto">
-        <button id="btn-employer" onclick="setRole('employer')" class="px-6 py-2 rounded-lg {% if role == 'employer' %}bg-white shadow-sm text-primary font-bold{% else %}text-on-surface-variant hover:text-on-surface{% endif %} font-label-lg transition-all">Employer View</button>
-        <button id="btn-seeker" onclick="setRole('seeker')" class="px-6 py-2 rounded-lg {% if role == 'seeker' %}bg-white shadow-sm text-primary font-bold{% else %}text-on-surface-variant hover:text-on-surface{% endif %} font-label-lg transition-all">Seeker View</button>
-    </div>
 </div>
 
 <div class="grid grid-cols-12 gap-lg pb-12">
@@ -78,38 +74,6 @@
                 {% endfor %}
             </div>
         </section>
-        <!-- Nearby Gig Feed -->
-        <section class="bg-surface-container-low/50 rounded-xl p-lg border border-outline-variant/10">
-            <div class="flex justify-between items-center mb-lg">
-                <h4 class="font-headline-md text-headline-md text-on-surface">Recommended Gigs for You</h4>
-                <a class="text-primary font-label-lg hover:underline" href="#">View Feed</a>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-                {% for g in recommended %}
-                <div class="bg-white p-md rounded-xl border border-outline-variant/20 shadow-sm hover:shadow-md transition-shadow relative group">
-                    <div class="mb-md">
-                        <h5 class="font-label-lg text-on-surface mb-1">{{ g.title }}</h5>
-                        <p class="text-label-sm text-on-surface-variant flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">location_on</span>
-                            {{ g.location|default:"Lagos" }}
-                        </p>
-                    </div>
-                    <div class="flex flex-wrap gap-xs mb-md">
-                        <span class="px-2 py-1 bg-surface-container rounded-md text-[10px] text-on-surface-variant">{{ g.duration }}</span>
-                        <span class="px-2 py-1 bg-surface-container rounded-md text-[10px] text-on-surface-variant">Verified</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-md border-t border-outline-variant/10">
-                        <p class="font-headline-md text-primary">₦{{ g.pay_rate }} <span class="text-label-sm font-normal text-on-surface-variant">/ gig</span></p>
-                        <button onclick="applyGig({{ g.id }})" class="bg-surface-variant px-3 py-1.5 rounded-lg text-primary font-bold text-label-sm hover:bg-primary hover:text-on-primary transition-all">Apply</button>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="col-span-full py-xl text-center">
-                    <p class="text-on-surface-variant italic">No new gigs available in your area.</p>
-                </div>
-                {% endfor %}
-            </div>
-        </section>
     </div>
     <!-- Right Column: Stats & OjaScore -->
     <div class="col-span-12 lg:col-span-4 space-y-lg">
@@ -119,7 +83,7 @@
             <div class="flex justify-between items-start mb-xl relative z-10">
                 <div>
                     <p class="font-label-sm text-on-primary/70 uppercase">Merchant Identity</p>
-                    <h4 class="font-display-md text-display-md">{{ user.full_name }}</h4>
+                    <h4 class="font-display-md text-display-md">{{ user.full_name|title }}</h4>
                 </div>
                 <div class="bg-secondary text-on-secondary px-3 py-1 rounded-full text-label-sm font-bold shadow-md uppercase">
                     {{ role|default:"Merchant" }}
