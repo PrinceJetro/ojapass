@@ -1,6 +1,4 @@
-check the payment proccess for the gig
-it shows processing payout 
-it shd not show that 
-after the last step of finished work and he reviwes the payout shd be automatic and rhe seeker shd see the money in his account
+check the payout system on the seeker side the seeker di dnot receive the payout after the gig was completed
 
-so check that process the seeker shd receive the money in his account and a notificaiton
+and if the employer does not have enough funds it shd not go through
+instead it shd give him an error message

@@ -12,6 +12,7 @@ import traceback
 from ..models import OjaUser, Gig, GigApplication, Notification, OjaTransaction, PaymentLink
 from ..services.gemini_service import GeminiService
 from ..services.squad_service import SquadService
+from django.db.models import Sum
 from ..services.oja_score import recalculate_ojascore
 
 SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
@@ -262,6 +263,17 @@ class GigStatusUpdateView(LoginRequiredMixin, View):
                     {"success": False, "message": f"Cannot complete a gig with status: {gig.status}"},
                     status=400
                 )
+
+            # Ensure employer has enough funds
+            if gig.employer.wallet_balance < gig.pay_rate:
+                return JsonResponse(
+                    {"success": False, "message": "You do not have enough funds to complete this gig payout. Please top up your wallet."},
+                    status=400
+                )
+
+            # Deduct funds from employer
+            gig.employer.wallet_balance -= Decimal(str(gig.pay_rate))
+            gig.employer.save(update_fields=['wallet_balance'])
 
             gig.status = 'completed'
             gig.completed_at = timezone.now()
