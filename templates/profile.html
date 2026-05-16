@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}Seeker Dashboard | OjaPass{% endblock %}
 
@@ -20,7 +20,7 @@
         </div>
         <div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/20 shadow-sm">
             <p class="font-label-lg text-label-lg text-on-surface-variant mb-xs">Total Earnings</p>
-            <p class="font-headline-lg text-headline-lg text-primary">₦{{ total_earnings|default:"0" }}</p>
+            <p class="font-headline-lg text-headline-lg text-primary">₦{{ total_earnings|default:"0"|intcomma }}</p>
         </div>
         <div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/20 shadow-sm relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-secondary-container"></div>
@@ -125,7 +125,7 @@
                 {% for t in user.transactions.all|slice:":5" %}
                 <div class="flex justify-between items-center py-xs border-b border-outline-variant/10">
                     <span class="font-body-md text-body-md">{{ t.sender_name|default:"Gig Payment" }}</span>
-                    <span class="font-headline-md text-headline-md text-on-surface">₦{{ t.amount }}</span>
+                    <span class="font-headline-md text-headline-md text-on-surface">₦{{ t.amount|intcomma }}</span>
                 </div>
                 {% empty %}
                 <div class="py-md text-center">

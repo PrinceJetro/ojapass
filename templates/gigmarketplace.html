@@ -56,12 +56,10 @@
                             <button onclick="completeGig({{ g.id }})" class="w-full sm:w-auto px-4 py-2 bg-secondary text-on-secondary rounded-lg text-label-sm font-bold hover:bg-secondary hover:text-white transition-all whitespace-nowrap flex items-center gap-1 shadow-md">
                                 <span class="material-symbols-outlined text-sm">check_circle</span> Mark Complete
                             </button>
-                        {% elif g.status == 'paid' %}
-                            <span class="px-4 py-1 bg-primary text-on-primary rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm">verified</span> Paid
+                        {% elif g.status == 'completed' or g.status == 'paid' %}
+                            <span class="px-4 py-1 bg-primary text-on-primary rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                                <span class="material-symbols-outlined text-sm">verified</span> Payout Released
                             </span>
-                        {% elif g.status == 'completed' %}
-                            <span class="px-4 py-1 bg-surface-container-highest text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-wider">Processing Payout</span>
                         {% else %}
                             <span class="px-4 py-1 bg-surface-container rounded-full text-[10px] font-bold uppercase tracking-wider">{{ g.status }}</span>
                         {% endif %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Trader Dashboard | OjaPass{% endblock %}
 
@@ -80,7 +81,7 @@
             <div class="flex justify-between items-start">
                 <div>
                     <p class="font-label-sm text-on-primary/70 uppercase tracking-widest">ACCOUNT BALANCE</p>
-                    <p class="font-display-md text-display-md mt-1 tracking-tight">₦{{ virtual_balance|floatformat:2 }}</p>
+                    <p class="font-display-md text-display-md mt-1 tracking-tight">₦{{ virtual_balance|floatformat:2|intcomma }}</p>
                 </div>
             </div>
             
@@ -180,7 +181,7 @@
                 </div>
             </div>
             <div class="text-right w-full sm:w-auto flex sm:flex-col justify-between sm:justify-end items-center sm:items-end">
-                <p class="font-display-md text-headline-md {% if t.transaction_type == 'inflow' %}text-primary{% else %}text-on-surface{% endif %}">{% if t.transaction_type == 'inflow' %}+{% else %}-{% endif %} ₦{{ t.amount }}</p>
+                <p class="font-display-md text-headline-md {% if t.transaction_type == 'inflow' %}text-primary{% else %}text-on-surface{% endif %}">{% if t.transaction_type == 'inflow' %}+{% else %}-{% endif %} ₦{{ t.amount|intcomma }}</p>
                 <span class="px-3 py-0.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase">{{ t.status }}</span>
             </div>
         </div>
