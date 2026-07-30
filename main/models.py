@@ -116,6 +116,7 @@ class PaymentLink(models.Model):
     status = models.CharField(max_length=20, default='pending') # pending, paid, expired
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(blank=True, null=True)
+    metadata = models.JSONField(default=dict, blank=True) # Store additional data (e.g., ajo_contribution details)
 
     def __str__(self):
         return f"{self.transaction_ref} - {self.amount} ({self.status})"

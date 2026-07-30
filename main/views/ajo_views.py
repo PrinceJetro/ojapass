@@ -164,26 +164,25 @@ class AjoContributeView(LoginRequiredMixin, View):
             return JsonResponse({"success": False, "message": "Already contributed this cycle."}, status=400)
             
         ref = f"AJO-{uuid.uuid4().hex[:12].upper()}"
-        payload = {
-            "amount": int(float(group.contribution_amount) * 100), 
-            "email": request.user.email or f"{request.user.phone}@ojapass.com",
-            "customer_name": request.user.full_name,
-            "currency": "NGN",
-            "initiate_type": "inline",
-            "transaction_ref": ref,
-            "callback_url": request.build_absolute_uri(f"/payment-link/verify/{ref}/"),
-            "payment_channels": ["card", "bank", "ussd", "transfer"],
-            "metadata": {
-                "type": "ajo_contribution", 
-                "group_id": str(group.id), 
-                "cycle_id": str(cycle.id), 
+
+        # Create a PaymentLink record so the webhook can resolve the contribution
+        from ..models import PaymentLink
+        PaymentLink.objects.create(
+            user=request.user,
+            transaction_ref=ref,
+            amount=group.contribution_amount,
+            description=f"Ajo contribution for {group.name}",
+            metadata={
+                "type": "ajo_contribution",
+                "group_id": str(group.id),
+                "cycle_id": str(cycle.id),
                 "member_id": str(request.user.id)
             }
-        }
-        # TODO: Implement BMONI payment initiation for Ajo contribution
-        checkout_url = request.build_absolute_uri(f"/payment-link/verify/{ref}/")
+        )
+
+        checkout_url = request.build_absolute_uri(f"/payment-link/checkout/{ref}/")
         print(f"[BMONI] Ajo contribution initiation for {group.id}")
-        
+
         AjoContribution.objects.filter(cycle=cycle, member=request.user).update(payment_link=checkout_url, transaction_ref=ref)
         return JsonResponse({"success": True, "checkoutUrl": checkout_url})
 

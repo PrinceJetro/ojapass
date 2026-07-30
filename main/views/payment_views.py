@@ -232,7 +232,40 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
             print(f"[CONFIRM] Gig escrow error: {e}")
             traceback.print_exc()
 
-    # 4. GENERIC PAYMENT LINK (invoice)
+    # 4. AJO CONTRIBUTION
+    elif meta.get('type') == 'ajo_contribution' or transaction_ref.startswith('AJO-'):
+        try:
+            group_id = meta.get('group_id')
+            cycle_id = meta.get('cycle_id')
+            member_id = meta.get('member_id')
+
+            from ..models import AjoContribution, AjoCycle, AjoGroup
+            cycle = AjoCycle.objects.get(id=cycle_id)
+            contrib = AjoContribution.objects.filter(cycle=cycle, member_id=member_id).first()
+
+            if contrib and contrib.status != 'paid':
+                contrib.status = 'paid'
+                contrib.contribution_date = timezone.now()
+                contrib.save()
+
+                # Update cycle collected amount
+                cycle.collected_amount = (cycle.collected_amount or 0) + float(payment_link.amount)
+                cycle.save()
+
+                Notification.objects.create(
+                    user_id=member_id,
+                    message=f"AJO CONTRIBUTION: ₦{payment_link.amount:,.0f} confirmed for {cycle.group.name}."
+                )
+
+            user_id = member_id
+            user = OjaUser.objects.get(id=user_id)
+            transaction_type = 'outflow'
+            success_msg = "Ajo Contribution Confirmed!"
+        except Exception as e:
+            print(f"[CONFIRM] Ajo contribution error: {e}")
+            traceback.print_exc()
+
+    # 5. GENERIC PAYMENT LINK (invoice)
     elif payment_link:
         user = payment_link.user
         if amount == 0:
@@ -240,7 +273,7 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
         _handle_payment_link_success(payment_link, transaction_ref, amount)
         success_msg = "Invoice Paid Successfully!"
 
-    # 5. STOREFRONT ORDERS (legacy metadata style)
+    # 6. STOREFRONT ORDERS (legacy metadata style)
     else:
         order_ids_raw = meta.get('order_ids')
         if order_ids_raw:
@@ -528,13 +561,33 @@ class CreatePaymentLinkView(View):
 
 class PaymentLinkCheckoutView(View):
     def get(self, request, transaction_ref):
-        link = get_object_or_404(PaymentLink, transaction_ref=transaction_ref)
-        if link.status == 'paid':
-            return render(
-                request, 'payment_success.html',
-                {"message": "This invoice has already been paid. Thank you!"}
-            )
-        return render(request, 'payment_checkout.html', {"link": link})
+        link = PaymentLink.objects.filter(transaction_ref=transaction_ref).first()
+        if link:
+            if link.status == 'paid':
+                return render(
+                    request, 'payment_success.html',
+                    {"message": "This invoice has already been paid. Thank you!"}
+                )
+            return render(request, 'payment_checkout.html', {"link": link})
+
+        ajo_contrib = AjoContribution.objects.filter(transaction_ref=transaction_ref).first()
+        if ajo_contrib:
+            if ajo_contrib.status == 'paid':
+                return render(
+                    request, 'payment_success.html',
+                    {"message": "Ajo contribution was already confirmed."}
+                )
+            return render(request, 'payment_pending.html', {
+                "message": "Your Ajo contribution is pending confirmation.",
+                "amount": float(ajo_contrib.amount),
+                "transaction_ref": transaction_ref,
+            })
+
+        return render(request, 'payment_pending.html', {
+            "message": "We couldn't find a record for this transaction.",
+            "amount": 0,
+            "transaction_ref": transaction_ref,
+        })
 
 
 # ---------------------------------------------------------------------------
