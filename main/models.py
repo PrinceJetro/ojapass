@@ -25,6 +25,18 @@ class OjaUser(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(max_length=10, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     bvn = models.CharField(max_length=11, blank=True, null=True)
+    bmoni_user_id = models.CharField(max_length=255, blank=True, null=True)  # BMONI user ID for wallet operations
+    bmoni_sync_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Pending"),
+            ("synced", "Synced"),
+            ("failed", "Failed"),
+        ],
+        default="pending",
+    )
+    bmoni_sync_error = models.TextField(blank=True, null=True)
+    bmoni_sync_attempts = models.IntegerField(default=0)
     lga = models.CharField(max_length=100, blank=True, null=True, default='Surulere')
     
     ROLE_CHOICES = [
@@ -42,6 +54,9 @@ class OjaUser(AbstractBaseUser, PermissionsMixin):
     virtual_account_number = models.CharField(max_length=20, blank=True, null=True)
     bank_name = models.CharField(max_length=50, default='GTBank')
     wallet_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    # BMONI fields
+    smart_wallet_id = models.CharField(max_length=255, blank=True, null=True)
+    bmoni_withdrawal_account_id = models.CharField(max_length=255, blank=True, null=True)
     
     # Business Fields
     business_name = models.CharField(max_length=255, blank=True, null=True)
@@ -97,7 +112,7 @@ class PaymentLink(models.Model):
     transaction_ref = models.CharField(max_length=100, unique=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True, null=True)
-    checkout_url = models.URLField(blank=True, null=True) # Remote Squad URL
+    checkout_url = models.URLField(blank=True, null=True) # Remote checkout URL (BMONI or provider)
     status = models.CharField(max_length=20, default='pending') # pending, paid, expired
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(blank=True, null=True)
@@ -144,7 +159,7 @@ class Sale(models.Model):
     quantity = models.IntegerField(default=1)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True, null=True)
-    payment_method = models.CharField(max_length=50, default='squad')
+    payment_method = models.CharField(max_length=50, default='bmoni')
     transaction_ref = models.CharField(max_length=100, unique=True, null=True, blank=True)
     status = models.CharField(max_length=20, default='success') # success, failed
     created_at = models.DateTimeField(auto_now_add=True)

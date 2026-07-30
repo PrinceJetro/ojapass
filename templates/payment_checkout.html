@@ -53,10 +53,50 @@
                 </button>
                 <p class="text-center text-xs text-on-surface-variant flex items-center justify-center gap-1 opacity-60">
                     <span class="material-symbols-outlined text-sm">verified_user</span>
-                    Secured by Squad Payments Gateway
+                    Secured by Bmoni Payments Gateway
                 </p>
             </div>
         </div>
+
+        <div id="deposit-details" class="mt-8 hidden bg-surface-container rounded-3xl border border-outline-variant/10 p-8 space-y-4">
+            <h3 class="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-widest mb-2">Payment Instructions</h3>
+            <p id="deposit-message" class="text-sm text-on-surface-variant"></p>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="p-4 bg-white rounded-2xl shadow-sm">
+                    <p class="font-semibold text-sm uppercase tracking-widest text-on-surface-variant mb-2">Bank</p>
+                    <p id="deposit-bank" class="text-lg font-bold"></p>
+                </div>
+                <div class="p-4 bg-white rounded-2xl shadow-sm">
+                    <p class="font-semibold text-sm uppercase tracking-widest text-on-surface-variant mb-2">Account Number</p>
+                    <p id="deposit-account-number" class="text-lg font-bold"></p>
+                    <button id="copy-account-number" class="mt-3 px-4 py-2 bg-primary text-on-primary rounded-full text-sm hover:bg-primary/90 transition-all">Copy account number</button>
+                </div>
+                <div class="p-4 bg-white rounded-2xl shadow-sm">
+                    <p class="font-semibold text-sm uppercase tracking-widest text-on-surface-variant mb-2">Account Name</p>
+                    <p id="deposit-account-name" class="text-lg font-bold"></p>
+                </div>
+                <div class="p-4 bg-white rounded-2xl shadow-sm">
+                    <p class="font-semibold text-sm uppercase tracking-widest text-on-surface-variant mb-2">Narration</p>
+                    <p id="deposit-narration" class="text-lg font-bold"></p>
+                </div>
+            </div>
+            <div class="p-4 bg-primary/10 rounded-2xl text-primary">
+                <p class="font-semibold">Amount to transfer</p>
+                <p id="deposit-amount" class="text-3xl font-bold"></p>
+            </div>
+            <div class="mt-4 p-4 bg-surface-container rounded-2xl border border-outline-variant/10">
+                <p class="font-semibold text-sm uppercase tracking-widest text-on-surface-variant mb-2">How to pay</p>
+                <p class="text-sm text-on-surface-variant leading-relaxed">Use your bank app, USSD, or mobile banking to send the exact amount to the account above. Once the transfer lands, we will confirm it automatically.</p>
+            </div>
+            <div class="mt-4 flex flex-col sm:flex-row gap-3">
+                <button id="copy-all-details" class="w-full sm:w-auto px-6 py-4 bg-secondary-container text-secondary rounded-full font-bold hover:bg-secondary-container/90 transition-all">Copy all payment details</button>
+                <button id="print-instructions" class="w-full sm:w-auto px-6 py-4 bg-surface-container text-on-surface rounded-full font-bold hover:bg-surface-container-high transition-all">Print instructions</button>
+            </div>
+            <div class="mt-4">
+                <button id="simulate-payment-btn" class="w-full px-6 py-4 bg-success-container text-success rounded-full font-bold hover:bg-success-container/90 transition-all">Pay Now (Sandbox simulate)</button>
+            </div>
+        </div>
+
     </div>
 
     <!-- Footer -->
@@ -70,7 +110,7 @@ async function initiatePayment() {
     const btn = document.getElementById('pay-now-btn');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-3xl">sync</span> Redirecting...';
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-3xl">sync</span> Fetching payment details...';
 
     try {
         const response = await fetch('/payment-link/initiate/{{ link.transaction_ref }}/', {
@@ -81,8 +121,16 @@ async function initiatePayment() {
             }
         });
         const data = await response.json();
-        if (data.success && data.checkout_url) {
-            window.location.href = data.checkout_url;
+
+        if (data.success && data.depositAccount) {
+            document.getElementById('deposit-bank').textContent = data.depositAccount.bankName || 'N/A';
+            document.getElementById('deposit-account-number').textContent = data.depositAccount.accountNumber || 'N/A';
+            document.getElementById('deposit-account-name').textContent = data.depositAccount.accountName || 'N/A';
+            document.getElementById('deposit-narration').textContent = data.depositAccount.narration || 'N/A';
+            document.getElementById('deposit-amount').textContent = `₦${Number(data.amount).toLocaleString()}`;
+            document.getElementById('deposit-message').textContent = data.message || '';
+            document.getElementById('deposit-details').classList.remove('hidden');
+            btn.classList.add('hidden');
         } else {
             alert("Error: " + (data.message || "Failed to start payment. Please try again."));
             btn.disabled = false;
@@ -94,5 +142,56 @@ async function initiatePayment() {
         btn.innerHTML = originalText;
     }
 }
+
+document.addEventListener('click', function(event) {
+    if (event.target.id === 'copy-account-number') {
+        const text = document.getElementById('deposit-account-number').textContent;
+        if (navigator.clipboard && text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Account number copied to clipboard.');
+            });
+        }
+    }
+
+    if (event.target.id === 'copy-all-details') {
+        const details = [
+            'Bank: ' + document.getElementById('deposit-bank').textContent,
+            'Account Number: ' + document.getElementById('deposit-account-number').textContent,
+            'Account Name: ' + document.getElementById('deposit-account-name').textContent,
+            'Narration: ' + document.getElementById('deposit-narration').textContent,
+            'Amount: ' + document.getElementById('deposit-amount').textContent,
+        ].join('\n');
+        if (navigator.clipboard && details) {
+            navigator.clipboard.writeText(details).then(() => {
+                alert('Payment details copied to clipboard.');
+            });
+        }
+    }
+
+    if (event.target.id === 'print-instructions') {
+        window.print();
+    }
+
+    if (event.target.id === 'simulate-payment-btn') {
+        const ref = '{{ link.transaction_ref }}';
+        fetch(`/payment-link/simulate/${ref}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Sandbox payment simulated. Reloading page...');
+                window.location.reload();
+            } else {
+                alert('Simulation failed: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(() => alert('Simulation connection failed.'));
+    }
+});
 </script>
 {% endblock %}

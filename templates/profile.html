@@ -8,6 +8,12 @@
 
 {% block content %}
 <div class="space-y-lg">
+    <div class="flex justify-end mb-lg">
+        <a href="{% url 'bmoni_kyc' %}" class="inline-flex items-center gap-2 px-4 py-3 bg-secondary text-on-secondary rounded-full font-semibold hover:bg-secondary-container transition-colors">
+            <span class="material-symbols-outlined">shield_moon</span>
+            Manage BMONI KYC
+        </a>
+    </div>
     <!-- Metrics Row -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
         <div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/20 shadow-sm">

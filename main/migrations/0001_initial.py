@@ -213,7 +213,7 @@ class Migration(migrations.Migration):
                 ('quantity', models.IntegerField(default=1)),
                 ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
                 ('description', models.TextField(blank=True, null=True)),
-                ('payment_method', models.CharField(default='squad', max_length=50)),
+                ('payment_method', models.CharField(default='bmoni', max_length=50)),
                 ('transaction_ref', models.CharField(blank=True, max_length=100, null=True, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('product', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sales', to='main.product')),

@@ -204,7 +204,7 @@
                     <!-- PAY BUTTON -->
                     <div class="p-5 pt-0">
                         <button onclick="window.checkoutHandler?.()" id="pay-btn" class="w-full bg-primary hover:bg-primary-container text-on-primary py-3 rounded-2xl font-headline-md flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg">
-                            <span id="btn-text">Pay with Squad</span>
+                            <span id="btn-text">Pay</span>
                             <span class="material-symbols-outlined">payments</span>
                         </button>
                         <div class="flex items-center justify-center gap-5 mt-4 text-on-surface-variant text-xs">
@@ -437,7 +437,7 @@
             if(totalSpan) totalSpan.innerText = formatNaira(subtotal);
         }
 
-        // checkout integration (simulated Squad payment)
+        // checkout integration (simulated Bmoni payment)
         window.checkoutHandler = async function() {
             const custName = document.getElementById('cust-name')?.value.trim();
             const custEmail = document.getElementById('cust-email')?.value.trim();
@@ -461,11 +461,11 @@
             }
 
             const payBtn = document.getElementById('pay-btn');
-            const originalText = document.getElementById('btn-text')?.innerText || "Pay with Squad";
+            const originalText = document.getElementById('btn-text')?.innerText || "Pay with Bmoni";
             if(payBtn) payBtn.disabled = true;
             if(document.getElementById('btn-text')) document.getElementById('btn-text').innerText = "Processing...";
 
-            // real Squad payment integration
+            // real Bmoni payment integration
             try {
                 const response = await fetch('/mamatally/storefront/{{ merchant.phone }}/checkout/', {
                     method: 'POST',
@@ -481,7 +481,22 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    window.location.href = data.checkoutUrl;
+                    // Hosted checkout (legacy) — redirect if present
+                    if (data.checkoutUrl) {
+                        window.location.href = data.checkoutUrl;
+                        return;
+                    }
+
+                    // If deposit instructions returned, show them then redirect to verify page
+                    if (data.depositAccount) {
+                        const acct = data.depositAccount;
+                        alert(`Please transfer ₦${data.amount} to ${acct.accountNumber} (${acct.bankName}).\nNarration: ${acct.narration}`);
+                        // Redirect to invoice status page
+                        window.location.href = `/payment-link/verify/${data.transaction_ref}/`;
+                        return;
+                    }
+
+                    alert("Checkout initiated — please follow the instructions.");
                 } else {
                     alert("Error initiating checkout: " + data.message);
                     if(payBtn) payBtn.disabled = false;

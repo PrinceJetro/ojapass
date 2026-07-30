@@ -4,10 +4,8 @@ from django.http import JsonResponse
 from django.views import View
 from django.db import transaction
 import uuid, requests, json
-from ..models import OjaUser, Product, Order, PaymentLink, Notification
-
-SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
-SQUAD_BASE_URL = "https://sandbox-api-d.squadco.com"
+from ..models import OjaUser, Product, Order, PaymentLink, PaymentLinkItem, Notification
+from ..services.bmoni_service import BMONIService
 
 class StorefrontView(View):
     def get(self, request, phone):
@@ -38,7 +36,7 @@ class StorefrontCheckoutView(View):
                 ref = f"SF-{uuid.uuid4().hex[:12].upper()}"
                 
                 # Create PaymentLink so webhook can resolve the merchant (user)
-                PaymentLink.objects.create(
+                link = PaymentLink.objects.create(
                     user=user,
                     transaction_ref=ref,
                     amount=total,
@@ -46,37 +44,74 @@ class StorefrontCheckoutView(View):
                     description=f"Storefront Order: {data.get('customerName')}"
                 )
 
-                payload = {
-                    "amount": int(total * 100), 
-                    "email": data.get('customerEmail'), 
-                    "currency": "NGN",
-                    "initiate_type": "inline",
-                    "transaction_ref": ref, 
-                    "metadata": {
-                        "type": "storefront_order",
-                        "order_ids": ",".join(oids)
-                    },
-                    "callback_url": request.build_absolute_uri(f"/payment-link/verify/{ref}/")
-                }
-                
-                try:
-                    res_raw = requests.post(
-                        f"{SQUAD_BASE_URL}/transaction/initiate", 
-                        json=payload, 
-                        headers={"Authorization": f"Bearer {SQUAD_SECRET_KEY}"},
-                        timeout=10
+                # Create line items so the payment confirmation path can decrement stock.
+                for item in data.get('cart', []):
+                    product = get_object_or_404(Product, id=item['id'], user=user)
+                    quantity = int(item['quantity'])
+                    PaymentLinkItem.objects.create(
+                        payment_link=link,
+                        product=product,
+                        quantity=quantity,
+                        price_at_time=product.selling_price,
                     )
-                    res = res_raw.json()
-                    
-                    if res_raw.status_code == 200 and res.get('success') and 'data' in res and 'checkout_url' in res['data']:
-                        # Update the payment link with the actual checkout URL
-                        PaymentLink.objects.filter(transaction_ref=ref).update(checkout_url=res['data']['checkout_url'])
-                        return JsonResponse({"success": True, "checkoutUrl": res['data']['checkout_url']})
-                    
-                    raise Exception(res.get('message', 'Squad initiation failed'))
-                    
-                except requests.exceptions.RequestException as e:
-                    raise Exception(f"Squad request failed: {str(e)}")
+
+                # For BMONI flow, return deposit account details for the merchant
+                link = PaymentLink.objects.filter(transaction_ref=ref).first()
+                if not link:
+                    return JsonResponse({"success": False, "message": "Could not create payment link."}, status=500)
+
+                merchant = user
+                bmoni_user_id = getattr(merchant, 'bmoni_user_id', None)
+
+                # Fallback: if BMONI not set up or API down, return mock deposit account for development
+                if not bmoni_user_id:
+                    if settings.DEBUG:
+                        return JsonResponse({
+                            "success": True,
+                            "transaction_ref": ref,
+                            "depositAccount": {
+                                "bankName": "Wema Bank (Mock)",
+                                "accountNumber": "1234567890",
+                                "accountName": merchant.full_name,
+                                "narration": f"Payment for invoice {ref}",
+                            },
+                            "amount": total,
+                        })
+                    return JsonResponse({"success": False, "message": "Merchant not configured for BMONI deposits."}, status=400)
+
+                deposit_result = BMONIService.get_deposit_accounts(bmoni_user_id, "NGN")
+                if not deposit_result or not deposit_result.get('success'):
+                    if settings.DEBUG:
+                        return JsonResponse({
+                            "success": True,
+                            "transaction_ref": ref,
+                            "depositAccount": {
+                                "bankName": "Wema Bank (Mock)",
+                                "accountNumber": "1234567890",
+                                "accountName": merchant.full_name,
+                                "narration": f"Payment for invoice {ref}",
+                            },
+                            "amount": total,
+                        })
+                    return JsonResponse({"success": False, "message": "Unable to fetch deposit account."}, status=502)
+
+                accounts = deposit_result.get('data', {}).get('accounts', [])
+                if not accounts:
+                    return JsonResponse({"success": False, "message": "No deposit account available for this merchant yet."}, status=400)
+
+                account = accounts[0]
+                # Return deposit instructions to the client
+                return JsonResponse({
+                    "success": True,
+                    "transaction_ref": ref,
+                    "depositAccount": {
+                        "bankName": account.get('bankName'),
+                        "accountNumber": account.get('accountNumber'),
+                        "accountName": account.get('accountName'),
+                        "narration": account.get('depositMessage') or f"Payment for invoice {ref}",
+                    },
+                    "amount": total,
+                })
 
         except Exception as e:
             return JsonResponse({"success": False, "message": str(e)}, status=400)

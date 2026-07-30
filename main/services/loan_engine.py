@@ -92,7 +92,7 @@ def calculate_avg_monthly_turnover(user) -> Decimal:
         total = sum(Decimal(str(m['total'])) for m in monthly)
         return (total / Decimal(monthly.count())).quantize(Decimal('0.01'))
 
-    # Fallback — use Squad inflow data if no sales recorded
+    # Fallback — use transaction inflow data if no sales recorded
     monthly_inflows = (
         OjaTransaction.objects
         .filter(

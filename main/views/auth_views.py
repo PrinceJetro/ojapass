@@ -10,9 +10,7 @@ import requests
 import traceback
 import random
 from ..models import OjaUser
-
-SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
-SQUAD_BASE_URL = "https://sandbox-api-d.squadco.com"
+from ..services.bmoni_service import BMONIService
 
 class RegisterView(View):
     def get(self, request):
@@ -43,42 +41,18 @@ class RegisterView(View):
         middle_name = data.get('middleName', 'N/A').strip() or 'N/A'
         full_name = f"{first_name} {middle_name} {last_name}".strip()
 
-        # Map gender to Squad's expected format (1=Male, 2=Female)
-        gender_map = {"Male": "1", "Female": "2"}
-        squad_gender = gender_map.get(data.get('gender'), "1")
-
-        squad_payload = {
-            "first_name": first_name, "last_name": last_name, "middle_name": middle_name,
-            "mobile_num": data.get('phone'), "email": data.get('email'), "bvn": data.get('bvn'),
-            "dob": formatted_dob, "address": data.get('address'), 
-            "gender": squad_gender,
-            "customer_identifier": str(uuid.uuid4()).replace('-', '')[:15].upper(), 
-            "beneficiary_account": "0000000001"
-        }
-
         try:
-            squad_response = requests.post(f"{SQUAD_BASE_URL}/virtual-account", json=squad_payload, headers={"Authorization": f"Bearer {SQUAD_SECRET_KEY}", "Content-Type": "application/json"}, timeout=30)
-            squad_data = squad_response.json()
-            # Handle Squad Sandbox Limit (Fallback for Development/Demo)
-            if squad_response.status_code != 200 or not squad_data.get('success'):
-                error_msg = squad_data.get('message', '')
-                if "account opening limit" in error_msg.lower():
-                    print(f"--- SQUAD LIMIT REACHED: Using Mock Account for {data.get('phone')} ---")
-                    account_data = {
-                        "virtual_account_number": f"00{random.randint(10000000, 99999999)}",
-                        "bank_name": "GTBank (Mocked)"
-                    }
-                else:
-                    return JsonResponse({"success": False, "message": error_msg or 'Failed to create virtual account.'}, status=400)
-            else:
-                account_data = squad_data.get('data', {})
+            account_data = {
+                "virtual_account_number": f"00{random.randint(10000000, 99999999)}",
+                "bank_name": "GTBank (Mocked - BMONI wallet pending)"
+            }
 
             ojapass_id = f"OJA-{random.randint(100, 999)}-{str(uuid.uuid4())[:4].upper()}"
 
             user = OjaUser.objects.create_user(
                 phone=data.get('phone'), password=data.get('pin'), full_name=full_name, email=data.get('email'),
                 dob=data.get('dob'), gender=data.get('gender'), address=data.get('address'), bvn=data.get('bvn'),
-                role=data.get('role', 'trader'), ojapass_id=ojapass_id, 
+                role=data.get('role', 'trader'), ojapass_id=ojapass_id,
                 lga=data.get('lga', 'Surulere'),
                 bio=data.get('bio', ''),
                 skills=data.get('skills', ''),
@@ -88,17 +62,128 @@ class RegisterView(View):
                 bank_name=account_data.get('bank_name', 'GTBank'),
                 business_name=data.get('businessName', ''), trade_category=data.get('tradeCategory', ''),
                 years_in_business=data.get('yearsInBusiness', 0), daily_sales=data.get('dailySales', 0),
+                bmoni_sync_status='pending',
             )
-            
-            # Log the user in
+
+            bmoni_user_data = {
+                "firstName": first_name,
+                "lastName": last_name,
+                "middleName": middle_name,
+                "phone": data.get('phone'),
+                "email": data.get('email'),
+                "bvn": data.get('bvn'),
+                "address": data.get('address'),
+                "city": data.get('city', 'Lagos'),
+                "state": data.get('state', 'Lagos'),
+                "country": data.get('country', 'Nigeria')
+            }
+
+            bmoni_response = BMONIService.create_user(bmoni_user_data)
+
+            if bmoni_response and bmoni_response.get('success') and bmoni_response.get('data', {}).get('user'):
+                user.bmoni_user_id = bmoni_response['data']['user'].get('bmoniUserId')
+                user.bmoni_sync_status = 'synced'
+                print(f"[BMONI] User created successfully: {user.bmoni_user_id}")
+
+                wallet_response = BMONIService.create_wallet_simple(user.bmoni_user_id, "CNGN")
+                print(f"[DEBUG] wallet_response: {wallet_response}")
+                if wallet_response and wallet_response.get('success'):
+                    print(f"[BMONI] Wallet created successfully for {user.bmoni_user_id}")
+
+                    wallet_data = wallet_response.get('data', {})
+                    smart_wallet_id = wallet_data.get('id') or wallet_data.get('smartWalletId') or wallet_data.get('walletId')
+                    wallet_address = (
+                        wallet_data.get('address') or wallet_data.get('walletAddress') or
+                        wallet_data.get('ownerAddress') or wallet_data.get('userOwnerAddress')
+                    )
+                    if smart_wallet_id and wallet_address:
+                        onboarding_response = BMONIService.start_nigeria_onboarding(
+                            user.bmoni_user_id, data.get('bvn'), wallet_address, 0
+                        )
+                        if onboarding_response and onboarding_response.get('success'):
+                            deposit_response = BMONIService.get_deposit_accounts(user.bmoni_user_id, "NGN")
+                            if deposit_response and deposit_response.get('success'):
+                                accounts = deposit_response.get('data', {}).get('accounts', [])
+                                if accounts:
+                                    account = accounts[0]
+                                    user.virtual_account_number = account.get('accountNumber', user.virtual_account_number)
+                                    user.bank_name = account.get('bankName', user.bank_name)
+                                    user.save(update_fields=['virtual_account_number', 'bank_name'])
+                                    print(f"[BMONI] NGN deposit account for {user.email}: {user.virtual_account_number}")
+                                else:
+                                    print(f"[BMONI] Nigeria onboarding started but no deposit account yet - will retry via KYC")
+                            else:
+                                print(f"[BMONI] Could not fetch deposit account yet - will retry via KYC")
+                        else:
+                            print(f"[BMONI] Nigeria onboarding failed - will retry via KYC: {onboarding_response.get('error')}")
+                else:
+                    print(f"[BMONI] Wallet creation failed (will retry via KYC): {wallet_response.get('error')}")
+            else:
+                if bmoni_response and bmoni_response.get('status_code') == 409:
+                    print(f"[BMONI] User already exists - attempting to find existing BMONI user")
+                    existing_user = BMONIService.find_user_by_email_or_phone(
+                        email=data.get('email'),
+                        phone=data.get('phone')
+                    )
+                    if existing_user:
+                        user.bmoni_user_id = existing_user.get('bmoniUserId')
+                        user.bmoni_sync_status = 'synced'
+                        user.bmoni_sync_error = None
+                        user.bmoni_sync_attempts = 0
+                        print(f"[BMONI] Found and linked existing BMONI user: {user.bmoni_user_id}")
+
+                        wallet_response = BMONIService.create_wallet_simple(user.bmoni_user_id, "CNGN")
+                        print(f"[DEBUG] wallet_response: {wallet_response}")
+                        if wallet_response and wallet_response.get('success'):
+                            print(f"[BMONI] Wallet created for existing user {user.email}")
+
+                            wallet_data = wallet_response.get('data', {})
+                            smart_wallet_id = wallet_data.get('id') or wallet_data.get('smartWalletId') or wallet_data.get('walletId')
+                            wallet_address = (
+                                wallet_data.get('address') or wallet_data.get('walletAddress') or
+                                wallet_data.get('ownerAddress') or wallet_data.get('userOwnerAddress')
+                            )
+                            if smart_wallet_id and wallet_address:
+                                onboarding_response = BMONIService.start_nigeria_onboarding(
+                                    user.bmoni_user_id, data.get('bvn'), wallet_address, 0
+                                )
+                                if onboarding_response and onboarding_response.get('success'):
+                                    deposit_response = BMONIService.get_deposit_accounts(user.bmoni_user_id, "NGN")
+                                    if deposit_response and deposit_response.get('success'):
+                                        accounts = deposit_response.get('data', {}).get('accounts', [])
+                                        if accounts:
+                                            account = accounts[0]
+                                            user.virtual_account_number = account.get('accountNumber', user.virtual_account_number)
+                                            user.bank_name = account.get('bankName', user.bank_name)
+                                            user.save(update_fields=['virtual_account_number', 'bank_name'])
+                                            print(f"[BMONI] NGN deposit account for existing user {user.email}: {user.virtual_account_number}")
+                        else:
+                            print(f"[BMONI] Wallet creation failed - user needs KYC")
+                            print(f"[DEBUG] wallet_data keys: {list(wallet_data.keys()) if isinstance(wallet_data, dict) else wallet_data}")
+                    else:
+                        user.bmoni_sync_status = 'failed'
+                        user.bmoni_sync_attempts += 1
+                        user.bmoni_sync_error = "User already exists in BMONI but could not be found via lookup"
+                        print(f"[BMONI] Could not find existing user via lookup")
+                else:
+                    user.bmoni_sync_status = 'failed'
+                    user.bmoni_sync_attempts += 1
+                    if bmoni_response:
+                        user.bmoni_sync_error = bmoni_response.get('error', 'Unknown error')
+                        if bmoni_response.get('status_code') in (502, 503, 504):
+                            user.bmoni_sync_error = "BMONI service temporarily unavailable - will retry"
+                    print(f"[BMONI] User creation failed, will retry later: {bmoni_response}")
+
+            user.save()
+
             auth_login(request, user)
-            
+
             return JsonResponse({
-                "success": True, 
+                "success": True,
                 "user": {
-                    "fullName": user.full_name, 
-                    "phone": user.phone, 
-                    "ojapassId": user.ojapass_id, 
+                    "fullName": user.full_name,
+                    "phone": user.phone,
+                    "ojapassId": user.ojapass_id,
                     "ojapassScore": user.ojapass_score,
                     "virtualAccount": user.virtual_account_number,
                     "bankName": user.bank_name,
@@ -138,43 +223,35 @@ class UserProfileView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         transactions = user.transactions.all().order_by('-timestamp')[:5]
-        
-        # Calculate Virtual Account Balance
+
         from django.db.models import Sum
         inflows = user.transactions.filter(transaction_type='inflow', status='success').aggregate(Sum('amount'))['amount__sum'] or 0
         outflows = user.transactions.filter(transaction_type='outflow', status='success').aggregate(Sum('amount'))['amount__sum'] or 0
         virtual_balance = float(inflows) - float(outflows)
-        
+
         from ..services.oja_score import get_tier
         import json
         tier_data = get_tier(user.ojapass_score)
-        
-        # History for graph (last 30 snapshots)
+
         score_history = user.score_history.all().order_by('-timestamp')[:30]
         score_history_list = list(score_history)[::-1]
         history_json = json.dumps([
-            {"date": h.timestamp.strftime('%d %b'), "score": h.score} 
+            {"date": h.timestamp.strftime('%d %b'), "score": h.score}
             for h in score_history_list
         ])
-        
-        # Fetch products for autocomplete
+
         products = user.products.filter(quantity_in_stock__gt=0).order_by('name')
-        
+
         if user.role == 'seeker':
-            # Seeker specific metrics
             active_gigs = user.gigs_taken.filter(status__in=['matched', 'in_progress']).count()
             completed_gigs = user.gigs_taken.filter(status__in=['completed', 'paid']).count()
             total_earnings = user.transactions.filter(transaction_type='inflow', status='success').aggregate(Sum('amount'))['amount__sum'] or 0
-            
-            # AI matches (recommendations)
+
             from ..services.gemini_service import GeminiService
-            # Get some open gigs to match against
             from ..models import Gig
             open_gigs = Gig.objects.filter(status='open')[:10]
-            # This might be slow if done on every page load, but for demo it's fine
-            # Better to use cache or a background task in production
-            recommendations = [] # Placeholder or call Gemini if needed
-            
+            recommendations = []
+
             context = {
                 'user': user,
                 'active_gigs_count': active_gigs,
@@ -188,7 +265,7 @@ class UserProfileView(LoginRequiredMixin, View):
             return render(request, 'profile.html', context)
 
         context = {
-            'user': user, 
+            'user': user,
             'transactions': transactions,
             'virtual_balance': virtual_balance,
             'tier': tier_data,
@@ -205,8 +282,142 @@ class ResolveBVNView(View):
             data = json.loads(request.body)
         except:
             data = request.POST
-            
+
         bvn = data.get('bvn')
-        if not bvn or len(str(bvn)) != 11: 
+        if not bvn or len(str(bvn)) != 11:
             return JsonResponse({"success": False, "message": "Invalid BVN. Must be 11 digits."}, status=400)
         return JsonResponse({"success": True, "message": "BVN format validated and matched with phone number."})
+
+
+class BmoniKycView(LoginRequiredMixin, View):
+    template_name = 'bmoni_kyc.html'
+
+    def get(self, request):
+        user = request.user
+        context = {
+            'user': user,
+            'bmoni_user_id': user.bmoni_user_id,
+            'bmoni_user': None,
+            'kyc_status': None,
+            'kyc_readiness': None,
+            'onboarding_status': None,
+            'messages': [],
+            'errors': [],
+        }
+
+        if user.bmoni_user_id:
+            user_result = BMONIService.get_user(user.bmoni_user_id)
+            if user_result.get('success'):
+                context['bmoni_user'] = user_result.get('data', {}).get('user')
+            else:
+                context['errors'].append('Unable to load BMONI user profile.')
+
+            status_result = BMONIService.get_kyc_status(user.bmoni_user_id)
+            if status_result.get('success'):
+                context['kyc_status'] = status_result.get('data')
+            else:
+                context['errors'].append('Unable to load KYC status.')
+
+            readiness_result = BMONIService.get_kyc_readiness(user.bmoni_user_id)
+            if readiness_result.get('success'):
+                context['kyc_readiness'] = readiness_result.get('data')
+            else:
+                context['errors'].append('Unable to load KYC readiness.')
+
+            onboarding_result = BMONIService.get_onboarding_status(user.bmoni_user_id)
+            if onboarding_result.get('success'):
+                context['onboarding_status'] = onboarding_result.get('data')
+            else:
+                context['errors'].append('Unable to load onboarding status.')
+
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        user = request.user
+        if not user.bmoni_user_id:
+            return JsonResponse({"success": False, "message": "Your account is not yet linked to BMONI."}, status=400)
+
+        action = request.POST.get('action')
+        messages = []
+        errors = []
+        result = None
+
+        if action == 'upload_id':
+            file_obj = request.FILES.get('identification')
+            if not file_obj:
+                errors.append('Please upload an identity document file.')
+            else:
+                result = BMONIService.upload_kyc_document_identification(
+                    user.bmoni_user_id,
+                    file_obj,
+                    doc_type=request.POST.get('id_type', 'national_id'),
+                    document_number=request.POST.get('document_number', ''),
+                    issuing_country=request.POST.get('issuing_country', 'NGA'),
+                    expiration_date=request.POST.get('expiration_date') or None,
+                    issue_date=request.POST.get('issue_date') or None,
+                )
+        elif action == 'upload_address':
+            file_obj = request.FILES.get('proof_of_address')
+            if not file_obj:
+                errors.append('Please upload a proof-of-address file.')
+            else:
+                result = BMONIService.upload_kyc_document_proof_of_address(
+                    user.bmoni_user_id,
+                    file_obj,
+                    doc_type=request.POST.get('address_doc_type', 'utility_bill')
+                )
+        elif action == 'upload_biometric':
+            file_obj = request.FILES.get('biometric')
+            if not file_obj:
+                errors.append('Please upload a selfie file.')
+            else:
+                result = BMONIService.upload_kyc_document_biometric(
+                    user.bmoni_user_id,
+                    file_obj
+                )
+        elif action == 'patch_kyc':
+            payload = {
+                'firstName': request.POST.get('firstName', user.full_name.split()[0] if user.full_name else ''),
+                'lastName': request.POST.get('lastName', user.full_name.split()[-1] if user.full_name else ''),
+                'email': user.email,
+                'phoneNumber': user.phone,
+                'addressStreet': request.POST.get('address', user.address or ''),
+                'addressCity': request.POST.get('city', 'Lagos'),
+                'addressState': request.POST.get('state', 'Lagos'),
+                'addressCountry': request.POST.get('country', 'Nigeria'),
+                'bvn': user.bvn,
+                'occupation': request.POST.get('occupation', 'Trader'),
+                'employerName': request.POST.get('employerName', 'OjaPass'),
+                'monthlySalary': request.POST.get('monthlySalary', '0'),
+            }
+            result = BMONIService.patch_kyc(user.bmoni_user_id, payload)
+        elif action == 'activate_kyc':
+            sumsub_level = request.POST.get('sumsubLevelName') or None
+            result = BMONIService.activate_kyc(user.bmoni_user_id, sumsub_level)
+        elif action == 'start_nigeria':
+            ngn_address = request.POST.get('ngn_wallet_address')
+            ngn_index = request.POST.get('ngn_wallet_index', '0')
+            if not ngn_address:
+                errors.append('Please provide your NGN wallet address.')
+            else:
+                try:
+                    index = int(ngn_index)
+                except ValueError:
+                    index = 0
+                result = BMONIService.start_nigeria_onboarding(
+                    user.bmoni_user_id,
+                    user.bvn or request.POST.get('bvn', ''),
+                    ngn_address,
+                    index
+                )
+        else:
+            errors.append('Unknown action requested.')
+
+        if result is not None:
+            if result.get('success'):
+                messages.append('Action completed successfully.')
+            else:
+                errors.append(result.get('response_body') or result.get('error') or 'BMONI request failed.')
+
+        context = self.get(request).context_data if hasattr(self.get(request), 'context_data') else None
+        return self.get(request)

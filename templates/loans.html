@@ -237,7 +237,7 @@ function applyForLoan(offerId) {
 function initiateRepayment(loanId) {
     const btn = document.getElementById('repay-btn');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Redirecting to Squad...';
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Redirecting to Bmoni...';
     btn.disabled = true;
 
     fetch(`/loans/${loanId}/repay/`, {
@@ -250,7 +250,7 @@ function initiateRepayment(loanId) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // Instant redirect to Squad checkout page - most reliable
+            // Instant redirect to Bmoni checkout page - most reliable
             window.location.href = data.checkoutUrl;
         } else {
             alert(data.message);
@@ -266,7 +266,7 @@ function initiateRepayment(loanId) {
     });
 }
 function verifyRepayment(ref) {
-    alert("Checking payment status with Squad...");
+    alert("Checking payment status with Bmoni...");
     window.location.href = `/payment-link/verify/${ref}/`;
 }
 </script>

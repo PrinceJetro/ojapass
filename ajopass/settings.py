@@ -41,9 +41,12 @@ CSRF_TRUSTED_ORIGINS = [
     "https://ojapass.onrender.com"
 ]
 
-# Squad API Settings
-SQUAD_SECRET_KEY = os.getenv("SQUAD_SECRET_KEY", "sandbox_sk_b00ae5daf0f49cacd4fcb4f9b2ff9a3b30643fc09143")
+# SITE URL
 SITE_BASE_URL = "https://ojapass.onrender.com"
+
+# BMONI API Settings
+BMONI_BASE_URL = os.getenv("BMONI_BASE_URL", "https://embedded-dev.bmoni.com")
+BMONI_API_KEY = os.getenv("BMONI_API_KEY", "pk_a025cacbf33a_76fb864113f3540909de5b1da39cc146906e35b1c6d4d1e4")
 
 # Application definition
 

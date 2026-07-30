@@ -5,7 +5,8 @@ from django.views import View
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-import requests
+import hmac
+import hashlib
 import uuid
 import json
 import threading
@@ -22,11 +23,13 @@ from ..models import (
     Sale, Order, Notification,
     AjoCycle, AjoGroup, AjoContribution, AjoMembership, Gig
 )
-from ..services.squad_service import SquadService
+from ..services.bmoni_service import BMONIService
 from ..services.oja_score import recalculate_ojascore
 
-SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
-SQUAD_BASE_URL = "https://sandbox-api-d.squadco.com"
+# BMONI API Settings
+BMONI_BASE_URL = settings.BMONI_BASE_URL
+BMONI_API_KEY = settings.BMONI_API_KEY
+BMONI_WEBHOOK_SECRET = getattr(settings, 'BMONI_WEBHOOK_SECRET', None)
 
 
 # ---------------------------------------------------------------------------
@@ -37,6 +40,29 @@ def _start_score_thread(user_id):
     """Recalculate OjaScore in a background daemon thread."""
     t = threading.Thread(target=recalculate_ojascore, args=(user_id,), daemon=True)
     t.start()
+
+
+def _update_user_wallet_balance(user, amount, transaction_type):
+    """Keep the local wallet_balance in sync with confirmed transactions."""
+    if not user or amount is None:
+        return
+
+    try:
+        amount_dec = Decimal(str(amount))
+    except Exception:
+        return
+
+    current_balance = user.wallet_balance or Decimal('0')
+    if transaction_type == 'inflow':
+        user.wallet_balance = current_balance + amount_dec
+    elif transaction_type == 'outflow':
+        user.wallet_balance = current_balance - amount_dec
+        if user.wallet_balance < 0:
+            user.wallet_balance = Decimal('0')
+    else:
+        return
+
+    user.save(update_fields=['wallet_balance'])
 
 
 def _handle_payment_link_success(link, transaction_ref, amount):
@@ -66,7 +92,7 @@ def _handle_payment_link_success(link, transaction_ref, amount):
                 product=product,
                 quantity=qty,
                 amount=item.price_at_time * qty,
-                payment_method='squad',
+                payment_method='bmoni',
                 transaction_ref=f"LINK-{transaction_ref}-{item.id}"
             )
 
@@ -76,125 +102,153 @@ def _handle_payment_link_success(link, transaction_ref, amount):
         )
 
 
-# ---------------------------------------------------------------------------
-# SQUAD WEBHOOK
-# ---------------------------------------------------------------------------
+def _confirm_transaction(transaction_ref, amount, meta=None):
+    """
+    Given a transaction_ref that a real BMONI deposit has been matched to,
+    mark the corresponding pending record (ajo contribution / loan repayment /
+    gig escrow / invoice) as paid, and log the shared OjaTransaction.
 
-@method_decorator(csrf_exempt, name='dispatch')
-class SquadWebhookView(View):
-    def post(self, request):
-        # FIX: Squad sandbox does not always send a correct signature header.
-        # Skip verification for sandbox keys; enforce on live keys.
-        is_sandbox = "sandbox" in SQUAD_SECRET_KEY
-        if not is_sandbox:
-            signature = request.headers.get('x-squad-signature')
-            if not signature or not SquadService.verify_signature(
-                request.body, signature, SQUAD_SECRET_KEY
-            ):
-                return JsonResponse({"message": "Invalid signature"}, status=401)
+    This is the ONLY place that should ever mark these records as paid.
+    It must only be called once a real deposit has actually been confirmed
+    (i.e. from the BMONI webhook) — never from a page visit / GET request.
+    """
+    meta = meta or {}
+    from ..models import Loan, LoanRepayment
+    from .ajo_views import _disburse_cycle
 
+    user = None
+    transaction_type = 'inflow'
+    success_msg = "Your payment was successful."
+
+    payment_link = PaymentLink.objects.filter(transaction_ref=transaction_ref).first()
+
+    ajo_contrib = AjoContribution.objects.filter(
+        transaction_ref=transaction_ref
+    ).select_related('member', 'cycle', 'cycle__group').first()
+
+    if not ajo_contrib and meta.get('type') == 'ajo_contribution':
         try:
-            payload = json.loads(request.body)
-        except Exception:
-            return JsonResponse({"message": "Invalid body"}, status=400)
+            cycle_id = meta.get('cycle_id')
+            member_id = meta.get('member_id')
+            if cycle_id and member_id:
+                ajo_contrib = AjoContribution.objects.filter(
+                    cycle_id=cycle_id,
+                    member_id=member_id,
+                    status='pending',
+                ).select_related('member', 'cycle', 'cycle__group').first()
+        except Exception as e:
+            print(f"[CONFIRM] Ajo contrib lookup error: {e}")
 
-        event_name = payload.get('Event') or payload.get('event')
-        body = payload.get('Body') or payload.get('data', {})
+    # 1. AJO CONTRIBUTION
+    if ajo_contrib:
+        user = ajo_contrib.member
+        if amount == 0:
+            amount = float(ajo_contrib.amount)
+        if ajo_contrib.status == 'pending':
+            with transaction.atomic():
+                ajo_contrib.status = 'paid'
+                ajo_contrib.paid_at = timezone.now()
+                ajo_contrib.save()
+                cycle = ajo_contrib.cycle
+                cycle.collected_amount += ajo_contrib.amount
+                if cycle.collected_amount >= cycle.expected_amount:
+                    cycle.status = 'collecting'
+                    _disburse_cycle(cycle, cycle.group)
+                cycle.save()
 
-        if event_name not in ['charge_successful', 'charge.success', 'virtual_account.payment']:
-            return HttpResponse("ignored", status=200)
-
-        transaction_ref = body.get('transaction_ref') or body.get('transaction_reference')
-        amount_raw = body.get('amount')
-        print(f"[SQUAD WEBHOOK] event={event_name} ref={transaction_ref} raw_amount={amount_raw}")
-
-        # Squad sends amounts in kobo for card/transfer; VA payments may differ
-        amount = float(amount_raw) / 100 if amount_raw else 0
-
-        # Resolve user — prefer payment link owner, then VA lookup
-        with transaction.atomic():
-            payment_link = (
-                PaymentLink.objects
-                .filter(transaction_ref=transaction_ref)
-                .select_for_update()
-                .first()
-            )
-            user = (
-                payment_link.user if payment_link
-                else OjaUser.objects.filter(
-                    virtual_account_number=body.get('virtual_account_number')
+                membership = AjoMembership.objects.filter(
+                    group=cycle.group, user=user
                 ).first()
+                if membership:
+                    membership.total_contributed += ajo_contrib.amount
+                    membership.save()
+
+            Notification.objects.create(
+                user=user,
+                message=f"AJO CONTRIBUTION CONFIRMED: ₦{ajo_contrib.amount:,.0f} to '{cycle.group.name}'."
             )
+        transaction_type = 'outflow'
+        success_msg = "Ajo Contribution Successful!"
 
-            if not user:
-                return HttpResponse("ignored", status=200)
+    # 2. LOAN REPAYMENT
+    elif meta.get('type') == 'loan_repayment' or transaction_ref.startswith('REPAY-'):
+        try:
+            loan_id = meta.get('loan_id')
+            installment_id = meta.get('installment_id')
 
-            metadata = body.get('meta') or body.get('metadata') or {}
-            transaction_type = 'inflow'
-            if metadata.get('type') in ['gig_escrow', 'ajo_contribution', 'loan_repayment']:
-                transaction_type = 'outflow'
+            if not loan_id:
+                installment = LoanRepayment.objects.filter(
+                    transaction_ref=transaction_ref
+                ).first()
+                if installment:
+                    loan_id = installment.loan_id
+                    installment_id = installment.id
 
-            OjaTransaction.objects.get_or_create(
-                transaction_reference=transaction_ref,
-                defaults={
-                    'user': user,
-                    'amount': amount,
-                    'status': 'success',
-                    'transaction_type': transaction_type,
-                }
-            )
+            loan = Loan.objects.get(id=loan_id)
+            installment = LoanRepayment.objects.get(id=installment_id)
 
-        # --- Ajo contribution ---
-        if metadata.get('type') == 'ajo_contribution':
-            from .ajo_views import _disburse_cycle
-            try:
-                with transaction.atomic():
-                    cycle = AjoCycle.objects.select_for_update().get(
-                        id=metadata.get('cycle_id')
-                    )
-                    member = OjaUser.objects.get(id=metadata.get('member_id'))
-                    group = AjoGroup.objects.get(id=metadata.get('group_id'))
-                    contrib = AjoContribution.objects.get(cycle=cycle, member=member)
+            if installment.status != 'paid':
+                installment.status = 'paid'
+                installment.amount_paid = installment.amount_due
+                installment.paid_at = timezone.now()
+                installment.transaction_ref = transaction_ref
+                installment.save()
+                loan.amount_repaid = (loan.amount_repaid or Decimal('0')) + installment.amount_due
+                loan.amount_outstanding -= installment.amount_due
+                if loan.amount_outstanding <= 0:
+                    loan.status = 'completed'
+                loan.save()
+                Notification.objects.create(
+                    user=loan.user,
+                    message=f"REPAYMENT CONFIRMED: Installment {installment.installment_number} of ₦{installment.amount_due:,.0f} received."
+                )
+                recalculate_ojascore(loan.user.id)
 
-                    if contrib.status != 'paid':
-                        contrib.status = 'paid'
-                        contrib.paid_at = timezone.now()
-                        contrib.save()
-                        cycle.collected_amount += contrib.amount
-                        if cycle.collected_amount >= cycle.expected_amount:
-                            cycle.status = 'collecting'
-                        cycle.save()
+            user = loan.user
+            transaction_type = 'outflow'
+            success_msg = "Repayment Successful!"
+        except Exception as e:
+            print(f"[CONFIRM] Loan repayment error: {e}")
+            traceback.print_exc()
 
-                        membership = AjoMembership.objects.filter(
-                            group=group, user=member
-                        ).first()
-                        if membership:
-                            membership.total_contributed += contrib.amount
-                            membership.save()
+    # 3. GIG ESCROW
+    elif meta.get('type') == 'gig_escrow' or transaction_ref.startswith('GIG-ESCROW-'):
+        try:
+            gig_id = meta.get('gig_id')
+            gig = Gig.objects.get(id=gig_id)
+            if not gig.escrow_paid:
+                gig.escrow_paid = True
+                gig.status = 'matched'
+                gig.matched_at = timezone.now()
+                gig.save()
+                Notification.objects.create(
+                    user=gig.employer,
+                    message=f"ESCROW FUNDED: ₦{gig.pay_rate:,.0f} secured for '{gig.title}'. Worker has been notified."
+                )
+            user = gig.employer
+            transaction_type = 'outflow'
+            success_msg = "Escrow Confirmed!"
+        except Exception as e:
+            print(f"[CONFIRM] Gig escrow error: {e}")
+            traceback.print_exc()
 
-                        if (
-                            cycle.contributions.filter(status='paid').count()
-                            >= group.memberships.count()
-                        ):
-                            _disburse_cycle(cycle, group)
-            except Exception as e:
-                print(f"[WEBHOOK] Ajo processing error: {e}")
-                traceback.print_exc()
+    # 4. GENERIC PAYMENT LINK (invoice)
+    elif payment_link:
+        user = payment_link.user
+        if amount == 0:
+            amount = float(payment_link.amount)
+        _handle_payment_link_success(payment_link, transaction_ref, amount)
+        success_msg = "Invoice Paid Successfully!"
 
-        # --- Invoice payment link ---
-        elif metadata.get('type') == 'invoice_payment':
-            link_id = metadata.get('link_id')
-            try:
-                link = PaymentLink.objects.get(id=link_id)
-                _handle_payment_link_success(link, transaction_ref, amount)
-            except Exception as e:
-                print(f"[WEBHOOK] Invoice payment error: {e}")
-
-        # --- Storefront orders ---
-        elif 'order_ids' in metadata:
-            for oid in str(metadata.get('order_ids', '')).split(','):
-                try:
-                    order = Order.objects.get(id=oid)
+    # 5. STOREFRONT ORDERS (legacy metadata style)
+    else:
+        order_ids_raw = meta.get('order_ids')
+        if order_ids_raw:
+            order_ids = str(order_ids_raw).split(',')
+            orders = Order.objects.filter(id__in=order_ids)
+            if orders.exists():
+                user = orders.first().user
+                for order in orders:
                     if order.status != 'paid':
                         order.status = 'paid'
                         order.save()
@@ -203,15 +257,170 @@ class SquadWebhookView(View):
                             product=order.product,
                             quantity=order.quantity,
                             amount=order.total_amount,
-                            payment_method='squad',
-                            transaction_ref=f"SQUAD-{transaction_ref}-{order.id}"
+                            payment_method='bmoni',
+                            # per-order unique ref prevents IntegrityError
+                            transaction_ref=f"BMONI-{transaction_ref}-{order.id}",
                         )
-                except Exception as e:
-                    print(f"[WEBHOOK] Order {oid} error: {e}")
+                        if order.product:
+                            Product.objects.filter(
+                                id=order.product.id,
+                                quantity_in_stock__gte=order.quantity
+                            ).update(
+                                quantity_in_stock=F('quantity_in_stock') - order.quantity
+                            )
+                Notification.objects.create(
+                    user=user,
+                    message=f"NEW SALE: You received ₦{amount:,.0f} from a storefront order."
+                )
 
-        # FIX: daemon=True so thread doesn't block server shutdown
-        _start_score_thread(user.id)
-        return HttpResponse("success", status=200)
+    if user:
+        _, created = OjaTransaction.objects.get_or_create(
+            transaction_reference=transaction_ref,
+            defaults={
+                'user': user,
+                'amount': amount,
+                'status': 'success',
+                'transaction_type': transaction_type,
+            }
+        )
+        if created:
+            _update_user_wallet_balance(user, amount, transaction_type)
+            _start_score_thread(user.id)
+
+    return {"user": user, "message": success_msg, "amount": amount}
+
+
+def _find_pending_match_for_merchant(bmoni_user_id, amount):
+    """
+    BMONI's wallet.deposit.completed webhook only tells us WHO received
+    money and HOW MUCH — it does not carry our own transaction_ref back.
+    So when a deposit lands, we match it to the oldest still-pending item
+    belonging to that BMONI user with the same amount.
+
+    This is best-effort reconciliation, not exact. If a merchant has two
+    pending invoices for the same amount at the same time, this will
+    confirm the older one first. Fine for most small-merchant use cases;
+    revisit if that becomes a real collision source.
+    """
+    merchant = OjaUser.objects.filter(bmoni_user_id=bmoni_user_id).first()
+    if not merchant:
+        return None
+
+    amount_dec = Decimal(str(amount))
+
+    link = PaymentLink.objects.filter(
+        user=merchant, status='pending', amount=amount_dec
+    ).order_by('created_at').first()
+    if link:
+        return link.transaction_ref, {}
+
+    from ..models import Loan, LoanRepayment
+    installment = LoanRepayment.objects.filter(
+        loan__user=merchant, status='pending', amount_due=amount_dec
+    ).order_by('due_date').first()
+    if installment:
+        return f"REPAY-{installment.id}", {
+            "type": "loan_repayment",
+            "loan_id": installment.loan_id,
+            "installment_id": installment.id,
+        }
+
+    ajo_contrib = AjoContribution.objects.filter(
+        member=merchant, status='pending', amount=amount_dec
+    ).order_by('cycle__due_date' if hasattr(AjoCycle, 'due_date') else 'id').first()
+    if ajo_contrib:
+        return ajo_contrib.transaction_ref or f"AJO-{ajo_contrib.id}", {
+            "type": "ajo_contribution",
+            "cycle_id": ajo_contrib.cycle_id,
+            "member_id": ajo_contrib.member_id,
+        }
+
+    gig = Gig.objects.filter(
+        employer=merchant, status='pending_escrow', escrow_amount=amount_dec
+    ).order_by('created_at').first()
+    if gig:
+        return gig.escrow_transaction_ref, {"type": "gig_escrow", "gig_id": gig.id}
+
+    return None
+
+
+def _verify_webhook_signature(request):
+    """Verify BMONI's x-webhook-signature (HMAC-SHA256 of the raw body)."""
+    if not BMONI_WEBHOOK_SECRET:
+        print("[BMONI WEBHOOK] WARNING: BMONI_WEBHOOK_SECRET not set — skipping signature check")
+        return True
+
+    signature = request.headers.get('x-webhook-signature', '')
+    expected = hmac.new(
+        BMONI_WEBHOOK_SECRET.encode('utf-8'),
+        request.body,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected)
+
+
+# ---------------------------------------------------------------------------
+# BMONI WEBHOOK
+# ---------------------------------------------------------------------------
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BMONIWebhookView(View):
+    """
+    Real BMONI webhook shape:
+        {
+          "id": "stable-event-id",
+          "eventType": "wallet.deposit.completed",
+          "payload": {
+            "userId": "bmoni-user-uuid",
+            "transactionId": "...",
+            "smartWalletId": "...",
+            "amount": "250.00",
+            "currency": "NGN",
+            "transferId": "..."
+          },
+          "timestamp": "..."
+        }
+    """
+    def post(self, request):
+        if not _verify_webhook_signature(request):
+            print("[BMONI WEBHOOK] Invalid signature — rejecting")
+            return JsonResponse({"message": "Invalid signature"}, status=401)
+
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            return JsonResponse({"message": "Invalid JSON"}, status=400)
+
+        print(f"[BMONI WEBHOOK] Received: {data}")
+        event_type = data.get('eventType')
+        payload = data.get('payload', {}) or {}
+
+        try:
+            if event_type == 'wallet.deposit.completed':
+                bmoni_user_id = payload.get('userId')
+                amount = payload.get('amount')
+
+                if bmoni_user_id and amount is not None:
+                    match = _find_pending_match_for_merchant(bmoni_user_id, amount)
+                    if match:
+                        transaction_ref, meta = match
+                        _confirm_transaction(transaction_ref, float(amount), meta)
+                        print(f"[BMONI WEBHOOK] Confirmed {transaction_ref} for ₦{amount}")
+                    else:
+                        print(
+                            f"[BMONI WEBHOOK] Deposit of ₦{amount} for user {bmoni_user_id} "
+                            f"received but no matching pending record found."
+                        )
+            # Other event types (wallet.deposit.failed, wallet.withdrawal.*,
+            # onboarding.*, kyc.action_required, etc.) can be handled here as
+            # they become relevant — currently no-ops.
+
+            return JsonResponse({"message": "Webhook received"}, status=200)
+
+        except Exception as e:
+            print(f"[BMONI WEBHOOK] Error: {e}")
+            traceback.print_exc()
+            return JsonResponse({"message": "Error processing webhook"}, status=400)
 
 
 # ---------------------------------------------------------------------------
@@ -329,282 +538,154 @@ class PaymentLinkCheckoutView(View):
 
 
 # ---------------------------------------------------------------------------
-# INITIATE SQUAD PAYMENT (from checkout page)
+# GET BMONI DEPOSIT DETAILS (from checkout page)
+# gateway page to redirect to — instead we show the merchant's own BMONI
+# Nigerian deposit account and instruct the payer to transfer the invoice
+# amount directly to it. Confirmation happens via BMONIWebhookView once the
+# transfer lands, not from this endpoint.
 # ---------------------------------------------------------------------------
 
-class InitiateSquadPaymentView(View):
+class InitiateBmoniDepositView(View):
     def post(self, request, transaction_ref):
         link = get_object_or_404(PaymentLink, transaction_ref=transaction_ref)
         if link.status == 'paid':
             return JsonResponse({"success": False, "message": "Already paid."}, status=400)
 
-        user = link.user
-        payload = {
-            "amount": int(link.amount * 100),
-            "email": user.email or f"{user.phone}@oja.com",
-            "currency": "NGN",
-            "initiate_type": "inline",
-            "transaction_ref": link.transaction_ref,
-            "callback_url": request.build_absolute_uri(
-                f"/payment-link/verify/{link.transaction_ref}/"
-            ),
-            "metadata": {
-                "type": "invoice_payment",
-                "link_id": link.id,
-            }
-        }
+        merchant = link.user
+        bmoni_user_id = getattr(merchant, 'bmoni_user_id', None)
 
-        try:
-            res = requests.post(
-                f"{SQUAD_BASE_URL}/transaction/initiate",
-                json=payload,
-                headers={"Authorization": f"Bearer {SQUAD_SECRET_KEY}"},
-                timeout=10,
+        # Fallback: if BMONI not set up or API down, return mock deposit account for development
+        if not bmoni_user_id:
+            print(f"[BMONI BYPASS] No bmoni_user_id for {merchant.email} - using mock deposit account")
+            return JsonResponse({
+                "success": True,
+                "depositAccount": {
+                    "bankName": "Wema Bank (Mock)",
+                    "accountNumber": "1234567890",
+                    "accountName": merchant.full_name,
+                    "narration": f"Payment for invoice {link.transaction_ref}",
+                },
+                "amount": float(link.amount),
+                "message": (
+                    f"Transfer ₦{link.amount:,.0f} to the account below. "
+                    f"Note: BMONI not configured - this is a mock account for development."
+                ),
+            })
+
+        # Fetch the merchant's BMONI deposit account directly.
+        deposit_result = BMONIService.get_deposit_accounts(bmoni_user_id, "NGN")
+
+        if not deposit_result or not deposit_result.get("success"):
+            print(f"[BMONI BYPASS] BMONI API call failed for {merchant.email} - using mock deposit account")
+            return JsonResponse({
+                "success": True,
+                "depositAccount": {
+                    "bankName": "Wema Bank (Mock)",
+                    "accountNumber": "1234567890",
+                    "accountName": merchant.full_name,
+                    "narration": f"Payment for invoice {link.transaction_ref}",
+                },
+                "amount": float(link.amount),
+                "message": (
+                    f"Transfer ₦{link.amount:,.0f} to the account below. "
+                    f"Note: BMONI API unavailable - this is a mock account for development."
+                ),
+            })
+
+        accounts = deposit_result.get("data", {}).get("accounts", [])
+        if not accounts:
+            return JsonResponse(
+                {"success": False, "message": "No deposit account available for this merchant yet."},
+                status=400
             )
-            data = res.json()
-            if res.status_code == 200 and data.get('success'):
-                link.checkout_url = data['data']['checkout_url']
-                link.save()
-                return JsonResponse({"success": True, "checkout_url": link.checkout_url})
-        except Exception as e:
-            print(f"[SQUAD] Initiate payment error: {e}")
 
-        # Fallback for dev/offline
-        return JsonResponse({"success": True, "checkout_url": payload["callback_url"]})
+        account = accounts[0]
+        return JsonResponse({
+            "success": True,
+            "depositAccount": {
+                "bankName": account.get("bankName"),
+                "accountNumber": account.get("accountNumber"),
+                "accountName": account.get("accountName"),
+                "narration": account.get("depositMessage"),
+            },
+            "amount": float(link.amount),
+            "message": (
+                f"Transfer ₦{link.amount:,.0f} to the account below. "
+                f"We'll confirm automatically once it lands."
+            ),
+        })
+
+
+class SimulateBmoniDepositView(View):
+    """Sandbox shortcut to confirm a pending payment link locally."""
+
+    def post(self, request, transaction_ref):
+        if not settings.DEBUG:
+            return JsonResponse({"success": False, "message": "Simulation only allowed in debug mode."}, status=403)
+
+        link = get_object_or_404(PaymentLink, transaction_ref=transaction_ref)
+        if link.status == 'paid':
+            return JsonResponse({"success": False, "message": "This invoice is already paid."}, status=400)
+
+        _confirm_transaction(link.transaction_ref, float(link.amount), {})
+        return JsonResponse({"success": True, "message": "Sandbox payment simulated successfully.", "transaction_ref": link.transaction_ref})
 
 
 # ---------------------------------------------------------------------------
-# VERIFY PAYMENT (callback after Squad checkout)
+# VERIFY PAYMENT — read-only status page.
+# IMPORTANT: this no longer confirms anything. Confirmation only ever
+# happens in BMONIWebhookView, once a real deposit is matched. This view
+# just reports whatever the current stored status already is.
 # ---------------------------------------------------------------------------
 
 class VerifyPaymentView(View):
     def get(self, request, transaction_ref):
-        print(f"\n[SQUAD VERIFY] Incoming: {transaction_ref}")
-
-        try:
-            res = requests.get(
-                f"{SQUAD_BASE_URL}/transaction/verify/{transaction_ref}",
-                headers={"Authorization": f"Bearer {SQUAD_SECRET_KEY}"},
-                timeout=10,
-            )
-            data = res.json()
-            status_code = res.status_code
-        except requests.exceptions.RequestException as e:
-            # FIX: log the fallback clearly — don't silently mock
-            print(f"[SQUAD VERIFY] Timeout/network error — using mock success: {e}")
-            status_code = 200
-            data = {"data": {"transaction_status": "success", "amount": 0}}
-
-        if not (status_code == 200 and data.get('data', {}).get('transaction_status') == 'success'):
-            return render(
-                request, 'trader_dashboard.html',
-                {'error': 'Payment verification pending or failed.'}
-            )
-
-        body = data.get('data', {})
-        # FIX: handle both 'meta' and 'metadata' keys Squad may return
-        meta = body.get('meta') or body.get('metadata') or {}
-        amount_raw = body.get('amount') or body.get('transaction_amount')
-        amount = float(amount_raw) / 100 if amount_raw is not None else 0
-
-        user = None
-        transaction_type = 'inflow' # Default
-        success_msg = "Your payment was successful."
-        context = {}
+        payment_link = PaymentLink.objects.filter(transaction_ref=transaction_ref).first()
+        if payment_link:
+            if payment_link.status == 'paid':
+                return render(request, 'payment_success.html', {
+                    "message": "Invoice Paid Successfully!",
+                    "amount": float(payment_link.amount),
+                    "link": payment_link,
+                })
+            return render(request, 'payment_pending.html', {
+                "message": "We haven't received this payment yet. This page will update automatically once it does.",
+                "amount": float(payment_link.amount),
+                "transaction_ref": transaction_ref,
+            })
 
         from ..models import Loan, LoanRepayment
 
-        # Enrich meta from our own PaymentLink record if Squad didn't return it
-        payment_link = PaymentLink.objects.filter(transaction_ref=transaction_ref).first()
-        if payment_link and not meta:
-            saved_meta = getattr(payment_link, 'metadata', None)
-            if saved_meta:
-                if isinstance(saved_meta, str):
-                    try:
-                        meta = json.loads(saved_meta)
-                    except Exception:
-                        meta = {}
-                elif isinstance(saved_meta, dict):
-                    meta = saved_meta
+        if transaction_ref.startswith('REPAY-'):
+            installment = LoanRepayment.objects.filter(transaction_ref=transaction_ref).first()
+            if installment:
+                if installment.status == 'paid':
+                    return render(request, 'payment_success.html', {"message": "Repayment Successful!"})
+                return render(request, 'payment_pending.html', {
+                    "message": "Repayment not yet confirmed.",
+                    "transaction_ref": transaction_ref,
+                })
 
-        # ------------------------------------------------------------------
-        # FIX: Define ajo_contrib BEFORE the if/elif chain
-        # ------------------------------------------------------------------
-        ajo_contrib = AjoContribution.objects.filter(
-            transaction_ref=transaction_ref
-        ).select_related('member', 'cycle', 'cycle__group').first()
+        if transaction_ref.startswith('GIG-ESCROW-'):
+            gig = Gig.objects.filter(escrow_transaction_ref=transaction_ref).first()
+            if gig:
+                if gig.escrow_paid:
+                    return render(request, 'payment_success.html', {"message": "Escrow Confirmed!"})
+                return render(request, 'payment_pending.html', {
+                    "message": "Escrow funding not yet confirmed.",
+                    "transaction_ref": transaction_ref,
+                })
 
-        # Fallback: look up by metadata if not found by ref
-        if not ajo_contrib and meta.get('type') == 'ajo_contribution':
-            try:
-                cycle_id = meta.get('cycle_id')
-                member_id = meta.get('member_id')
-                if cycle_id and member_id:
-                    ajo_contrib = AjoContribution.objects.filter(
-                        cycle_id=cycle_id,
-                        member_id=member_id,
-                        status='pending',
-                    ).select_related('member', 'cycle', 'cycle__group').first()
-            except Exception as e:
-                print(f"[VERIFY] Ajo contrib lookup error: {e}")
-
-        from .ajo_views import _disburse_cycle
-
-        # 1. AJO CONTRIBUTION
+        ajo_contrib = AjoContribution.objects.filter(transaction_ref=transaction_ref).first()
         if ajo_contrib:
-            user = ajo_contrib.member
-            if amount == 0:
-                amount = float(ajo_contrib.amount)
-            if ajo_contrib.status == 'pending':
-                with transaction.atomic():
-                    ajo_contrib.status = 'paid'
-                    ajo_contrib.paid_at = timezone.now()
-                    ajo_contrib.save()
-                    cycle = ajo_contrib.cycle
-                    cycle.collected_amount += ajo_contrib.amount
-                    if cycle.collected_amount >= cycle.expected_amount:
-                        cycle.status = 'collecting'
-                        _disburse_cycle(cycle, cycle.group)
-                    cycle.save()
+            if ajo_contrib.status == 'paid':
+                return render(request, 'payment_success.html', {"message": "Ajo Contribution Successful!"})
+            return render(request, 'payment_pending.html', {
+                "message": "Contribution not yet confirmed.",
+                "transaction_ref": transaction_ref,
+            })
 
-                    membership = AjoMembership.objects.filter(
-                        group=cycle.group, user=user
-                    ).first()
-                    if membership:
-                        membership.total_contributed += ajo_contrib.amount
-                        membership.save()
-
-                Notification.objects.create(
-                    user=user,
-                    message=f"AJO CONTRIBUTION CONFIRMED: ₦{ajo_contrib.amount:,.0f} to '{cycle.group.name}'."
-                )
-            transaction_type = 'outflow'
-            success_msg = "Ajo Contribution Successful!"
-
-        # 2. LOAN REPAYMENT
-        elif meta.get('type') == 'loan_repayment' or transaction_ref.startswith('REPAY-'):
-            try:
-                loan_id = meta.get('loan_id')
-                installment_id = meta.get('installment_id')
-
-                # Fallback lookup by ref on the installment
-                if not loan_id:
-                    installment = LoanRepayment.objects.filter(
-                        transaction_ref=transaction_ref
-                    ).first()
-                    if installment:
-                        loan_id = installment.loan_id
-                        installment_id = installment.id
-
-                loan = Loan.objects.get(id=loan_id)
-                installment = LoanRepayment.objects.get(id=installment_id)
-
-                if installment.status != 'paid':
-                    installment.status = 'paid'
-                    installment.amount_paid = installment.amount_due
-                    installment.paid_at = timezone.now()
-                    installment.transaction_ref = transaction_ref
-                    installment.save()
-                    loan.amount_repaid = (loan.amount_repaid or Decimal('0')) + installment.amount_due
-                    loan.amount_outstanding -= installment.amount_due
-                    if loan.amount_outstanding <= 0:
-                        loan.status = 'completed'
-                    loan.save()
-                    Notification.objects.create(
-                        user=loan.user,
-                        message=f"REPAYMENT CONFIRMED: Installment {installment.installment_number} of ₦{installment.amount_due:,.0f} received."
-                    )
-                    recalculate_ojascore(loan.user.id)
-
-                user = loan.user
-                transaction_type = 'outflow'
-                success_msg = "Repayment Successful!"
-            except Exception as e:
-                print(f"[VERIFY] Loan repayment error: {e}")
-                traceback.print_exc()
-
-        # 3. GIG ESCROW
-        elif meta.get('type') == 'gig_escrow' or transaction_ref.startswith('GIG-ESCROW-'):
-            try:
-                gig_id = meta.get('gig_id')
-                gig = Gig.objects.get(id=gig_id)
-                if not gig.escrow_paid:
-                    gig.escrow_paid = True
-                    gig.status = 'matched'
-                    gig.matched_at = timezone.now()
-                    gig.save()
-                    Notification.objects.create(
-                        user=gig.employer,
-                        message=f"ESCROW FUNDED: ₦{gig.pay_rate:,.0f} secured for '{gig.title}'. Worker has been notified."
-                    )
-                # FIX: set user and fall through to shared tx logging below
-                user = gig.employer
-                transaction_type = 'outflow'
-                success_msg = "Escrow Confirmed!"
-            except Exception as e:
-                print(f"[VERIFY] Gig escrow error: {e}")
-                traceback.print_exc()
-
-        # 4. GENERIC PAYMENT LINK (invoice)
-        elif payment_link:
-            user = payment_link.user
-            if amount == 0:
-                amount = float(payment_link.amount)
-            _handle_payment_link_success(payment_link, transaction_ref, amount)
-            success_msg = "Invoice Paid Successfully!"
-            context['link'] = payment_link
-
-        # 5. STOREFRONT ORDERS (legacy metadata style)
-        else:
-            order_ids_raw = meta.get('order_ids')
-            if order_ids_raw:
-                order_ids = str(order_ids_raw).split(',')
-                orders = Order.objects.filter(id__in=order_ids)
-                if orders.exists():
-                    user = orders.first().user
-                    for order in orders:
-                        if order.status != 'paid':
-                            order.status = 'paid'
-                            order.save()
-                            Sale.objects.create(
-                                user=user,
-                                product=order.product,
-                                quantity=order.quantity,
-                                amount=order.total_amount,
-                                payment_method='squad',
-                                # FIX: per-order unique ref prevents IntegrityError
-                                transaction_ref=f"SQUAD-{transaction_ref}-{order.id}",
-                            )
-                            if order.product:
-                                Product.objects.filter(
-                                    id=order.product.id,
-                                    quantity_in_stock__gte=order.quantity
-                                ).update(
-                                    quantity_in_stock=F('quantity_in_stock') - order.quantity
-                                )
-                    Notification.objects.create(
-                        user=user,
-                        message=f"NEW SALE: You received ₦{amount:,.0f} from a storefront order."
-                    )
-
-        # ------------------------------------------------------------------
-        # Shared: log transaction + trigger score recalculation
-        # FIX: gig escrow no longer returns early — it falls through here
-        # ------------------------------------------------------------------
-        if user:
-            _, created = OjaTransaction.objects.get_or_create(
-                transaction_reference=transaction_ref,
-                defaults={
-                    'user': user,
-                    'amount': amount,
-                    'status': 'success',
-                    'transaction_type': transaction_type,
-                }
-            )
-            if created:
-                _start_score_thread(user.id)
-
-            context.update({"message": success_msg, "amount": amount})
-            return render(request, 'payment_success.html', context)
-
-        return redirect('profile')
+        return render(
+            request, 'trader_dashboard.html',
+            {'error': "We couldn't find a record for this transaction."}
+        )

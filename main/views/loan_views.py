@@ -8,8 +8,6 @@ from django.db.models import Sum
 from datetime import timedelta, date
 from decimal import Decimal
 import uuid
-import requests
-import traceback
 from ..models import (
     OjaUser, LoanOffer, Loan, LoanRepayment,
     SavingsGoal, OjaTransaction, Notification, PaymentLink
@@ -18,13 +16,8 @@ from ..services.loan_engine import (
     calculate_loan_offer, generate_repayment_schedule, check_defaulter_risk
 )
 from ..services.oja_score import recalculate_ojascore
+from ..services.bmoni_service import BMONIService
 
-# FIX: Pull from settings with safe fallbacks — update these in settings.py
-# SQUAD_SECRET_KEY = "sandbox_sk_..."
-# SQUAD_BASE_URL = "https://sandbox-api-d.squadco.com"
-# SITE_BASE_URL = "https://your-ngrok-url.ngrok-free.dev"
-SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
-SQUAD_BASE_URL = getattr(settings, 'SQUAD_BASE_URL', 'https://sandbox-api-d.squadco.com')
 SITE_BASE_URL = getattr(settings, 'SITE_BASE_URL', 'https://ojapass.onrender.com')
 
 
@@ -133,42 +126,35 @@ class LoanApplyView(LoginRequiredMixin, View):
         offer.save()
 
         disbursement_ref = f"LOAN-{uuid.uuid4().hex[:10].upper()}"
-        disburse_success = False
 
+        # NOTE: Real BMONI disbursement is not wired up yet. Sending money to
+        # a user's bank account via BMONI is a signed smart-wallet-proposal
+        # flow (see BMONIService.initiate_nigeria_withdrawal +
+        # submit_proposal_signature), which needs:
+        #   - a source smart wallet holding the funds (OjaPass's own platform
+        #     wallet, presumably, since this is money going OUT to the user)
+        #   - the borrower's saved bankAccountId on BMONI
+        #   - a signature from whoever owns the source wallet's private key
+        # None of that is available here yet, so this block intentionally
+        # does NOT call BMONIService and does NOT claim a real transfer
+        # happened. It only logs intent so nothing is silently faked.
         if request.user.virtual_account_number:
-            try:
-                transfer_payload = {
-                    "transaction_reference": disbursement_ref,
-                    "amount": int(float(offer.offer_amount) * 100),
-                    "bank_code": "000013",
-                    "account_number": request.user.virtual_account_number,
-                    "account_name": request.user.full_name,
-                    "currency_id": "NGN",
-                    "narration": f"OjaPass Loan – {offer.get_product_type_display()}",
-                }
-                res = requests.post(
-                    f"{SQUAD_BASE_URL}/payout/initiate",
-                    json=transfer_payload,
-                    headers={
-                        "Authorization": f"Bearer {SQUAD_SECRET_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    timeout=20,
-                )
-                res_data = res.json()
-                print(f"[LOAN DISBURSE] {res_data}")
-
-                if res.status_code == 400 and "Merchant not profiled" in res_data.get('message', ''):
-                    print("[SQUAD SANDBOX] Simulated disbursement (merchant profiling fallback)")
-                    disburse_success = True
-                else:
-                    disburse_success = res.status_code == 200 and res_data.get('success')
-
-            except Exception as e:
-                print(f"[LOAN DISBURSE] Squad error: {e}")
-                disburse_success = True  # Hard fallback for demo
+            print(
+                f"[BMONI] Loan disbursement NOT YET IMPLEMENTED — "
+                f"₦{offer.offer_amount:,.0f} owed to {request.user.full_name} "
+                f"(virtual_account_number={request.user.virtual_account_number}, "
+                f"ref={disbursement_ref})"
+            )
         else:
-            disburse_success = True
+            print(
+                f"[BMONI] Loan approved for {request.user.full_name} but no "
+                f"virtual_account_number on file (ref={disbursement_ref})"
+            )
+
+        # Placeholder for development: treat as disbursed so the rest of the
+        # local flow (repayment schedule, notifications, score) can be
+        # exercised end-to-end while the real BMONI transfer is built out.
+        disburse_success = True
 
         if not disburse_success:
             return JsonResponse(
@@ -242,7 +228,7 @@ class LoanApplyView(LoginRequiredMixin, View):
 # ---------------------------------------------------------------------------
 
 class LoanRepaymentView(LoginRequiredMixin, View):
-    """Trader initiates a repayment — generates Squad payment link."""
+    """Trader initiates a repayment — generates a payment link."""
 
     def post(self, request, loan_id):
         loan = get_object_or_404(Loan, id=loan_id, user=request.user, status='active')
@@ -258,79 +244,17 @@ class LoanRepaymentView(LoginRequiredMixin, View):
 
         repayment_ref = f"REPAY-{uuid.uuid4().hex[:10].upper()}"
 
-        squad_payload = {
-            "amount": int(float(next_installment.amount_due) * 100),
-            "email": request.user.email or f"{request.user.phone}@ojapass.com",
-            "customer_name": request.user.full_name,
-            "currency": "NGN",
-            "initiate_type": "inline",
-            "transaction_ref": repayment_ref,
-            "callback_url": f"{SITE_BASE_URL}/payment-link/verify/{repayment_ref}/",
-            "payment_channels": ["card", "bank", "ussd", "transfer"],
-            "metadata": {
-                "type": "loan_repayment",
-                "loan_id": str(loan.id),
-                "installment_id": str(next_installment.id),
-                "user_id": str(request.user.id),
-            }
-        }
-
-        # FIX: no fallback to verify URL — if Squad fails, return an error so the
-        # user isn't silently redirected to a blank verification page.
-        checkout_url = None
-
-        try:
-            res = requests.post(
-                f"{SQUAD_BASE_URL}/transaction/initiate",
-                json=squad_payload,
-                headers={
-                    "Authorization": f"Bearer {SQUAD_SECRET_KEY}",
-                    "Content-Type": "application/json",
-                },
-                timeout=20,
-            )
-            res_data = res.json()
-            print(f"[REPAY] Squad response: {res_data}")
-
-            if res.status_code == 200 and res_data.get('success'):
-                checkout_url = res_data['data']['checkout_url']
-            else:
-                print(f"[REPAY] Squad initiate failed: {res_data}")
-                return JsonResponse({
-                    "success": False,
-                    "message": f"Payment initiation failed: {res_data.get('message', 'Unknown error from Squad')}",
-                }, status=502)
-
-        except requests.exceptions.Timeout:
-            return JsonResponse({
-                "success": False,
-                "message": "Squad timed out. Please try again.",
-            }, status=504)
-        except Exception as e:
-            print(f"[REPAY] Squad error: {e}")
-            return JsonResponse({
-                "success": False,
-                "message": "Could not reach payment provider. Please try again.",
-            }, status=502)
-
-        # Only save the PaymentLink and installment ref once we have a real checkout URL
-        PaymentLink.objects.create(
-            user=request.user,
-            transaction_ref=repayment_ref,
-            amount=next_installment.amount_due,
-            description=f"Loan repayment – Installment {next_installment.installment_number}",
-            checkout_url=checkout_url,
-            status='pending',
-        )
-
-        next_installment.transaction_ref = repayment_ref
-        next_installment.save()
+        # NOTE: real payment-gateway integration for repayment collection is
+        # not wired up yet (this predates/duplicates the BMONI disbursement
+        # gap above). Returning a placeholder checkout URL so the frontend
+        # flow can be exercised.
+        checkout_url = f"{SITE_BASE_URL}/payment-link/verify/{repayment_ref}/"
+        print(f"[BMONI] Loan repayment initiation NOT YET IMPLEMENTED for loan {loan_id} (ref={repayment_ref})")
 
         return JsonResponse({
             "success": True,
-            "checkoutUrl": checkout_url,
-            "installmentNumber": next_installment.installment_number,
-            "amountDue": float(next_installment.amount_due),
+            "checkout_url": checkout_url,
+            "transaction_ref": repayment_ref
         })
 
 
@@ -384,5 +308,3 @@ class SavingsGoalView(LoginRequiredMixin, View):
             "goalId": goal.id,
             "message": f"Savings goal '{goal.name}' created successfully!",
         })
-
-

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Pending | OjaPass{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto py-24 px-6 text-center">
+    <div class="bg-white rounded-3xl shadow-2xl p-10 border border-outline-variant/10">
+        <div class="w-24 h-24 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-8">
+            <span class="material-symbols-outlined text-6xl">hourglass_top</span>
+        </div>
+
+        <h1 class="text-display-md font-display-md text-primary mb-4">Payment Pending</h1>
+        <p class="text-body-lg text-on-surface-variant mb-8">
+            {{ message|default:"We are still waiting for your payment to be confirmed." }}
+        </p>
+
+        <div class="bg-surface-container-low rounded-2xl p-6 text-left space-y-4 mb-10 border border-outline-variant/5">
+            <div class="flex justify-between items-center opacity-60 text-xs font-bold uppercase tracking-widest">
+                <span>Transaction Ref</span>
+                <span>Amount Due</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="font-mono text-sm text-primary">{{ transaction_ref }}</span>
+                <span class="text-2xl font-bold">₦{{ amount }}</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <a href="/profile/" class="py-4 bg-primary text-on-primary rounded-full font-bold shadow-lg hover:shadow-primary/20 transition-all text-center">
+                Return Home
+            </a>
+            <a href="/payment-link/checkout/{{ transaction_ref }}/" class="py-4 bg-surface-container text-on-surface rounded-full font-bold hover:bg-surface-container-high transition-all text-center">
+                Refresh Checkout
+            </a>
+        </div>
+    </div>
+    <div class="mt-12 flex items-center justify-center gap-2 opacity-40">
+        <span class="material-symbols-outlined text-sm text-primary">verified</span>
+        <p class="text-xs font-bold uppercase tracking-widest">Your payment is being confirmed by BMONI</p>
+    </div>
+</div>
+{% endblock %}

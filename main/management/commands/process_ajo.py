@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from main.models import AjoGroup, AjoCycle, AjoContribution, AjoMembership, Notification
+from main.models import AjoGroup, AjoCycle, AjoContribution, AjoMembership, Notification, OjaTransaction
 from main.services.oja_score import recalculate_ojascore
 from decimal import Decimal
+import uuid
 
 class Command(BaseCommand):
     help = 'Processes automated Ajo contributions and handles penalties for missed payments'
@@ -27,7 +28,15 @@ class Command(BaseCommand):
                 # Attempt Auto-Debit from Wallet Balance
                 if user.wallet_balance >= amount:
                     user.wallet_balance -= amount
-                    user.save()
+                    user.save(update_fields=['wallet_balance'])
+                    transaction_ref = f"AJO-DEBIT-{uuid.uuid4().hex[:12].upper()}"
+                    OjaTransaction.objects.create(
+                        user=user,
+                        amount=amount,
+                        transaction_reference=transaction_ref,
+                        status='success',
+                        transaction_type='outflow'
+                    )
                     
                     contrib.status = 'paid'
                     contrib.paid_at = now
@@ -75,9 +84,9 @@ class Command(BaseCommand):
             # For this simple logic, if we reached due date, we try to disburse whatever was collected
             total_collected = sum(c.amount for c in cycle.contributions.filter(status='paid'))
             cycle.collected_amount = total_collected
-            
+
             if total_collected > 0:
-                # In a real system, you'd trigger SquadService.process_transfer here
+                # In a real system, you'd trigger BMONI withdrawal here
                 # For now, we update the cycle status
                 cycle.status = 'collecting' # Or 'disbursed' if you call the service
                 cycle.save()

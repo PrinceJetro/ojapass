@@ -2,10 +2,10 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from .views import (
-    ResolveBVNView, RegisterView, LoginView, LogoutView, UserProfileView, 
-    SquadWebhookView, TransactionListView, CreatePaymentLinkView, 
-    PaymentLinkCheckoutView, InitiateSquadPaymentView,
-    VerifyPaymentView, MamatallyDashboardView, ProductListView, 
+    ResolveBVNView, RegisterView, LoginView, LogoutView, UserProfileView,
+    BmoniKycView, TransactionListView, CreatePaymentLinkView,
+    PaymentLinkCheckoutView, InitiateBmoniDepositView, SimulateBmoniDepositView,
+    VerifyPaymentView, BMONIWebhookView, MamatallyDashboardView, ProductListView,
     ProductDetailView, SaleListView, OrderListView, OrderDetailView,
     StorefrontView, StorefrontCheckoutView, NotificationListView,
     LogRestockView, StockMovementListView,
@@ -15,6 +15,7 @@ from .views import (
     SavingsGoalView, LenderDashboardView, GovernmentDashboardView, InstitutionUserRegistryView,
     PortfolioListView, ReviewRequestView, ReviewShareView, PublicPortfolioView, HiringMarketplaceView
 )
+from .views.bmoni_views import SubmitProposalSignatureView, SignProposalPageView
 
 urlpatterns = [
     # Institution / Government Dashboards
@@ -31,12 +32,16 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('profile/', UserProfileView.as_view(), name='profile'),
-    path('squad-webhook/', SquadWebhookView.as_view(), name='squad_webhook'),
+    path('bmoni/kyc/', BmoniKycView.as_view(), name='bmoni_kyc'),
     path('transactions/', TransactionListView.as_view(), name='transaction_list'),
     path('payment-link/', CreatePaymentLinkView.as_view(), name='create_payment_link'),
     path('payment-link/checkout/<str:transaction_ref>/', PaymentLinkCheckoutView.as_view(), name='payment_link_checkout'),
-    path('payment-link/initiate/<str:transaction_ref>/', InitiateSquadPaymentView.as_view(), name='initiate_payment_link'),
+    path('payment-link/initiate/<str:transaction_ref>/', InitiateBmoniDepositView.as_view(), name='initiate_payment_link'),
+    path('payment-link/simulate/<str:transaction_ref>/', SimulateBmoniDepositView.as_view(), name='simulate_payment_link'),
     path('payment-link/verify/<str:transaction_ref>/', VerifyPaymentView.as_view(), name='verify_payment'),
+    path('bmoni/webhook/', BMONIWebhookView.as_view(), name='bmoni_webhook'),
+    path('bmoni/proposals/<str:proposal_id>/sign/', SubmitProposalSignatureView.as_view(), name='bmoni_submit_signature'),
+    path('bmoni/proposals/<str:proposal_id>/sign-ui/', SignProposalPageView.as_view(), name='bmoni_sign_ui'),
     
     # Mamatally Endpoints
     path('mamatally/dashboard/', MamatallyDashboardView.as_view(), name='mamatally_dashboard'),

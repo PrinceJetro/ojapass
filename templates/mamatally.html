@@ -98,6 +98,58 @@
         </div>
     </div>
 
+    {% if ai_report %}
+    <div class="col-span-12 bg-surface-container-lowest rounded-xl p-lg border border-outline-variant/20 shadow-sm">
+        <div class="flex justify-between items-center mb-lg">
+            <h3 class="font-headline-md text-headline-md text-primary flex items-center gap-sm">
+                <span class="material-symbols-outlined">insights</span>
+                AI Sales & Inventory Insights
+            </h3>
+            <span class="text-label-sm font-label-sm text-on-surface-variant bg-surface-container px-md py-xs rounded-full uppercase tracking-wider">AI Analysis</span>
+        </div>
+        {% if ai_report.summary %}
+        <p class="text-body-md text-on-surface-variant mb-lg">{{ ai_report.summary }}</p>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+            <div class="bg-white rounded-xl border border-outline-variant/10 p-lg shadow-sm">
+                <h4 class="font-label-lg text-label-lg text-primary mb-md">Weekly Performance</h4>
+                <ul class="space-y-sm text-on-surface-variant">
+                    {% for item in ai_report.data.weekly_highlights %}
+                    <li class="flex items-start gap-sm">
+                        <span class="text-primary">•</span>
+                        <span>{{ item }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="text-on-surface-variant italic">No weekly highlights available.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="bg-white rounded-xl border border-outline-variant/10 p-lg shadow-sm">
+                <h4 class="font-label-lg text-label-lg text-primary mb-md">Restock Alerts</h4>
+                {% if ai_report.data.restock_recommendations %}
+                <div class="space-y-md">
+                    {% for rec in ai_report.data.restock_recommendations %}
+                    <div class="rounded-2xl border border-outline-variant/10 p-md bg-surface-container">
+                        <div class="flex justify-between items-start gap-3">
+                            <div>
+                                <p class="font-headline-sm text-headline-sm">{{ rec.product_name }}</p>
+                                <p class="text-label-sm text-on-surface-variant">Stock remaining: {{ rec.qty_on_hand }}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">Order {{ rec.recommended_order_qty }}</span>
+                        </div>
+                        <p class="mt-3 text-on-surface-variant text-sm">{{ rec.reason }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-on-surface-variant italic">No restock alerts at this time.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Bento Row 2: Revenue Graph & Sales History -->
     <section class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-lg border border-outline-variant/20 shadow-sm">
         <div class="flex justify-between items-center mb-xl">

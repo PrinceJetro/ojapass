@@ -314,7 +314,7 @@ async function acceptApplicant(gigId, seekerId) {
         const data = await res.json();
 
         if (data.success && data.checkoutUrl) {
-            // Redirect employer to Squad checkout
+            // Redirect employer to Bmoni checkout
             window.location.href = data.checkoutUrl;
         } else {
             alert('Error: ' + (data.message || 'Failed to initiate escrow'));

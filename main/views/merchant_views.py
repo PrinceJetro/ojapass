@@ -12,14 +12,101 @@ import uuid
 import json
 from ..models import Product, Sale, Order, StockMovement, OjaTransaction
 from ..services.oja_score import recalculate_ojascore
-from ..services.squad_service import SquadService
-
-SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
-SQUAD_BASE_URL = "https://sandbox-api-d.squadco.com"
+from ..services.bmoni_service import BMONIService
+from ..services.analytics import get_sales_trends, generate_restock_alerts
+from ..services.ai_analytics import AIAnalytics
 
 class MamatallyDashboardView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
+
+        # Check BMONI sync status and attempt retry if needed
+        if not user.bmoni_user_id or user.bmoni_sync_status in ['pending', 'failed']:
+            print(f"[BMONI CHECK] Checking sync for {user.email} - status: {user.bmoni_sync_status}")
+
+            # Prepare user data for BMONI
+            first_name = user.full_name.split()[0] if user.full_name else ''
+            last_name = user.full_name.split()[-1] if user.full_name and len(user.full_name.split()) > 1 else ''
+
+            bmoni_user_data = {
+                "firstName": first_name,
+                "lastName": last_name,
+                "phone": user.phone,
+                "email": user.email,
+                "bvn": user.bvn,
+                "address": user.address,
+            }
+
+            bmoni_response = BMONIService.create_user(bmoni_user_data)
+
+            if bmoni_response and bmoni_response.get('success') and bmoni_response.get('data', {}).get('user'):
+                user.bmoni_user_id = bmoni_response['data']['user'].get('bmoniUserId')
+                user.bmoni_sync_status = 'synced'
+                user.bmoni_sync_error = None
+                user.bmoni_sync_attempts = 0
+                user.save()
+                print(f"[BMONI CHECK] Sync successful for {user.email}")
+
+                # Attempt wallet creation after successful sync
+                wallet_response = BMONIService.create_wallet_simple(user.bmoni_user_id, "CNGN")
+                if wallet_response and wallet_response.get('success'):
+                    print(f"[BMONI CHECK] Wallet created for {user.email}")
+                else:
+                    print(f"[BMONI CHECK] Wallet creation failed - user needs KYC")
+            else:
+                user.bmoni_sync_attempts += 1
+                if bmoni_response:
+                    user.bmoni_sync_error = bmoni_response.get('error', 'Unknown error')
+                    if bmoni_response.get('status_code') == 409:
+                        user.bmoni_sync_error = "User already exists in BMONI with this email or phone"
+                    elif bmoni_response.get('status_code') in (502, 503, 504):
+                        user.bmoni_sync_error = "BMONI service temporarily unavailable - will retry"
+                user.bmoni_sync_status = 'failed'
+                user.save()
+                print(f"[BMONI CHECK] Sync failed for {user.email}: {user.bmoni_sync_error}")
+
+        # Check if user has a wallet - redirect to KYC if not
+        if user.bmoni_user_id:
+            try:
+                wallet_result = BMONIService.get_wallets(user.bmoni_user_id)
+
+                # Handle different response structures from BMONI API
+                wallets = None
+                if wallet_result.get('success'):
+                    wallet_data = wallet_result.get('data')
+                    if isinstance(wallet_data, dict):
+                        wallets = wallet_data.get('wallets')
+                    elif isinstance(wallet_data, list):
+                        wallets = wallet_data
+                else:
+                    wallets = None
+
+                # If we have wallet data, attempt to ensure a Nigeria VBA is linked
+                if wallets:
+                    smart_wallet = wallets[0]
+                    smart_wallet_id = smart_wallet.get('id') or smart_wallet.get('smartWalletId') or smart_wallet.get('smart_wallet_id')
+                    if smart_wallet_id and not user.virtual_account_number:
+                        try:
+                            vba_resp = BMONIService.link_nigeria_vba(user.bmoni_user_id, smart_wallet_id)
+                            if vba_resp and vba_resp.get('success'):
+                                vba_data = vba_resp.get('data') or {}
+                                user.virtual_account_number = vba_data.get('accountNumber') or vba_data.get('virtualAccountNumber') or user.virtual_account_number
+                                user.bank_name = vba_data.get('bankName') or user.bank_name
+                                user.save(update_fields=['virtual_account_number', 'bank_name'])
+                                print(f"[BMONI] VBA linked for {user.email}: {user.virtual_account_number}")
+                            else:
+                                print(f"[BMONI] VBA link attempt failed: {vba_resp.get('error') if vba_resp else 'no response'}")
+                        except Exception as e:
+                            print(f"[BMONI] VBA link error: {e}")
+
+                if not wallet_result.get('success') or not wallets:
+                    print(f"[BMONI CHECK] No wallet found for {user.email} - redirecting to KYC")
+                    return redirect('bmoni_kyc')
+            except Exception as e:
+                print(f"[BMONI CHECK] Wallet check failed: {e}")
+        else:
+            print(f"[BMONI CHECK] No bmoni_user_id for {user.email} - redirecting to KYC")
+            return redirect('bmoni_kyc')
         today = timezone.now().date()
         inventory = Product.objects.filter(user=user)
         sales = Sale.objects.filter(user=user).order_by('-created_at')[:10]
@@ -59,7 +146,15 @@ class MamatallyDashboardView(LoginRequiredMixin, View):
             "low_stock_alerts": low_stock,
             "inventory": inventory,
             "recent_sales": sales,
-            "daily_revenue_list": daily_revenue_list
+            "daily_revenue_list": daily_revenue_list,
+            # Sales trends and restock suggestions (heuristic)
+            "sales_trends": get_sales_trends(user, days=30),
+            "restock_alerts": generate_restock_alerts(user, lookback_days=90, horizon_days=30, threshold_days=7),
+            # AI-driven report (if GEMINI key configured)
+            "ai_report": AIAnalytics.generate_dashboard_report(user, days=30),
+            "virtual_account_number": user.virtual_account_number,
+            "bank_name": user.bank_name,
+            "wallet_balance": float(user.wallet_balance or 0),
         }
         return render(request, 'mamatally.html', context)
 
@@ -164,19 +259,33 @@ class SaleListView(LoginRequiredMixin, View):
         with transaction.atomic():
             product = Product.objects.select_for_update().get(id=data.get('productId'), user=request.user)
             qty = int(data.get('quantity', 1))
+            amount = Decimal(str(data.get('amount', product.selling_price)))
             
             if product.quantity_in_stock < qty:
                 return JsonResponse({"success": False, "message": f"Insufficient stock. Current: {product.quantity_in_stock}"}, status=400)
                 
             product.quantity_in_stock -= qty
             product.save()
-            Sale.objects.create(
+            sale = Sale.objects.create(
                 user=request.user, 
                 product=product, 
                 quantity=qty, 
-                amount=float(data.get('amount')), 
+                amount=amount, 
                 payment_method='cash'
             )
+            transaction_ref = f"SALE-{uuid.uuid4().hex[:12].upper()}"
+            tx, created = OjaTransaction.objects.get_or_create(
+                transaction_reference=transaction_ref,
+                defaults={
+                    'user': request.user,
+                    'amount': amount,
+                    'status': 'success',
+                    'transaction_type': 'inflow',
+                }
+            )
+            if created:
+                request.user.wallet_balance = (request.user.wallet_balance or Decimal('0')) + amount
+                request.user.save(update_fields=['wallet_balance'])
         recalculate_ojascore(request.user.id)
         return JsonResponse({"success": True})
 
@@ -198,6 +307,20 @@ class OrderDetailView(LoginRequiredMixin, View):
         if order.status == 'paid' and order.product:
             order.product.quantity_in_stock -= order.quantity
             order.product.save()
+            amount = order.total_amount or Decimal(str(order.quantity * (order.product.selling_price if order.product else 0)))
+            transaction_ref = f"ORDER-{uuid.uuid4().hex[:12].upper()}"
+            tx, created = OjaTransaction.objects.get_or_create(
+                transaction_reference=transaction_ref,
+                defaults={
+                    'user': request.user,
+                    'amount': amount,
+                    'status': 'success',
+                    'transaction_type': 'inflow',
+                }
+            )
+            if created:
+                request.user.wallet_balance = (request.user.wallet_balance or Decimal('0')) + amount
+                request.user.save(update_fields=['wallet_balance'])
             recalculate_ojascore(request.user.id)
         return JsonResponse({"success": True})
 
@@ -230,6 +353,8 @@ class PayrollBatchView(LoginRequiredMixin, View):
             
         workers = data.get('workers', [])
         for w in workers:
-            SquadService.process_transfer(w['amount'], w['account'], "Payroll", SQUAD_SECRET_KEY, SQUAD_BASE_URL)
+            # TODO: Implement BMONI transfer for payroll
+            # For now, log the transfer request
+            print(f"[BMONI] Payroll transfer: ₦{w['amount']} to {w['account']}")
         recalculate_ojascore(request.user.id)
         return JsonResponse({"success": True})

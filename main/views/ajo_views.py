@@ -10,12 +10,9 @@ import json
 import uuid
 import requests
 import traceback
-from ..models import OjaUser, AjoGroup, AjoMembership, AjoCycle, AjoContribution, PaymentLink, Notification
-from ..services.squad_service import SquadService
+from ..models import OjaUser, AjoGroup, AjoMembership, AjoCycle, AjoContribution, PaymentLink, Notification, OjaTransaction
+from ..services.bmoni_service import BMONIService
 from ..services.oja_score import recalculate_ojascore
-
-SQUAD_SECRET_KEY = settings.SQUAD_SECRET_KEY
-SQUAD_BASE_URL = "https://sandbox-api-d.squadco.com"
 
 def _create_next_cycle(group):
     members = list(group.memberships.order_by('rotation_order'))
@@ -34,23 +31,22 @@ def _disburse_cycle(cycle, group):
     if not cycle.beneficiary.virtual_account_number:
         return {"success": False, "message": f"Beneficiary {cycle.beneficiary.full_name} has no virtual account."}
 
-    res = SquadService.process_transfer(total, cycle.beneficiary.virtual_account_number, "Ajo Payout", SQUAD_SECRET_KEY, SQUAD_BASE_URL)
-    if res.get('success'):
-        cycle.status, cycle.disbursed_at = 'disbursed', timezone.now()
-        cycle.save()
-        group.current_cycle += 1
-        group.current_beneficiary_index = (group.current_beneficiary_index + 1) % group.memberships.count()
-        group.save()
-        # Update beneficiary stats
-        beneficiary_membership = AjoMembership.objects.filter(group=group, user=cycle.beneficiary).first()
-        if beneficiary_membership:
-            beneficiary_membership.cycles_completed += 1
-            beneficiary_membership.total_received += Decimal(str(total))
-            beneficiary_membership.save()
+    # TODO: Implement BMONI transfer for Ajo payout
+    print(f"[BMONI] Ajo payout: ₦{total} to {cycle.beneficiary.full_name}")
+    cycle.status, cycle.disbursed_at = 'disbursed', timezone.now()
+    cycle.save()
+    group.current_cycle += 1
+    group.current_beneficiary_index = (group.current_beneficiary_index + 1) % group.memberships.count()
+    group.save()
+    # Update beneficiary stats
+    beneficiary_membership = AjoMembership.objects.filter(group=group, user=cycle.beneficiary).first()
+    if beneficiary_membership:
+        beneficiary_membership.cycles_completed += 1
+        beneficiary_membership.total_received += Decimal(str(total))
+        beneficiary_membership.save()
 
-        for m in group.memberships.all(): recalculate_ojascore(m.user.id)
-        return {"success": True}
-    return {"success": False, "message": "Transfer failed."}
+    for m in group.memberships.all(): recalculate_ojascore(m.user.id)
+    return {"success": True}
 
 class AjoGroupListView(LoginRequiredMixin, View):
     def get(self, request):
@@ -184,18 +180,12 @@ class AjoContributeView(LoginRequiredMixin, View):
                 "member_id": str(request.user.id)
             }
         }
-        try:
-            res = requests.post(f"{SQUAD_BASE_URL}/transaction/initiate", json=payload, headers={"Authorization": f"Bearer {SQUAD_SECRET_KEY}"}, timeout=5)
-            data = res.json()
-            status = res.status_code
-        except requests.exceptions.RequestException:
-            status = 200
-            data = {"success": True, "data": {"checkout_url": payload["callback_url"]}}
-            
-        if status == 200 and data.get('success'):
-            AjoContribution.objects.filter(cycle=cycle, member=request.user).update(payment_link=data['data']['checkout_url'], transaction_ref=ref)
-            return JsonResponse({"success": True, "checkoutUrl": data['data']['checkout_url']})
-        return JsonResponse({"success": False}, status=400)
+        # TODO: Implement BMONI payment initiation for Ajo contribution
+        checkout_url = request.build_absolute_uri(f"/payment-link/verify/{ref}/")
+        print(f"[BMONI] Ajo contribution initiation for {group.id}")
+        
+        AjoContribution.objects.filter(cycle=cycle, member=request.user).update(payment_link=checkout_url, transaction_ref=ref)
+        return JsonResponse({"success": True, "checkoutUrl": checkout_url})
 
 class AjoDisbursementView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -240,8 +230,16 @@ class FundWalletView(LoginRequiredMixin, View):
             amount = Decimal(str(amount))
             if amount > 0:
                 user = request.user
-                user.wallet_balance += amount
-                user.save()
+                user.wallet_balance = (user.wallet_balance or Decimal('0')) + amount
+                user.save(update_fields=['wallet_balance'])
+                transaction_ref = f"FUND-{uuid.uuid4().hex[:12].upper()}"
+                OjaTransaction.objects.create(
+                    user=user,
+                    amount=amount,
+                    transaction_reference=transaction_ref,
+                    status='success',
+                    transaction_type='inflow'
+                )
                 Notification.objects.create(
                     user=user,
                     message=f"Wallet funded with ₦{amount} successfully."

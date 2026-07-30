@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}BMONI KYC | OjaPass{% endblock %}
+{% block page_title %}BMONI KYC Verification{% endblock %}
+{% block page_subtitle %}Complete your BMONI onboarding so your wallet can activate NGN rails.{% endblock %}
+
+{% block content %}
+<div class="space-y-lg">
+    {% if errors %}
+        <div class="bg-error-container/10 border border-error-container rounded-xl p-lg text-error">
+            <h3 class="font-headline-sm text-headline-sm mb-sm">There was a problem</h3>
+            <div class="space-y-1">
+                {% for error in errors %}
+                    <p class="text-sm">• {{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    {% if messages %}
+        <div class="bg-primary-container/10 border border-primary-container rounded-xl p-lg text-on-primary-container">
+            <h3 class="font-headline-sm text-headline-sm mb-sm">Success</h3>
+            <div class="space-y-1">
+                {% for message in messages %}
+                    <p class="text-sm">• {{ message }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="grid gap-lg lg:grid-cols-3">
+        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-lg shadow-sm">
+            <h2 class="font-headline-md text-headline-md mb-md">BMONI Account</h2>
+            <p><strong>BMONI User ID:</strong> {{ bmoni_user_id|default:'Not linked yet' }}</p>
+            {% if bmoni_user %}
+                <p><strong>Name:</strong> {{ bmoni_user.firstName }} {{ bmoni_user.lastName }}</p>
+                <p><strong>Email:</strong> {{ bmoni_user.email }}</p>
+                <p><strong>Phone:</strong> {{ bmoni_user.phoneNumber }}</p>
+            {% endif %}
+            <div class="mt-lg space-y-md">
+                <div class="rounded-xl bg-white p-md border border-outline-variant/20">
+                    <h3 class="font-label-lg text-label-lg mb-2">KYC Status</h3>
+                    <pre class="whitespace-pre-wrap text-sm text-on-surface-variant">{{ kyc_status|default:'Unknown' }}</pre>
+                </div>
+                <div class="rounded-xl bg-white p-md border border-outline-variant/20">
+                    <h3 class="font-label-lg text-label-lg mb-2">KYC Readiness</h3>
+                    <pre class="whitespace-pre-wrap text-sm text-on-surface-variant">{{ kyc_readiness|default:'Unknown' }}</pre>
+                </div>
+                <div class="rounded-xl bg-white p-md border border-outline-variant/20">
+                    <h3 class="font-label-lg text-label-lg mb-2">Onboarding Status</h3>
+                    <pre class="whitespace-pre-wrap text-sm text-on-surface-variant">{{ onboarding_status|default:'Unknown' }}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-lg">
+            <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-lg shadow-sm">
+                <h2 class="font-headline-md text-headline-md mb-md">1. Submit KYC Documents</h2>
+                <form action="" method="post" enctype="multipart/form-data" class="space-y-md">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_id">
+                    <div class="grid gap-md md:grid-cols-2">
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">ID Document</span>
+                            <input type="file" name="identification" accept="image/*,.pdf" required class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Document Type</span>
+                            <select name="id_type" class="w-full rounded-xl border border-outline-variant p-3">
+                                <option value="national_id">National ID</option>
+                                <option value="passport">Passport</option>
+                                <option value="driver_license">Driver's License</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="grid gap-md md:grid-cols-2">
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Document Number</span>
+                            <input type="text" name="document_number" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Issuing Country</span>
+                            <input type="text" name="issuing_country" value="NGA" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                    </div>
+                    <div class="grid gap-md md:grid-cols-2">
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Issue Date</span>
+                            <input type="date" name="issue_date" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Expiry Date</span>
+                            <input type="date" name="expiration_date" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                    </div>
+                    <button type="submit" class="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold">Upload ID Document</button>
+                </form>
+            </section>
+
+            <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-lg shadow-sm">
+                <h2 class="font-headline-md text-headline-md mb-md">2. Submit Proof of Address</h2>
+                <form action="" method="post" enctype="multipart/form-data" class="space-y-md">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_address">
+                    <div class="grid gap-md md:grid-cols-2">
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Proof document</span>
+                            <input type="file" name="proof_of_address" accept="image/*,.pdf" required class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Document Type</span>
+                            <select name="address_doc_type" class="w-full rounded-xl border border-outline-variant p-3">
+                                <option value="utility_bill">Utility Bill</option>
+                                <option value="bank_statement">Bank Statement</option>
+                                <option value="rental_agreement">Rental Agreement</option>
+                            </select>
+                        </label>
+                    </div>
+                    <button type="submit" class="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold">Upload Proof of Address</button>
+                </form>
+            </section>
+
+            <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-lg shadow-sm">
+                <h2 class="font-headline-md text-headline-md mb-md">3. Upload Selfie</h2>
+                <form action="" method="post" enctype="multipart/form-data" class="space-y-md">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_biometric">
+                    <label class="space-y-2">
+                        <span class="font-label-sm text-label-sm">Selfie</span>
+                        <input type="file" name="biometric" accept="image/*" required class="w-full border border-outline-variant rounded-xl p-3" />
+                    </label>
+                    <button type="submit" class="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold">Upload Selfie</button>
+                </form>
+            </section>
+
+            <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-lg shadow-sm">
+                <h2 class="font-headline-md text-headline-md mb-md">4. Submit Personal & Compliance Data</h2>
+                <form action="" method="post" class="space-y-md">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="patch_kyc">
+                    <div class="grid gap-md md:grid-cols-2">
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Occupation</span>
+                            <input type="text" name="occupation" value="Trader" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Employer name</span>
+                            <input type="text" name="employerName" value="OjaPass" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                    </div>
+                    <div class="grid gap-md md:grid-cols-2">
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Monthly salary</span>
+                            <input type="number" name="monthlySalary" value="0" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Country</span>
+                            <input type="text" name="country" value="Nigeria" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                    </div>
+                    <button type="submit" class="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold">Submit KYC Data</button>
+                </form>
+            </section>
+
+            <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-lg shadow-sm">
+                <h2 class="font-headline-md text-headline-md mb-md">5. Activate KYC / Start NGN Onboarding</h2>
+                <form action="" method="post" class="space-y-md">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="activate_kyc">
+                    <label class="space-y-2">
+                        <span class="font-label-sm text-label-sm">BMONI KYC Level</span>
+                        <select name="sumsubLevelName" class="w-full rounded-xl border border-outline-variant p-3">
+                            <option value="id-only">id-only</option>
+                            <option value="id-and-liveness">id-and-liveness</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="px-5 py-3 bg-secondary text-on-secondary rounded-full font-semibold">Activate KYC</button>
+                </form>
+                <form action="" method="post" class="mt-md space-y-md">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="start_nigeria">
+                    <div class="grid gap-md md:grid-cols-2">
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">NGN Wallet Address</span>
+                            <input type="text" name="ngn_wallet_address" class="w-full border border-outline-variant rounded-xl p-3" />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="font-label-sm text-label-sm">Wallet index</span>
+                            <input type="number" name="ngn_wallet_index" class="w-full border border-outline-variant rounded-xl p-3" value="0" />
+                        </label>
+                    </div>
+                    <button type="submit" class="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold">Start Nigeria Onboarding</button>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
