@@ -679,7 +679,6 @@ class SimulateBmoniDepositView(View):
     """Sandbox shortcut to confirm a pending payment link locally."""
 
     def post(self, request, transaction_ref):
-        print(f"[DEBUG] settings.DEBUG = {settings.DEBUG}")
         if not settings.DEBUG:
             return JsonResponse({"success": False, "message": "Simulation only allowed in debug mode."}, status=403)
 
