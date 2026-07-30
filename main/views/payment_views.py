@@ -239,26 +239,32 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
             cycle_id = meta.get('cycle_id')
             member_id = meta.get('member_id')
 
-            from ..models import AjoContribution, AjoCycle, AjoGroup
-            cycle = AjoCycle.objects.get(id=cycle_id)
-            contrib = AjoContribution.objects.filter(cycle=cycle, member_id=member_id).first()
+            cycle = AjoCycle.objects.filter(id=cycle_id).select_related('group').first()
+            contrib = None
+            if cycle and member_id:
+                contrib = AjoContribution.objects.filter(cycle=cycle, member_id=member_id).first()
 
             if contrib and contrib.status != 'paid':
                 contrib.status = 'paid'
-                contrib.contribution_date = timezone.now()
+                contrib.paid_at = timezone.now()
                 contrib.save()
 
-                # Update cycle collected amount
-                cycle.collected_amount = (cycle.collected_amount or 0) + float(payment_link.amount)
+                cycle.collected_amount = (cycle.collected_amount or Decimal('0')) + contrib.amount
+                if cycle.collected_amount >= cycle.expected_amount:
+                    cycle.status = 'collecting'
                 cycle.save()
+
+                membership = AjoMembership.objects.filter(group=cycle.group, user_id=member_id).first()
+                if membership:
+                    membership.total_contributed += contrib.amount
+                    membership.save()
 
                 Notification.objects.create(
                     user_id=member_id,
-                    message=f"AJO CONTRIBUTION: ₦{payment_link.amount:,.0f} confirmed for {cycle.group.name}."
+                    message=f"AJO CONTRIBUTION: ₦{contrib.amount:,.0f} confirmed for {cycle.group.name}."
                 )
 
-            user_id = member_id
-            user = OjaUser.objects.get(id=user_id)
+            user = OjaUser.objects.filter(id=member_id).first()
             transaction_type = 'outflow'
             success_msg = "Ajo Contribution Confirmed!"
         except Exception as e:
@@ -673,6 +679,7 @@ class SimulateBmoniDepositView(View):
     """Sandbox shortcut to confirm a pending payment link locally."""
 
     def post(self, request, transaction_ref):
+        print(f"[DEBUG] settings.DEBUG = {settings.DEBUG}")
         if not settings.DEBUG:
             return JsonResponse({"success": False, "message": "Simulation only allowed in debug mode."}, status=403)
 
