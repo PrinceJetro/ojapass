@@ -39,4 +39,11 @@
         <p class="text-xs font-bold uppercase tracking-widest">Your payment is being confirmed by BMONI</p>
     </div>
 </div>
+
+<script>
+// Auto-refresh every 5 seconds to check for payment confirmation
+setTimeout(function() {
+    window.location.reload();
+}, 5000);
+</script>
 {% endblock %}
