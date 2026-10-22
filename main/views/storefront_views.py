@@ -5,7 +5,7 @@ from django.views import View
 from django.db import transaction
 import uuid, requests, json
 from ..models import OjaUser, Product, Order, PaymentLink, PaymentLinkItem, Notification
-from ..services.bmoni_service import BMONIService
+from ..services.squad_service import SquadService
 
 class StorefrontView(View):
     def get(self, request, phone):
@@ -61,54 +61,49 @@ class StorefrontCheckoutView(View):
                     return JsonResponse({"success": False, "message": "Could not create payment link."}, status=500)
 
                 merchant = user
-                bmoni_user_id = getattr(merchant, 'bmoni_user_id', None)
 
-                # Fallback: if BMONI not set up or API down, return mock deposit account for development
-                if not bmoni_user_id:
-                    if settings.DEBUG:
-                        return JsonResponse({
-                            "success": True,
-                            "transaction_ref": ref,
-                            "depositAccount": {
-                                "bankName": "Wema Bank (Mock)",
-                                "accountNumber": "1234567890",
-                                "accountName": merchant.full_name,
-                                "narration": f"Payment for invoice {ref}",
-                            },
-                            "amount": total,
-                        })
-                    return JsonResponse({"success": False, "message": "Merchant not configured for BMONI deposits."}, status=400)
+                # Squad inline checkout per order (primary). Mock fallback so demos never block.
+                if SquadService.is_configured():
+                    from .payment_views import _squad_callback_url
+                    email = merchant.email or f"{merchant.phone}@ojapass.local"
+                    if "@" not in email or "." not in email.split("@")[-1]:
+                        email = f"customer-{merchant.phone}@ojapass.ng"
+                    result = SquadService.initiate_checkout(
+                        email=email,
+                        amount_naira=float(total),
+                        transaction_ref=ref,
+                        callback_url=_squad_callback_url(request, ref),
+                        customer_name=data.get('customerName') or merchant.full_name,
+                        metadata={"merchant": merchant.phone, "provider": "ojapass"},
+                    )
+                    if result.get("success"):
+                        checkout_url = (result.get("data") or {}).get("checkout_url")
+                        if checkout_url:
+                            link.metadata = {
+                                **(link.metadata or {}),
+                                "squad_checkout": {"checkoutUrl": checkout_url, "transactionRef": ref},
+                                "squad_provider": "squad",
+                            }
+                            link.checkout_url = checkout_url
+                            link.save(update_fields=["metadata", "checkout_url"])
+                            return JsonResponse({
+                                "success": True,
+                                "provider": "squad",
+                                "transaction_ref": ref,
+                                "checkoutUrl": checkout_url,
+                                "amount": total,
+                            })
+                    print(f"[SQUAD] storefront initiate failed for {ref}: {result.get('error')} — using mock")
 
-                deposit_result = BMONIService.get_deposit_accounts(bmoni_user_id, "NGN")
-                if not deposit_result or not deposit_result.get('success'):
-                    if settings.DEBUG:
-                        return JsonResponse({
-                            "success": True,
-                            "transaction_ref": ref,
-                            "depositAccount": {
-                                "bankName": "Wema Bank (Mock)",
-                                "accountNumber": "1234567890",
-                                "accountName": merchant.full_name,
-                                "narration": f"Payment for invoice {ref}",
-                            },
-                            "amount": total,
-                        })
-                    return JsonResponse({"success": False, "message": "Unable to fetch deposit account."}, status=502)
-
-                accounts = deposit_result.get('data', {}).get('accounts', [])
-                if not accounts:
-                    return JsonResponse({"success": False, "message": "No deposit account available for this merchant yet."}, status=400)
-
-                account = accounts[0]
-                # Return deposit instructions to the client
                 return JsonResponse({
                     "success": True,
+                    "provider": "mock",
                     "transaction_ref": ref,
                     "depositAccount": {
-                        "bankName": account.get('bankName'),
-                        "accountNumber": account.get('accountNumber'),
-                        "accountName": account.get('accountName'),
-                        "narration": account.get('depositMessage') or f"Payment for invoice {ref}",
+                        "bankName": "Wema Bank (Mock)",
+                        "accountNumber": "1234567890",
+                        "accountName": merchant.full_name,
+                        "narration": f"Payment for invoice {ref}",
                     },
                     "amount": total,
                 })

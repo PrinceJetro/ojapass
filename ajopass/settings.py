@@ -44,9 +44,13 @@ CSRF_TRUSTED_ORIGINS = [
 # SITE URL
 SITE_BASE_URL = "https://ojapass.onrender.com"
 
-# BMONI API Settings
+# BMONI API Settings (legacy — kept for backwards-compat, Squad is primary)
 BMONI_BASE_URL = os.getenv("BMONI_BASE_URL", "https://embedded-dev.bmoni.com")
 BMONI_API_KEY = os.getenv("BMONI_API_KEY", "pk_a025cacbf33a_76fb864113f3540909de5b1da39cc146906e35b1c6d4d1e4")
+
+# Squad API Settings (primary payments provider — GBfoods hackathon)
+SQUAD_BASE_URL = os.getenv("SQUAD_BASE_URL", "https://sandbox-api-d.squadco.com")
+SQUAD_SECRET_KEY = os.getenv("SQUAD_SECRET_KEY", "")
 
 # Application definition
 

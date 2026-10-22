@@ -244,17 +244,50 @@ class LoanRepaymentView(LoginRequiredMixin, View):
 
         repayment_ref = f"REPAY-{uuid.uuid4().hex[:10].upper()}"
 
-        # NOTE: real payment-gateway integration for repayment collection is
-        # not wired up yet (this predates/duplicates the BMONI disbursement
-        # gap above). Returning a placeholder checkout URL so the frontend
-        # flow can be exercised.
-        checkout_url = f"{SITE_BASE_URL}/payment-link/verify/{repayment_ref}/"
-        print(f"[BMONI] Loan repayment initiation NOT YET IMPLEMENTED for loan {loan_id} (ref={repayment_ref})")
+        # Stamp the ref on the installment so webhook/verify confirmation can
+        # resolve it, and keep a companion PaymentLink so the Squad checkout +
+        # pending-amount machinery works uniformly with invoices/escrow/ajo.
+        next_installment.transaction_ref = repayment_ref
+        next_installment.save(update_fields=['transaction_ref'])
+
+        link, _ = PaymentLink.objects.get_or_create(
+            transaction_ref=repayment_ref,
+            defaults={
+                'user': request.user,
+                'amount': next_installment.amount_due,
+                'description': (
+                    f"Loan repayment — installment {next_installment.installment_number} "
+                    f"of ₦{next_installment.amount_due:,.0f}"
+                ),
+                'status': 'pending',
+                'metadata': {
+                    'type': 'loan_repayment',
+                    'loan_id': str(loan.id),
+                    'installment_id': str(next_installment.id),
+                },
+            }
+        )
+
+        # Squad hosted checkout when available, else the local checkout page
+        # (which itself offers Squad initiate + sandbox simulate).
+        checkout_url = request.build_absolute_uri(f"/payment-link/checkout/{repayment_ref}/")
+        provider = "mock"
+        if link.status != 'paid':
+            from ..services.squad_service import SquadService
+            from .payment_views import _get_squad_checkout_url
+            if SquadService.is_configured():
+                squad_url = _get_squad_checkout_url(request, link, request.user)
+                if squad_url:
+                    checkout_url = squad_url
+                    provider = "squad"
+        print(f"[SQUAD] Loan repayment initiated for loan {loan_id} (ref={repayment_ref}, provider={provider})")
 
         return JsonResponse({
             "success": True,
+            "checkoutUrl": checkout_url,
             "checkout_url": checkout_url,
-            "transaction_ref": repayment_ref
+            "transaction_ref": repayment_ref,
+            "provider": provider,
         })
 
 

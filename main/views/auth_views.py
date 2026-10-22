@@ -292,7 +292,7 @@ class ResolveBVNView(View):
 class BmoniKycView(LoginRequiredMixin, View):
     template_name = 'bmoni_kyc.html'
 
-    def get(self, request):
+    def get(self, request, extra_messages=None, extra_errors=None):
         user = request.user
         context = {
             'user': user,
@@ -301,8 +301,8 @@ class BmoniKycView(LoginRequiredMixin, View):
             'kyc_status': None,
             'kyc_readiness': None,
             'onboarding_status': None,
-            'messages': [],
-            'errors': [],
+            'messages': list(extra_messages or []),
+            'errors': list(extra_errors or []),
         }
 
         if user.bmoni_user_id:
@@ -419,5 +419,6 @@ class BmoniKycView(LoginRequiredMixin, View):
             else:
                 errors.append(result.get('response_body') or result.get('error') or 'BMONI request failed.')
 
-        context = self.get(request).context_data if hasattr(self.get(request), 'context_data') else None
-        return self.get(request)
+        # Single render pass (previously called self.get() twice, doubling
+        # the BMONI API calls on every POST).
+        return self.get(request, extra_messages=messages, extra_errors=errors)

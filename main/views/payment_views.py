@@ -24,6 +24,7 @@ from ..models import (
     AjoCycle, AjoGroup, AjoContribution, AjoMembership, Gig
 )
 from ..services.bmoni_service import BMONIService
+from ..services.squad_service import SquadService, extract_squad_account
 from ..services.oja_score import recalculate_ojascore
 
 # BMONI API Settings
@@ -92,7 +93,7 @@ def _handle_payment_link_success(link, transaction_ref, amount):
                 product=product,
                 quantity=qty,
                 amount=item.price_at_time * qty,
-                payment_method='bmoni',
+                payment_method='squad',
                 transaction_ref=f"LINK-{transaction_ref}-{item.id}"
             )
 
@@ -121,6 +122,19 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
     success_msg = "Your payment was successful."
 
     payment_link = PaymentLink.objects.filter(transaction_ref=transaction_ref).first()
+
+    def _mark_companion_link_paid():
+        # Companion PaymentLinks (ajo/loan/escrow) exist only so checkout +
+        # webhooks can resolve the merchant — flip them to paid without
+        # running the invoice sales path in _handle_payment_link_success.
+        try:
+            link = PaymentLink.objects.filter(transaction_ref=transaction_ref, status='pending').first()
+            if link:
+                link.status = 'paid'
+                link.paid_at = timezone.now()
+                link.save(update_fields=['status', 'paid_at'])
+        except Exception as e:
+            print(f"[CONFIRM] companion link update skipped: {e}")
 
     ajo_contrib = AjoContribution.objects.filter(
         transaction_ref=transaction_ref
@@ -167,6 +181,7 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
                 user=user,
                 message=f"AJO CONTRIBUTION CONFIRMED: ₦{ajo_contrib.amount:,.0f} to '{cycle.group.name}'."
             )
+            _mark_companion_link_paid()
         transaction_type = 'outflow'
         success_msg = "Ajo Contribution Successful!"
 
@@ -203,6 +218,7 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
                     message=f"REPAYMENT CONFIRMED: Installment {installment.installment_number} of ₦{installment.amount_due:,.0f} received."
                 )
                 recalculate_ojascore(loan.user.id)
+                _mark_companion_link_paid()
 
             user = loan.user
             transaction_type = 'outflow'
@@ -214,8 +230,16 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
     # 3. GIG ESCROW
     elif meta.get('type') == 'gig_escrow' or transaction_ref.startswith('GIG-ESCROW-'):
         try:
+            gig = None
             gig_id = meta.get('gig_id')
-            gig = Gig.objects.get(id=gig_id)
+            if gig_id:
+                gig = Gig.objects.filter(id=gig_id).first()
+            if gig is None:
+                # Normal path: webhook/verify carry no meta, resolve via the
+                # escrow ref stamped on the gig at accept time.
+                gig = Gig.objects.filter(escrow_transaction_ref=transaction_ref).first()
+            if gig is None:
+                raise Gig.DoesNotExist(f"No gig for escrow ref {transaction_ref}")
             if not gig.escrow_paid:
                 gig.escrow_paid = True
                 gig.status = 'matched'
@@ -225,6 +249,7 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
                     user=gig.employer,
                     message=f"ESCROW FUNDED: ₦{gig.pay_rate:,.0f} secured for '{gig.title}'. Worker has been notified."
                 )
+                _mark_companion_link_paid()
             user = gig.employer
             transaction_type = 'outflow'
             success_msg = "Escrow Confirmed!"
@@ -296,9 +321,9 @@ def _confirm_transaction(transaction_ref, amount, meta=None):
                             product=order.product,
                             quantity=order.quantity,
                             amount=order.total_amount,
-                            payment_method='bmoni',
+                            payment_method='squad',
                             # per-order unique ref prevents IntegrityError
-                            transaction_ref=f"BMONI-{transaction_ref}-{order.id}",
+                            transaction_ref=f"SQUAD-{transaction_ref}-{order.id}",
                         )
                         if order.product:
                             Product.objects.filter(
@@ -463,6 +488,104 @@ class BMONIWebhookView(View):
 
 
 # ---------------------------------------------------------------------------
+# SQUAD WEBHOOK (primary)
+# ---------------------------------------------------------------------------
+
+def _extract_squad_ref_and_amount(data):
+    """Tolerate Squad's webhook shapes across VA versions.
+
+    Looks for transaction ref + amount in top-level, nested `data`,
+    and common aliases. Returns (ref, amount) or (None, None).
+    """
+    if not isinstance(data, dict):
+        return None, None
+    pools = [data]
+    lowered = {str(k).lower(): v for k, v in data.items()}
+    for key in ("data", "payload", "transaction", "virtualaccounttransaction", "body"):
+        nested = lowered.get(key)
+        if isinstance(nested, dict):
+            pools.append(nested)
+    merged = {}
+    for p in pools:
+        merged.update(p)
+    ref = (
+        merged.get("transaction_ref")
+        or merged.get("transactionRef")
+        or merged.get("transactionReference")
+        or merged.get("TransactionRef")
+        or merged.get("merchant_transaction_ref")
+        or merged.get("transaction_reference")
+        or merged.get("reference")
+    )
+    amount = (
+        merged.get("amount")
+        or merged.get("transaction_amount")
+        or merged.get("amount_paid")
+        or merged.get("Amount")
+        or merged.get("credited_amount")
+    )
+    # Squad sometimes sends kobo integers — heuristic: values >= 100000 for
+    # small-ticket demos are likely kobo; otherwise treat as naira. The
+    # initiate call sends kobo, simulate sends naira, so normalise carefully:
+    # only downscale when the pending record matches better in naira.
+    return ref, amount
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SquadWebhookView(View):
+    """Squad payment webhook (primary). Verifies x-squad-signature (HMAC SHA512),
+    re-queries Squad for authoritative status, then confirms the matching
+    pending record via _confirm_transaction()."""
+
+    def post(self, request):
+        signature = request.headers.get('x-squad-signature', '')
+        if not SquadService.verify_webhook_signature(request.body, signature):
+            print("[SQUAD WEBHOOK] Invalid signature — rejecting")
+            return JsonResponse({"message": "Invalid signature"}, status=401)
+
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            return JsonResponse({"message": "Invalid JSON"}, status=400)
+
+        print(f"[SQUAD WEBHOOK] Received: {str(data)[:2000]}")
+        try:
+            ref, amount = _extract_squad_ref_and_amount(data)
+            if ref:
+                # Re-query Squad for authoritative status before confirming.
+                status_ok = False
+                try:
+                    requery = SquadService.verify_transaction(ref)
+                    status_ok = SquadService.transaction_is_successful(requery)
+                    if status_ok and amount is None:
+                        amount = (requery.get("data") or {}).get("transaction_amount")
+                except Exception as e:
+                    print(f"[SQUAD WEBHOOK] requery skipped: {e}")
+                if status_ok:
+                    try:
+                        amt = float(amount) if amount is not None else 0
+                    except Exception:
+                        amt = 0
+                    # Kobo heuristic: if webhook amount is 100x the pending
+                    # link amount, it arrived in kobo — convert to naira.
+                    link = PaymentLink.objects.filter(transaction_ref=ref).first()
+                    if link and amt and float(link.amount) > 0:
+                        if abs(amt / 100 - float(link.amount)) < 1:
+                            amt = amt / 100
+                    _confirm_transaction(ref, amt, {})
+                    print(f"[SQUAD WEBHOOK] Confirmed {ref} for {amt}")
+                else:
+                    print(f"[SQUAD WEBHOOK] Ignoring non-success status for {ref}")
+            else:
+                print("[SQUAD WEBHOOK] No transaction ref found in payload — ignoring")
+            return JsonResponse({"message": "Webhook received"}, status=200)
+        except Exception as e:
+            print(f"[SQUAD WEBHOOK] Error: {e}")
+            traceback.print_exc()
+            return JsonResponse({"message": "Error processing webhook"}, status=400)
+
+
+# ---------------------------------------------------------------------------
 # TRANSACTION LIST
 # ---------------------------------------------------------------------------
 
@@ -604,90 +727,157 @@ class PaymentLinkCheckoutView(View):
 # transfer lands, not from this endpoint.
 # ---------------------------------------------------------------------------
 
+def _mock_deposit_account(merchant, link, note):
+    return JsonResponse({
+        "success": True,
+        "provider": "mock",
+        "depositAccount": {
+            "bankName": "Wema Bank (Mock)",
+            "accountNumber": "1234567890",
+            "accountName": merchant.full_name,
+            "narration": f"Payment for invoice {link.transaction_ref}",
+        },
+        "amount": float(link.amount),
+        "message": (
+            f"Transfer ₦{link.amount:,.0f} to the account below. {note}"
+        ),
+    })
+
+
+def _squad_callback_url(request, transaction_ref):
+    try:
+        return request.build_absolute_uri(f"/payment-link/verify/{transaction_ref}/")
+    except Exception:
+        base = getattr(settings, "SITE_BASE_URL", "https://ojapass.onrender.com").rstrip("/")
+        return f"{base}/payment-link/verify/{transaction_ref}/"
+
+
+def _get_squad_checkout_url(request, link, merchant):
+    """Try Squad inline checkout for a PaymentLink. Returns the checkout URL
+    (caching it on the link so repeat clicks reuse one Squad transaction),
+    or None if Squad is unavailable/failed."""
+    meta = link.metadata or {}
+    cached = meta.get("squad_checkout")
+    if cached and cached.get("checkoutUrl"):
+        return cached["checkoutUrl"]
+    email = merchant.email or f"{merchant.phone}@ojapass.local"
+    # Squad validates the email strictly — fall back to a safe placeholder.
+    if "@" not in email or "." not in email.split("@")[-1]:
+        email = f"customer-{merchant.phone}@ojapass.ng"
+    result = SquadService.initiate_checkout(
+        email=email,
+        amount_naira=float(link.amount),
+        transaction_ref=link.transaction_ref,
+        callback_url=_squad_callback_url(request, link.transaction_ref),
+        customer_name=merchant.full_name,
+        metadata={"merchant": merchant.phone, "provider": "ojapass"},
+    )
+    if result.get("success"):
+        data = result.get("data") or {}
+        checkout_url = data.get("checkout_url") or data.get("checkoutUrl")
+        if checkout_url:
+            meta["squad_checkout"] = {
+                "checkoutUrl": checkout_url,
+                "transactionRef": data.get("transaction_ref") or link.transaction_ref,
+            }
+            meta["squad_provider"] = "squad"
+            link.metadata = meta
+            link.checkout_url = checkout_url
+            link.save(update_fields=["metadata", "checkout_url"])
+            return checkout_url
+    print(f"[SQUAD] checkout initiate failed for {link.transaction_ref}: {result.get('error')} — using mock")
+    return None
+
+
+def _squad_checkout_response(request, link, merchant):
+    """Try Squad inline checkout. Returns a JsonResponse on success, else None
+    (caller falls back to mock)."""
+    if not SquadService.is_configured():
+        return None
+    cached_before = (link.metadata or {}).get("squad_checkout", {}).get("checkoutUrl")
+    url = _get_squad_checkout_url(request, link, merchant)
+    if url:
+        return JsonResponse({
+            "success": True,
+            "provider": "squad",
+            "cached": bool(cached_before),
+            "checkoutUrl": url,
+            "amount": float(link.amount),
+            "message": "Continue to Squad to complete your payment.",
+        })
+    return None
+
+
+def _verify_with_squad_and_confirm(transaction_ref):
+    """Server-side requery: if Squad reports success and we haven't confirmed
+    yet, confirm locally. Returns True if the ref is now paid."""
+    from ..models import PaymentLink as _PL
+    try:
+        result = SquadService.verify_transaction(transaction_ref)
+    except Exception as e:
+        print(f"[SQUAD] verify skipped for {transaction_ref}: {e}")
+        return False
+    if SquadService.transaction_is_successful(result):
+        data = result.get("data") or {}
+        try:
+            amount = float(data.get("transaction_amount", 0)) / 100  # kobo -> naira
+        except Exception:
+            link = _PL.objects.filter(transaction_ref=transaction_ref).first()
+            amount = float(link.amount) if link else 0
+        _confirm_transaction(transaction_ref, amount, {})
+        print(f"[SQUAD] Verified + confirmed {transaction_ref} for ₦{amount}")
+        return True
+    return False
+
+
 class InitiateBmoniDepositView(View):
+    """Primary checkout initiator — Squad inline checkout (hosted payment page).
+
+    Keeps the old URL/class name so templates keep working. Tries Squad,
+    falls back to mock so demos never block on network.
+    """
     def post(self, request, transaction_ref):
         link = get_object_or_404(PaymentLink, transaction_ref=transaction_ref)
         if link.status == 'paid':
             return JsonResponse({"success": False, "message": "Already paid."}, status=400)
 
         merchant = link.user
-        bmoni_user_id = getattr(merchant, 'bmoni_user_id', None)
 
-        # Fallback: if BMONI not set up or API down, return mock deposit account for development
-        if not bmoni_user_id:
-            print(f"[BMONI BYPASS] No bmoni_user_id for {merchant.email} - using mock deposit account")
-            return JsonResponse({
-                "success": True,
-                "depositAccount": {
-                    "bankName": "Wema Bank (Mock)",
-                    "accountNumber": "1234567890",
-                    "accountName": merchant.full_name,
-                    "narration": f"Payment for invoice {link.transaction_ref}",
-                },
-                "amount": float(link.amount),
-                "message": (
-                    f"Transfer ₦{link.amount:,.0f} to the account below. "
-                    f"Note: BMONI not configured - this is a mock account for development."
-                ),
-            })
+        if SquadService.is_configured():
+            resp = _squad_checkout_response(request, link, merchant)
+            if resp is not None:
+                return resp
 
-        # Fetch the merchant's BMONI deposit account directly.
-        deposit_result = BMONIService.get_deposit_accounts(bmoni_user_id, "NGN")
-
-        if not deposit_result or not deposit_result.get("success"):
-            print(f"[BMONI BYPASS] BMONI API call failed for {merchant.email} - using mock deposit account")
-            return JsonResponse({
-                "success": True,
-                "depositAccount": {
-                    "bankName": "Wema Bank (Mock)",
-                    "accountNumber": "1234567890",
-                    "accountName": merchant.full_name,
-                    "narration": f"Payment for invoice {link.transaction_ref}",
-                },
-                "amount": float(link.amount),
-                "message": (
-                    f"Transfer ₦{link.amount:,.0f} to the account below. "
-                    f"Note: BMONI API unavailable - this is a mock account for development."
-                ),
-            })
-
-        accounts = deposit_result.get("data", {}).get("accounts", [])
-        if not accounts:
-            return JsonResponse(
-                {"success": False, "message": "No deposit account available for this merchant yet."},
-                status=400
-            )
-
-        account = accounts[0]
-        return JsonResponse({
-            "success": True,
-            "depositAccount": {
-                "bankName": account.get("bankName"),
-                "accountNumber": account.get("accountNumber"),
-                "accountName": account.get("accountName"),
-                "narration": account.get("depositMessage"),
-            },
-            "amount": float(link.amount),
-            "message": (
-                f"Transfer ₦{link.amount:,.0f} to the account below. "
-                f"We'll confirm automatically once it lands."
-            ),
-        })
+        return _mock_deposit_account(
+            merchant, link,
+            "Note: Squad unavailable - this is a mock account for development."
+        )
 
 
 class SimulateBmoniDepositView(View):
-    """Sandbox shortcut to confirm a pending payment link locally."""
+    """Sandbox shortcut to confirm a pending payment link locally.
+
+    First asks Squad for the real status (covers the case where the payer
+    already paid on the hosted checkout); otherwise confirms locally so the
+    demo never blocks on network. Sandbox/debug only.
+    """
 
     def post(self, request, transaction_ref):
-        if not settings.DEBUG:
-            return JsonResponse({"success": False, "message": "Simulation only allowed in debug mode."}, status=403)
+        is_sandbox_key = (getattr(settings, "SQUAD_SECRET_KEY", "") or "").startswith("sandbox_sk_")
+        if not settings.DEBUG and not is_sandbox_key:
+            return JsonResponse({"success": False, "message": "Simulation only allowed in sandbox/debug mode."}, status=403)
 
         link = get_object_or_404(PaymentLink, transaction_ref=transaction_ref)
         if link.status == 'paid':
             return JsonResponse({"success": False, "message": "This invoice is already paid."}, status=400)
 
+        if SquadService.is_configured():
+            if _verify_with_squad_and_confirm(link.transaction_ref):
+                return JsonResponse({"success": True, "provider": "squad", "message": "Payment verified with Squad.", "transaction_ref": link.transaction_ref})
+
         _confirm_transaction(link.transaction_ref, float(link.amount), {})
-        return JsonResponse({"success": True, "message": "Sandbox payment simulated successfully.", "transaction_ref": link.transaction_ref})
+        meta = link.metadata or {}
+        return JsonResponse({"success": True, "provider": meta.get("squad_provider", "mock"), "message": "Sandbox payment simulated successfully.", "transaction_ref": link.transaction_ref})
 
 
 # ---------------------------------------------------------------------------
@@ -699,6 +889,15 @@ class SimulateBmoniDepositView(View):
 
 class VerifyPaymentView(View):
     def get(self, request, transaction_ref):
+        # Squad redirects the payer here after hosted checkout (callback_url).
+        # Re-query Squad so the page confirms instantly without waiting for
+        # a public webhook URL — but only for refs we actually initiated with
+        # Squad (avoids a wasted API call on every mock/simulate page view).
+        # Safe: only confirms on Squad-reported success.
+        if SquadService.is_configured():
+            link = PaymentLink.objects.filter(transaction_ref=transaction_ref).first()
+            if link and (link.metadata or {}).get("squad_checkout"):
+                _verify_with_squad_and_confirm(transaction_ref)
         payment_link = PaymentLink.objects.filter(transaction_ref=transaction_ref).first()
         if payment_link:
             if payment_link.status == 'paid':

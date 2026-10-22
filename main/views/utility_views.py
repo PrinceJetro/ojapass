@@ -13,7 +13,7 @@ class ScoreNarrativeAPIView(LoginRequiredMixin, View):
         return JsonResponse({"success": True, "narrative": narrative, "currentScore": request.user.ojapass_score})
 
 class NotificationListView(LoginRequiredMixin, View):
-    def get(self, request):
+    def get(self, request, pk=None, *args, **kwargs):
         notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
         unread_count = notifications.filter(is_read=False).count()
         score_history = OjaScoreHistory.objects.filter(user=request.user).order_by('-timestamp')[:5]
@@ -26,6 +26,6 @@ class NotificationListView(LoginRequiredMixin, View):
         }
         return render(request, 'notification_center.html', context)
         
-    def post(self, request, pk): # Using POST for update
+    def post(self, request, pk=None, *args, **kwargs): # Using POST for update
         Notification.objects.filter(id=pk, user=request.user).update(is_read=True)
         return JsonResponse({"success": True})

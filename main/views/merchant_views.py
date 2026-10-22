@@ -20,7 +20,8 @@ class MamatallyDashboardView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
 
-        # Check BMONI sync status and attempt retry if needed
+        # Legacy BMONI sync — best-effort only, never blocks the dashboard.
+        # Squad is the primary provider; local/mock ledger is the fallback.
         if not user.bmoni_user_id or user.bmoni_sync_status in ['pending', 'failed']:
             print(f"[BMONI CHECK] Checking sync for {user.email} - status: {user.bmoni_sync_status}")
 
@@ -37,7 +38,11 @@ class MamatallyDashboardView(LoginRequiredMixin, View):
                 "address": user.address,
             }
 
-            bmoni_response = BMONIService.create_user(bmoni_user_data)
+            try:
+                bmoni_response = BMONIService.create_user(bmoni_user_data)
+            except Exception as e:
+                print(f"[BMONI CHECK] Sync skipped (non-blocking): {e}")
+                bmoni_response = None
 
             if bmoni_response and bmoni_response.get('success') and bmoni_response.get('data', {}).get('user'):
                 user.bmoni_user_id = bmoni_response['data']['user'].get('bmoniUserId')
@@ -100,13 +105,13 @@ class MamatallyDashboardView(LoginRequiredMixin, View):
                             print(f"[BMONI] VBA link error: {e}")
 
                 if not wallet_result.get('success') or not wallets:
-                    print(f"[BMONI CHECK] No wallet found for {user.email} - redirecting to KYC")
-                    return redirect('bmoni_kyc')
+                    # Squad era: BMONI wallet is optional. Continue to dashboard
+                    # with the local/mock virtual account instead of blocking.
+                    print(f"[BMONI CHECK] No wallet found for {user.email} - continuing with local ledger (Squad primary)")
             except Exception as e:
-                print(f"[BMONI CHECK] Wallet check failed: {e}")
+                print(f"[BMONI CHECK] Wallet check failed (non-blocking): {e}")
         else:
-            print(f"[BMONI CHECK] No bmoni_user_id for {user.email} - redirecting to KYC")
-            return redirect('bmoni_kyc')
+            print(f"[BMONI CHECK] No bmoni_user_id for {user.email} - continuing with local ledger (Squad primary)")
         today = timezone.now().date()
         inventory = Product.objects.filter(user=user)
         sales = Sale.objects.filter(user=user).order_by('-created_at')[:10]
@@ -213,13 +218,25 @@ class ProductListView(LoginRequiredMixin, View):
             data = json.loads(request.body)
         except:
             data = request.POST
-            
+
+        name = (data.get('name') or '').strip()
+        if not name:
+            return JsonResponse({"success": False, "message": "Product name is required."}, status=400)
+        try:
+            quantity = int(data.get('quantityInStock', 0))
+            cost_price = float(data.get('costPrice', 0))
+            selling_price = float(data.get('sellingPrice', 0))
+        except (TypeError, ValueError):
+            return JsonResponse({"success": False, "message": "Quantity and prices must be numbers."}, status=400)
+        if quantity < 0 or cost_price < 0 or selling_price <= 0:
+            return JsonResponse({"success": False, "message": "Invalid quantity or price values."}, status=400)
+
         p = Product.objects.create(
-            user=request.user, 
-            name=data.get('name'), 
-            quantity_in_stock=int(data.get('quantityInStock', 0)), 
-            cost_price=float(data.get('costPrice', 0)), 
-            selling_price=float(data.get('sellingPrice', 0)), 
+            user=request.user,
+            name=name,
+            quantity_in_stock=quantity,
+            cost_price=cost_price,
+            selling_price=selling_price,
             category=data.get('category')
         )
         return JsonResponse({"success": True, "product_id": p.id})
@@ -231,11 +248,16 @@ class ProductDetailView(LoginRequiredMixin, View):
             data = json.loads(request.body)
         except:
             data = request.POST
-            
-        p.name = data.get('name', p.name)
-        p.quantity_in_stock = int(data.get('quantityInStock', p.quantity_in_stock))
-        p.cost_price = float(data.get('costPrice', p.cost_price))
-        p.selling_price = float(data.get('sellingPrice', p.selling_price))
+
+        try:
+            p.name = data.get('name', p.name) or p.name
+            p.quantity_in_stock = int(data.get('quantityInStock', p.quantity_in_stock))
+            p.cost_price = float(data.get('costPrice', p.cost_price))
+            p.selling_price = float(data.get('sellingPrice', p.selling_price))
+        except (TypeError, ValueError):
+            return JsonResponse({"success": False, "message": "Quantity and prices must be numbers."}, status=400)
+        if p.quantity_in_stock < 0 or p.selling_price <= 0:
+            return JsonResponse({"success": False, "message": "Invalid quantity or price values."}, status=400)
         p.category = data.get('category', p.category)
         p.save()
         return JsonResponse({"success": True})
@@ -255,11 +277,30 @@ class SaleListView(LoginRequiredMixin, View):
             data = json.loads(request.body)
         except:
             data = request.POST
-            
-        with transaction.atomic():
-            product = Product.objects.select_for_update().get(id=data.get('productId'), user=request.user)
+
+        try:
             qty = int(data.get('quantity', 1))
+        except (TypeError, ValueError):
+            return JsonResponse({"success": False, "message": "Quantity must be a number."}, status=400)
+        if qty <= 0:
+            return JsonResponse({"success": False, "message": "Quantity must be at least 1."}, status=400)
+
+        try:
+            # Plain lookup here (select_for_update requires an active
+            # transaction) — the locked re-fetch happens inside atomic below.
+            product = Product.objects.get(id=data.get('productId'), user=request.user)
+        except Product.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Product not found."}, status=404)
+        except (TypeError, ValueError):
+            return JsonResponse({"success": False, "message": "Invalid product."}, status=400)
+
+        try:
             amount = Decimal(str(data.get('amount', product.selling_price)))
+        except (TypeError, ValueError):
+            return JsonResponse({"success": False, "message": "Invalid amount."}, status=400)
+
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(id=product.id, user=request.user)
             
             if product.quantity_in_stock < qty:
                 return JsonResponse({"success": False, "message": f"Insufficient stock. Current: {product.quantity_in_stock}"}, status=400)
@@ -302,10 +343,14 @@ class OrderDetailView(LoginRequiredMixin, View):
             data = request.POST
             
         order = get_object_or_404(Order, pk=pk, user=request.user)
-        order.status = data.get('status')
+        new_status = data.get('status')
+        if new_status not in ('pending', 'confirmed', 'fulfilled', 'paid'):
+            return JsonResponse({"success": False, "message": "Invalid status."}, status=400)
+        already_paid = (order.status == 'paid')
+        order.status = new_status
         order.save()
-        if order.status == 'paid' and order.product:
-            order.product.quantity_in_stock -= order.quantity
+        if order.status == 'paid' and not already_paid and order.product:
+            order.product.quantity_in_stock = max(0, order.product.quantity_in_stock - order.quantity)
             order.product.save()
             amount = order.total_amount or Decimal(str(order.quantity * (order.product.selling_price if order.product else 0)))
             transaction_ref = f"ORDER-{uuid.uuid4().hex[:12].upper()}"
@@ -332,7 +377,12 @@ class LogRestockView(LoginRequiredMixin, View):
             data = request.POST
             
         p = get_object_or_404(Product, id=data.get('productId'), user=request.user)
-        qty = int(data.get('quantity'))
+        try:
+            qty = int(data.get('quantity'))
+        except (TypeError, ValueError):
+            return JsonResponse({"success": False, "message": "Quantity must be a number."}, status=400)
+        if qty <= 0:
+            return JsonResponse({"success": False, "message": "Quantity must be positive."}, status=400)
         p.quantity_in_stock += qty
         p.save()
         StockMovement.objects.create(product=p, user=request.user, movement_type='restock', quantity=qty)
@@ -352,9 +402,13 @@ class PayrollBatchView(LoginRequiredMixin, View):
             data = request.POST
             
         workers = data.get('workers', [])
+        if not isinstance(workers, list):
+            return JsonResponse({"success": False, "message": "Workers must be a list."}, status=400)
         for w in workers:
-            # TODO: Implement BMONI transfer for payroll
+            # TODO: Implement Squad transfer for payroll (needs merchant profiling)
             # For now, log the transfer request
-            print(f"[BMONI] Payroll transfer: ₦{w['amount']} to {w['account']}")
+            if not isinstance(w, dict) or 'amount' not in w or 'account' not in w:
+                return JsonResponse({"success": False, "message": "Each worker needs amount and account."}, status=400)
+            print(f"[SQUAD] Payroll transfer: ₦{w['amount']} to {w['account']}")
         recalculate_ojascore(request.user.id)
         return JsonResponse({"success": True})

@@ -53,7 +53,7 @@
                 </button>
                 <p class="text-center text-xs text-on-surface-variant flex items-center justify-center gap-1 opacity-60">
                     <span class="material-symbols-outlined text-sm">verified_user</span>
-                    Secured by Bmoni Payments Gateway
+                    Secured by Squad Payments Gateway
                 </p>
             </div>
         </div>
@@ -121,6 +121,12 @@ async function initiatePayment() {
             }
         });
         const data = await response.json();
+
+        if (data.success && data.checkoutUrl) {
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-3xl">sync</span> Redirecting to Squad...';
+            window.location.href = data.checkoutUrl;
+            return;
+        }
 
         if (data.success && data.depositAccount) {
             document.getElementById('deposit-bank').textContent = data.depositAccount.bankName || 'N/A';

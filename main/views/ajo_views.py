@@ -18,7 +18,7 @@ def _create_next_cycle(group):
     members = list(group.memberships.order_by('rotation_order'))
     if not members: return None
     beneficiary = members[group.current_beneficiary_index % len(members)].user
-    days = 7 if group.frequency == 'weekly' else 30
+    days = {'weekly': 7, 'biweekly': 14, 'monthly': 30}.get(group.frequency, 7)
     cycle = AjoCycle.objects.create(group=group, cycle_number=group.current_cycle, beneficiary=beneficiary, expected_amount=group.contribution_amount * len(members), due_date=timezone.now() + timedelta(days=days))
     for m in members: AjoContribution.objects.create(cycle=cycle, member=m.user, amount=group.contribution_amount)
     return cycle
@@ -32,11 +32,12 @@ def _disburse_cycle(cycle, group):
         return {"success": False, "message": f"Beneficiary {cycle.beneficiary.full_name} has no virtual account."}
 
     # TODO: Implement BMONI transfer for Ajo payout
-    print(f"[BMONI] Ajo payout: ₦{total} to {cycle.beneficiary.full_name}")
+    print(f"[SQUAD] Ajo payout: ₦{total} to {cycle.beneficiary.full_name} (local ledger)")
     cycle.status, cycle.disbursed_at = 'disbursed', timezone.now()
     cycle.save()
     group.current_cycle += 1
-    group.current_beneficiary_index = (group.current_beneficiary_index + 1) % group.memberships.count()
+    member_count = group.memberships.count() or 1
+    group.current_beneficiary_index = (group.current_beneficiary_index + 1) % member_count
     group.save()
     # Update beneficiary stats
     beneficiary_membership = AjoMembership.objects.filter(group=group, user=cycle.beneficiary).first()

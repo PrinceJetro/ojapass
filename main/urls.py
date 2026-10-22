@@ -5,7 +5,7 @@ from .views import (
     ResolveBVNView, RegisterView, LoginView, LogoutView, UserProfileView,
     BmoniKycView, TransactionListView, CreatePaymentLinkView,
     PaymentLinkCheckoutView, InitiateBmoniDepositView, SimulateBmoniDepositView,
-    VerifyPaymentView, BMONIWebhookView, MamatallyDashboardView, ProductListView,
+    VerifyPaymentView, BMONIWebhookView, SquadWebhookView, MamatallyDashboardView, ProductListView,
     ProductDetailView, SaleListView, OrderListView, OrderDetailView,
     StorefrontView, StorefrontCheckoutView, NotificationListView,
     LogRestockView, StockMovementListView,
@@ -40,6 +40,7 @@ urlpatterns = [
     path('payment-link/simulate/<str:transaction_ref>/', SimulateBmoniDepositView.as_view(), name='simulate_payment_link'),
     path('payment-link/verify/<str:transaction_ref>/', VerifyPaymentView.as_view(), name='verify_payment'),
     path('bmoni/webhook/', BMONIWebhookView.as_view(), name='bmoni_webhook'),
+    path('squad/webhook/', SquadWebhookView.as_view(), name='squad_webhook'),
     path('bmoni/proposals/<str:proposal_id>/sign/', SubmitProposalSignatureView.as_view(), name='bmoni_submit_signature'),
     path('bmoni/proposals/<str:proposal_id>/sign-ui/', SignProposalPageView.as_view(), name='bmoni_sign_ui'),
     
